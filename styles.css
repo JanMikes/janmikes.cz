@@ -1,0 +1,21 @@
+body {
+	background: #6B87A8;
+	color: #052142;
+	font-family: 'Open Sans', sans-serif;
+	text-align: center;
+	padding: 20px;
+	font-size: 16px;
+}
+
+.crypted-mail:after {
+	content: attr(data-name) "@" attr(data-domain) "." attr(data-tld);
+}
+
+a {
+	text-decoration: underline;
+	color: #052142;
+}
+
+h1 {
+	font-size: 36px;
+}
