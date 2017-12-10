@@ -1,10 +1,10 @@
 body {
-	background: #6B87A8;
 	color: #052142;
 	font-family: 'Open Sans', sans-serif;
 	text-align: center;
 	padding: 20px;
 	font-size: 16px;
+	background: #159957 linear-gradient(120deg, #155799, #159957) fixed;
 }
 
 .crypted-mail:after {
