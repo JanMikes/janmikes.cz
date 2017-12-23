@@ -1,9 +1,8 @@
 body {
 	color: #052142;
 	font-family: 'Open Sans', sans-serif;
-	text-align: center;
-	padding: 20px;
-	font-size: 16px;
+	padding: 5px;
+	font-size: 14px;
 	background: #159957 linear-gradient(120deg, #155799, #159957) fixed;
 }
 
@@ -18,4 +17,100 @@ a {
 
 h1 {
 	font-size: 36px;
+	margin-top: 0;
+}
+
+h2 {
+	border-top: 1px solid #e0e0e0;
+	padding: 15px 0 0;
+	margin-bottom: 15px;
+}
+
+.main-container {
+	max-width: 800px;
+	padding: 15px 20px;
+	background: #fff;
+	margin: 0 auto;
+	box-shadow: 2px 2px 7px rgba(0, 0, 0, .3);
+}
+
+.photo {
+	float: right;
+	width: 128px;
+	height: 128px;
+	border-radius: 50%;
+	margin-left: 15px;
+	margin-bottom: 10px;
+}
+
+.technologies-list {
+	list-style-type: none;
+	margin: 5px -3px;
+	padding: 0;
+}
+
+.technologies-list li {
+	display: inline-block;
+	font-size: 12px;
+	border: 1px solid #052142;
+	padding: 3px 5px;
+	line-height: 100%;
+	background: #eee;
+	margin: 3px 2px;
+	border-radius: 2px;
+}
+
+.apps-numbers {
+	text-align: center;
+}
+
+.apps-numbers p {
+	margin: 0;
+}
+
+.apps-numbers > div {
+	display: inline-block;
+	width: 120px;
+	border: 1px solid #000;
+	text-align: center;
+	padding: 5px;
+	border-radius: 2px;
+	background: #159957 linear-gradient(120deg, #155799, #159957) fixed;
+	color: #fff;
+	font-size: 14px;
+	margin: 5px;
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, .5);
+}
+
+.apps-numbers .number {
+	display: block;
+	font-weight: bold;
+	font-size: 18px;
+}
+
+.contacts {
+	list-style-type: none;
+	margin: 0 0 15px;
+	padding: 0;
+	font-size: 18px;
+	line-height: 24px;
+	text-align: center;
+}
+
+.contacts i {
+	display: inline-block;
+	margin-right: 3px;
+	font-size: 20px;
+}
+
+.contacts li {
+	display: inline-block;
+	margin: 3px 15px;
+}
+
+@media (min-width: 768px) {
+	body {
+		padding: 20px;
+		font-size: 16px;
+	}
 }
