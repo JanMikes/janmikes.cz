@@ -62,6 +62,7 @@ h2 {
 .photo img {
 	width: 130px;
 	height: 130px;
+	border-radius: 50%;
 }
 
 .technologies-list {
