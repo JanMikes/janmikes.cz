@@ -3,7 +3,7 @@ body {
 	font-family: 'Open Sans', sans-serif;
 	padding: 5px;
 	font-size: 14px;
-	background: #159957 linear-gradient(120deg, #155799, #159957) fixed;
+	background: #006ef4 linear-gradient(120deg, #10bcf4, #006ef4) fixed;
 }
 
 .crypted-mail:after {
@@ -12,7 +12,7 @@ body {
 
 a {
 	text-decoration: underline;
-	color: #052142;
+	color: #006ef4;
 }
 
 h1 {
@@ -69,6 +69,7 @@ h2 {
 	list-style-type: none;
 	margin: 5px -3px;
 	padding: 0;
+	text-align: center;
 }
 
 .technologies-list li {
@@ -94,15 +95,15 @@ h2 {
 .apps-numbers > div {
 	display: inline-block;
 	width: 120px;
-	border: 1px solid #000;
+	border: 1px solid #fff;
 	text-align: center;
 	padding: 5px;
 	border-radius: 2px;
-	background: #159957 linear-gradient(150deg, #155799, #159957);
+	background: #10bcf4 linear-gradient(135deg, #006ef4, #10bcf4);
 	color: #fff;
 	font-size: 14px;
 	margin: 5px;
-	box-shadow: 2px 2px 5px rgba(0, 0, 0, .5);
+	box-shadow: 1px 1px 7px rgba(0, 0, 0, .55);
 }
 
 .apps-numbers .number {
@@ -129,6 +130,25 @@ h2 {
 .contacts li {
 	display: inline-block;
 	margin: 3px 15px;
+}
+
+.logos {
+	list-style-type: none;
+	margin: 40px 0 10px;
+	padding: 0;
+	text-align: center;
+	width: 100%;
+}
+
+.logos li {
+	margin: 15px 0;
+	padding: 0;
+}
+
+.logos img {
+	width: auto;
+	max-width: 240px;
+	max-height: 100px;
 }
 
 @media (min-width: 768px) {
