@@ -1,0 +1,6 @@
+{
+    "require": {
+        "roave/security-advisories": "dev-master",
+        "symplify/statie": "^4.4"
+    }
+}
