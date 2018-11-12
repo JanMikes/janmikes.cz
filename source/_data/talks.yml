@@ -1,0 +1,7 @@
+parameters:
+  talks:
+    -
+      title: Test talk 1
+
+    -
+      title: Test talk 2

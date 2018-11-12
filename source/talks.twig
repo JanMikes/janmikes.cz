@@ -6,4 +6,10 @@ id: talks
 
 {% block content %}
     Talks
+
+    {% for talk in talks %}
+        <p>
+            {{ talk.title }}
+        </p>
+    {% endfor %}
 {% endblock %}
