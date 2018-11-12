@@ -1,2 +1,4 @@
 parameters:
   templating: 'twig'
+
+  google_tag_manager_id: 'UA-32470478-39'
