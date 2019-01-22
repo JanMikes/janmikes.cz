@@ -1,6 +1,6 @@
 # Janmikes.cz
 
-![](https://travis-ci.org/JanMikes/janmikes.cz.svg?branch=master)  
+[![Travis build](https://travis-ci.org/JanMikes/janmikes.cz.svg?branch=master)](https://travis-ci.org/JanMikes/janmikes.cz/builds)  
 
 This website runs on [Statie](https://github.com/symplify/statie)
 
