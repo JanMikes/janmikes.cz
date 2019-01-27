@@ -2,3 +2,6 @@
 
 imports:
     - { resource: "source/_data/*.yaml" }
+
+parameters:
+    site_title: "Jan Mikeš - IT Expert, konzultant, mentor, startup lover"
