@@ -1,3 +1,4 @@
 <nav>
     <a href="/" class="{% if id is defined and id == 'home' %}active{% endif %}">Jan Mikeš</a>
+    <a href="/blog" class="{% if (id is defined and id == 'blog') or post is defined %}active{% endif %}">Blog</a>
 </nav>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% include "_snippets/head.twig" %}
+
+    <body>
+    <!-- post_id: {{ post.getId() }} -->
+
+        {% include "_snippets/menu.twig" %}
+
+        <div class="main-container">
+            <h1>{{ post.title|raw }}</h1>
+
+            <time datetime="{{ post.getDateInFormat('Y-m-D') }}">{{ post.getDateInFormat('D, M j, Y') }}</time>
+
+            <div class="card card-bigger">
+                <div class="card-body">
+                    {{ post.perex|raw }}
+                </div>
+            </div>
+
+            {{ post.content|raw }}
+        </div>
+
+    </body>
+</html>

@@ -5,3 +5,8 @@ imports:
 
 parameters:
     site_title: "Jan Mikeš - IT Expert, konzultant, mentor, startup lover"
+
+    generators:
+        posts:
+            # relative to /source
+            layout: '_layouts/post.twig'

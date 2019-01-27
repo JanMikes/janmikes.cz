@@ -1,0 +1,23 @@
+---
+layout: "_layouts/default.twig"
+id: blog
+title: "Blog posts"
+---
+
+{% block content %}
+    <h1>Blog posts</h1>
+    {% for post in posts %}
+
+        <article>
+            <h2>
+                <a href="/{{ post.relativeUrl }}/">
+                    {{ post.title|raw }}
+                </a>
+            </h2>
+
+            <time datetime="{{ post.getDateInFormat('Y-m-D') }}">{{ post.getDateInFormat('D, M j, Y') }}</time>
+
+            <p>{{ post.perex|raw }}</p>
+        </article>
+    {% endfor %}
+{% endblock %}

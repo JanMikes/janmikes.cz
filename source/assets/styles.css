@@ -151,6 +151,29 @@ h2 {
 	max-height: 100px;
 }
 
+nav {
+    max-width: 800px;
+    background: #fff;
+    margin: 0 auto;
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, .3);
+}
+
+nav .active {
+    color: #000;
+    background: #efefef;
+}
+
+nav a {
+    display: inline-block;
+    padding: 15px 20px;
+    text-decoration: none;
+    transition: all .3s ease;
+}
+
+nav a:hover {
+    background: #eee;
+}
+
 @media (min-width: 768px) {
 	body {
 		padding: 20px;
