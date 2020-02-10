@@ -1,3 +1,9 @@
+Idea: website should give idea about who i am, what i do, what i want and if i can help you with anything, potentially help me get some interesting business?
+
+As well: SHOW YOUR WORK!!
+
+Think about UX, it should be clear
+
 ## Intro
 Photo  
 Short text - up to 4 paragraphs?
@@ -19,7 +25,7 @@ Short text - up to 4 paragraphs?
 - PSR-4 (will be presented on getrector.org as well)
 - Glami - git bisect
 
-## Story (long text?) / Timeline?
+## Story (long text?) / Timeline? (Autobiography)
 - Toptal newtork
 - Rector
 - Consultations CI/CD, architecture, Docker, Nette, Symfony
