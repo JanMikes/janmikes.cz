@@ -5,5 +5,8 @@
         "gulp-cli": "^2.0",
         "gulp-watch": "^5.0"
     },
-    "private": true
+    "private": true,
+    "scripts": {
+        "watch": "gulp"
+    }
 }
