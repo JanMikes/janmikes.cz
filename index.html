@@ -88,19 +88,18 @@ a:hover{text-decoration:underline; text-underline-offset:3px}
 @media (min-width:37.5rem){.recent__grid{grid-template-columns:1fr 1fr}}
 .talk{
   display:block; position:relative;
-  padding:.85rem 1rem .9rem 2rem;
+  padding:.6rem .85rem .65rem 1.85rem;
   border:1px solid var(--border); border-left:2px solid var(--accent);
   border-radius:8px; background:var(--raise);
   color:inherit; transition:border-color .15s, transform .15s, background .15s;
 }
 .talk:hover,.talk:focus-visible{text-decoration:none; border-color:var(--accent); border-left-color:var(--accent); transform:translateY(-1px)}
 .talk::before{
-  content:"→"; position:absolute; left:.85rem; top:.85rem;
+  content:"→"; position:absolute; left:.75rem; top:.6rem;
   color:var(--accent); transition:transform .15s;
 }
 .talk:hover::before{transform:translateX(2px)}
-.talk b{display:block; font-weight:600; color:var(--fg-strong); line-height:1.5}
-.talk span{display:block; margin-top:.3rem; font-size:.8rem; color:var(--dim); line-height:1.6}
+.talk b{display:block; font-weight:600; font-size:.84rem; color:var(--fg-strong); line-height:1.5}
 
 /* ---------- terminal ---------- */
 .term{
@@ -116,8 +115,6 @@ a:hover{text-decoration:underline; text-underline-offset:3px}
 .term__bar span{margin-left:.5rem;font-size:.74rem;letter-spacing:.02em;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .term__body{padding:1.4rem 1.5rem 1.6rem}
 @media (max-width:30rem){.term__body{padding:1.15rem 1.1rem 1.35rem}}
-.cmd{color:var(--accent); margin:0}
-.cmd::before{content:"$ "; color:var(--dim)}
 h1{
   font-size:clamp(1.35rem,5.5vw,1.7rem); font-weight:600; letter-spacing:-.015em;
   color:var(--fg-strong); margin:.5rem 0 1rem;
@@ -144,6 +141,7 @@ h2::after{content:""; flex:1; height:1px; background:var(--border-soft)}
 p{margin:0 0 1rem}
 .lead{color:var(--fg)}
 .note{color:var(--dim); font-size:.87rem}
+em{font-style:italic; color:var(--fg-strong)}
 
 /* about + photo */
 .about{display:grid; gap:1.4rem; align-items:start}
@@ -151,6 +149,7 @@ p{margin:0 0 1rem}
 .photo{
   width:100%; max-width:11rem; height:auto; border-radius:10px;
   border:1px solid var(--border); display:block;
+  filter:grayscale(.3) contrast(.92);
 }
 .roles{list-style:none; margin:0; padding:0}
 .roles li{margin:0 0 1rem}
@@ -166,7 +165,7 @@ p{margin:0 0 1rem}
 .hero h3 a{color:var(--fg-strong)}
 .hero h3 a:hover{color:var(--link)}
 .hero p{margin:0; font-size:.89rem; color:var(--dim)}
-.badges{display:flex; flex-wrap:wrap; gap:.4rem; margin:.7rem 0 0}
+.badges{display:flex; flex-wrap:wrap; gap:.4rem; margin:1.05rem 0 0}
 .badge{
   font-size:.72rem; letter-spacing:.03em; color:var(--accent);
   border:1px solid var(--border); border-radius:999px; padding:.1rem .55rem; background:var(--bg);
@@ -194,7 +193,6 @@ p{margin:0 0 1rem}
 /* footer */
 footer{margin-top:3rem; padding-top:1.4rem; border-top:1px solid var(--border-soft); color:var(--dim); font-size:.8rem}
 footer p{margin:0 0 .4rem}
-footer .cmd{font-size:.8rem}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important; transition:none !important}
@@ -212,11 +210,9 @@ footer .cmd{font-size:.8rem}
     <div class="recent__grid">
       <a class="talk" href="https://techmeetup-43-1.janmikes.cz">
         <b>Claude Code: clean long sessions without bloated context</b>
-        <span>Talk slides</span>
       </a>
       <a class="talk" href="https://techmeetup-43-2.janmikes.cz">
-        <b>„A vývojáři nebudou mít co žrát“</b>
-        <span>“And the devs will have nothing to eat” — a light-hearted look at autonomous Claude Code platforms. Talk slides, in Czech.</span>
+        <b>A vývojáři nebudou mít co žrát</b>
       </a>
     </div>
   </header>
@@ -229,7 +225,6 @@ footer .cmd{font-size:.8rem}
         <span>janmikes.cz — ~</span>
       </div>
       <div class="term__body">
-        <p class="cmd">whoami</p>
         <h1 id="hello">Hi, I'm Jan 👋</h1>
         <p>Tech founder and hands-on engineer from the Czech Republic. I deployed my first web application over 20 years ago and never really stopped.</p>
         <p>I build products end to end — from the database migration to the pricing page. Repeat founder, PHP geek by origin, consultant when someone is stuck.</p>
@@ -248,8 +243,8 @@ footer .cmd{font-size:.8rem}
         </picture>
         <ul class="roles">
           <li><b>Founding</b>Repeat founder. I start products, run them, and stay close enough to the code to still be useful.</li>
-          <li><b>Engineering</b>Legacy code rescue, CI/CD, containers, architecture, profiling and performance — the unglamorous work that makes teams fast.</li>
-          <li><b>Sharing</b>I speak at meetups and conferences, and open-source what I can. Transparency beats mystique.</li>
+          <li><b>Engineering</b>I genuinely love technical debt. Taming legacy code <em>at scale</em> is a rare skill, and it&rsquo;s the one I&rsquo;m best at — together with CI/CD, containers, architecture and performance.</li>
+          <li><b>Sharing</b>I love open source. Whatever can be public, I make public — and I speak at meetups and conferences about what I learn along the way.</li>
         </ul>
       </div>
     </section>
@@ -271,7 +266,7 @@ footer .cmd{font-size:.8rem}
         <a href="https://sendvery.com">sendvery.com</a>
         <a href="https://peon.dev">peon.dev</a>
       </div>
-      <p class="note">…and a few more. Consulting and advisory alongside it.</p>
+      <p class="note">…and many more. Consulting and advisory alongside it.</p>
     </section>
 
     <section id="topics" aria-labelledby="h-topics">
@@ -298,8 +293,6 @@ footer .cmd{font-size:.8rem}
   </main>
 
   <footer>
-    <p class="cmd">uptime</p>
-    <p>20+ years up · load average: too many projects, one human</p>
     <p>Hand-written HTML. No framework, no tracking, no cookies. <a href="https://github.com/JanMikes/janmikes.cz">Source on GitHub</a>.</p>
   </footer>
 
