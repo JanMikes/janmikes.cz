@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="janmikes.cz">
+  <rect width="64" height="64" rx="14" fill="#0d1117"/>
+  <rect x="1" y="1" width="62" height="62" rx="13.5" fill="none" stroke="#21262d" stroke-width="2"/>
+  <path d="M16 21 L28 32 L16 43" fill="none" stroke="#3fb950" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="33" y="38" width="17" height="5.5" rx="2.75" fill="#3fb950"/>
+</svg>

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jan Mikeš — Tech founder &amp; engineer</title>
+<meta name="description" content="Jan Mikeš — tech founder and hands-on engineer from the Czech Republic. 20+ years building products end to end. Trained at Salesforce, Oracle and Google in Silicon Valley. Builder of MySpeedPuzzling.com and other things, mostly in the open.">
+<link rel="canonical" href="https://janmikes.cz/">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Jan Mikeš — Tech founder &amp; engineer">
+<meta property="og:description" content="20+ years building products end to end. Repeat founder, hands-on engineer, Silicon Valley trained. Building in the open.">
+<meta property="og:url" content="https://janmikes.cz/">
+<meta property="og:image" content="https://janmikes.cz/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Jan Mikeš — tech founder and engineer">
+<meta property="og:locale" content="en_GB">
+<meta property="profile:first_name" content="Jan">
+<meta property="profile:last_name" content="Mikeš">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Jan Mikeš — Tech founder &amp; engineer">
+<meta name="twitter:description" content="20+ years building products end to end. Repeat founder, hands-on engineer, Silicon Valley trained. Building in the open.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/og.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<style>
+:root{
+  --bg:#0d1117; --panel:#010409; --raise:#0f151d;
+  --border:#21262d; --border-soft:#191f27;
+  --fg:#c9d1d9; --fg-strong:#e6edf3; --dim:#8b949e;
+  --accent:#3fb950; --link:#58a6ff;
+  --glow:rgba(63,185,80,.16);
+  --shadow:0 24px 70px -28px rgba(0,0,0,.75);
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f6f8fa; --panel:#ffffff; --raise:#ffffff;
+    --border:#d0d7de; --border-soft:#e4e8ec;
+    --fg:#24292f; --fg-strong:#0b0e12; --dim:#59636e;
+    --accent:#116329; --link:#0969da;
+    --glow:rgba(17,99,41,.10);
+    --shadow:0 20px 50px -30px rgba(31,35,40,.35);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+::selection{background:var(--accent); color:var(--panel)}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono","Roboto Mono",monospace;
+  font-size:15px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.glow{
+  position:fixed; inset:-20% 0 auto 0; height:70vh; pointer-events:none; z-index:0;
+  background:radial-gradient(60% 55% at 50% 0%, var(--glow), transparent 70%);
+}
+.wrap{position:relative; z-index:1; width:100%; max-width:46rem; margin:0 auto; padding:clamp(1.25rem,4vw,3rem) 1.25rem 3rem}
+a{color:var(--link); text-decoration:none}
+a:hover{text-decoration:underline; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
+.skip{position:absolute; left:-9999px}
+.skip:focus{position:static; display:inline-block; margin-bottom:1rem; color:var(--accent)}
+
+/* ---------- recently ---------- */
+.recent{margin:0 0 1.5rem}
+.recent__label{
+  display:flex; align-items:center; gap:.5rem;
+  margin:0 0 .6rem; padding-left:.15rem;
+  font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+}
+.pulse{width:.5rem;height:.5rem;border-radius:50%;background:var(--accent);flex:none;
+  box-shadow:0 0 0 0 var(--accent); animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 .45rem rgba(63,185,80,0)}100%{box-shadow:0 0 0 0 rgba(63,185,80,0)}}
+.recent__grid{display:grid; gap:.6rem}
+@media (min-width:37.5rem){.recent__grid{grid-template-columns:1fr 1fr}}
+.talk{
+  display:block; position:relative;
+  padding:.85rem 1rem .9rem 2rem;
+  border:1px solid var(--border); border-left:2px solid var(--accent);
+  border-radius:8px; background:var(--raise);
+  color:inherit; transition:border-color .15s, transform .15s, background .15s;
+}
+.talk:hover,.talk:focus-visible{text-decoration:none; border-color:var(--accent); border-left-color:var(--accent); transform:translateY(-1px)}
+.talk::before{
+  content:"→"; position:absolute; left:.85rem; top:.85rem;
+  color:var(--accent); transition:transform .15s;
+}
+.talk:hover::before{transform:translateX(2px)}
+.talk b{display:block; font-weight:600; color:var(--fg-strong); line-height:1.5}
+.talk span{display:block; margin-top:.3rem; font-size:.8rem; color:var(--dim); line-height:1.6}
+
+/* ---------- terminal ---------- */
+.term{
+  border:1px solid var(--border); border-radius:10px;
+  background:var(--panel); overflow:hidden; box-shadow:var(--shadow);
+}
+.term__bar{
+  display:flex; align-items:center; gap:.45rem;
+  padding:.6rem .9rem; background:var(--bg); border-bottom:1px solid var(--border);
+}
+.term__bar i{width:.7rem;height:.7rem;border-radius:50%;display:inline-block;flex:none}
+.d1{background:#ff5f56}.d2{background:#ffbd2e}.d3{background:#27c93f}
+.term__bar span{margin-left:.5rem;font-size:.74rem;letter-spacing:.02em;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.term__body{padding:1.4rem 1.5rem 1.6rem}
+@media (max-width:30rem){.term__body{padding:1.15rem 1.1rem 1.35rem}}
+.cmd{color:var(--accent); margin:0}
+.cmd::before{content:"$ "; color:var(--dim)}
+h1{
+  font-size:clamp(1.35rem,5.5vw,1.7rem); font-weight:600; letter-spacing:-.015em;
+  color:var(--fg-strong); margin:.5rem 0 1rem;
+}
+.term__body p{margin:0 0 .9rem}
+.term__body p:last-child{margin-bottom:0}
+.status{color:var(--dim)}
+.status b{color:var(--accent); font-weight:400}
+.cursor{
+  display:inline-block; width:.5rem; height:1rem; background:var(--accent);
+  margin-left:.25rem; vertical-align:-.14rem; animation:blink 1.1s steps(1) infinite;
+}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- sections ---------- */
+section{margin-top:2.75rem}
+h2{
+  display:flex; align-items:center; gap:.6rem;
+  font-size:.95rem; font-weight:600; color:var(--fg-strong);
+  margin:0 0 1.1rem; letter-spacing:.01em;
+}
+h2::before{content:"#"; color:var(--accent); font-weight:400}
+h2::after{content:""; flex:1; height:1px; background:var(--border-soft)}
+p{margin:0 0 1rem}
+.lead{color:var(--fg)}
+.note{color:var(--dim); font-size:.87rem}
+
+/* about + photo */
+.about{display:grid; gap:1.4rem; align-items:start}
+@media (min-width:34rem){.about{grid-template-columns:9.5rem 1fr; gap:1.6rem}}
+.photo{
+  width:100%; max-width:11rem; height:auto; border-radius:10px;
+  border:1px solid var(--border); display:block;
+}
+.roles{list-style:none; margin:0; padding:0}
+.roles li{margin:0 0 1rem}
+.roles li:last-child{margin-bottom:0}
+.roles b{display:block; color:var(--fg-strong); font-weight:600}
+
+/* building */
+.hero{
+  border:1px solid var(--border); border-radius:8px; background:var(--raise);
+  padding:1rem 1.1rem; margin:0 0 1rem;
+}
+.hero h3{margin:0 0 .4rem; font-size:.95rem; font-weight:600}
+.hero h3 a{color:var(--fg-strong)}
+.hero h3 a:hover{color:var(--link)}
+.hero p{margin:0; font-size:.89rem; color:var(--dim)}
+.badges{display:flex; flex-wrap:wrap; gap:.4rem; margin:.7rem 0 0}
+.badge{
+  font-size:.72rem; letter-spacing:.03em; color:var(--accent);
+  border:1px solid var(--border); border-radius:999px; padding:.1rem .55rem; background:var(--bg);
+}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(13rem,1fr)); gap:.4rem; margin:0 0 1rem}
+.grid a{
+  border:1px solid var(--border-soft); border-radius:6px; padding:.45rem .65rem;
+  color:var(--fg); font-size:.85rem; transition:border-color .15s,color .15s;
+}
+.grid a:hover{text-decoration:none; border-color:var(--accent); color:var(--fg-strong)}
+.grid a::before{content:"▸ "; color:var(--dim)}
+
+/* topics */
+.tags{display:flex; flex-wrap:wrap; gap:.4rem; margin:0 0 1.1rem; padding:0; list-style:none}
+.tags li{
+  font-size:.8rem; color:var(--fg); border:1px solid var(--border-soft);
+  border-radius:5px; padding:.15rem .55rem; background:var(--raise);
+}
+
+/* contact */
+.contact{display:grid; grid-template-columns:auto 1fr; gap:.35rem 1.1rem; margin:0}
+.contact dt{color:var(--dim); font-size:.85rem}
+.contact dd{margin:0; overflow-wrap:anywhere}
+
+/* footer */
+footer{margin-top:3rem; padding-top:1.4rem; border-top:1px solid var(--border-soft); color:var(--dim); font-size:.8rem}
+footer p{margin:0 0 .4rem}
+footer .cmd{font-size:.8rem}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="glow" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <header class="recent">
+    <p class="recent__label"><span class="pulse" aria-hidden="true"></span> Recently · Tech Meetup #43</p>
+    <div class="recent__grid">
+      <a class="talk" href="https://techmeetup-43-1.janmikes.cz">
+        <b>Claude Code: clean long sessions without bloated context</b>
+        <span>Talk slides</span>
+      </a>
+      <a class="talk" href="https://techmeetup-43-2.janmikes.cz">
+        <b>„A vývojáři nebudou mít co žrát“</b>
+        <span>“And the devs will have nothing to eat” — a light-hearted look at autonomous Claude Code platforms. Talk slides, in Czech.</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="term" aria-labelledby="hello">
+      <div class="term__bar">
+        <i class="d1"></i><i class="d2"></i><i class="d3"></i>
+        <span>janmikes.cz — ~</span>
+      </div>
+      <div class="term__body">
+        <p class="cmd">whoami</p>
+        <h1 id="hello">Hi, I'm Jan 👋</h1>
+        <p>Tech founder and hands-on engineer from the Czech Republic. I deployed my first web application over 20 years ago and never really stopped.</p>
+        <p>I build products end to end — from the database migration to the pricing page. Repeat founder, PHP geek by origin, consultant when someone is stuck.</p>
+        <p>I was trained at Salesforce and Oracle in San Francisco and at Google in Palo Alto. Still one of the things I'm proudest of.</p>
+        <p>Whatever can be built in the open, I build in the open.</p>
+        <p class="status"><b>●</b> currently: busy, caffeinated, shipping<span class="cursor" aria-hidden="true"></span></p>
+      </div>
+    </section>
+
+    <section id="about" aria-labelledby="h-about">
+      <h2 id="h-about">what I do</h2>
+      <div class="about">
+        <picture>
+          <source srcset="/assets/jan-mikes.webp" type="image/webp">
+          <img class="photo" src="/assets/jan-mikes.jpg" width="600" height="750" decoding="async" alt="Portrait of Jan Mikeš">
+        </picture>
+        <ul class="roles">
+          <li><b>Founding</b>Repeat founder. I start products, run them, and stay close enough to the code to still be useful.</li>
+          <li><b>Engineering</b>Legacy code rescue, CI/CD, containers, architecture, profiling and performance — the unglamorous work that makes teams fast.</li>
+          <li><b>Sharing</b>I speak at meetups and conferences, and open-source what I can. Transparency beats mystique.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="building" aria-labelledby="h-building">
+      <h2 id="h-building">currently building</h2>
+
+      <div class="hero">
+        <h3><a href="https://myspeedpuzzling.com">MySpeedPuzzling.com</a></h3>
+        <p>The largest speed puzzling community database in the world, built from scratch and bootstrapped. It is a nights-and-weekends hobby that quietly grew past 11,000 users — and it is fully open source.</p>
+        <p class="badges"><span class="badge">11k+ users</span><span class="badge">open source</span><span class="badge">bootstrapped</span><span class="badge">side project</span></p>
+      </div>
+
+      <!-- Add a short one-line description per project here when you have a moment. -->
+      <div class="grid">
+        <a href="https://sorticai.com">sorticai.com</a>
+        <a href="https://vmcorp.cz">vmcorp.cz</a>
+        <a href="https://autix.eu">autix.eu</a>
+        <a href="https://sendvery.com">sendvery.com</a>
+        <a href="https://peon.dev">peon.dev</a>
+      </div>
+      <p class="note">…and a few more. Consulting and advisory alongside it.</p>
+    </section>
+
+    <section id="topics" aria-labelledby="h-topics">
+      <h2 id="h-topics">things I like talking about</h2>
+      <ul class="tags">
+        <li>CI/CD</li><li>containers</li><li>automation</li><li>TDD</li><li>DDD</li>
+        <li>PHP architecture</li><li>monorepos</li><li>legacy code</li>
+        <li>performance profiling</li><li>Claude Code</li><li>AI-assisted development</li>
+      </ul>
+      <p class="note">I used to be a sceptic about AI. Then I actually used Claude Code properly, and now I run twenty things at once and feel a bit like a superhero — which is exactly as exhausting as it sounds. 🙂</p>
+    </section>
+
+    <section id="contact" aria-labelledby="h-contact">
+      <h2 id="h-contact">get in touch</h2>
+      <p class="lead">Say hello — about a product, a stuck codebase, a talk, or jigsaw puzzles.</p>
+      <dl class="contact">
+        <dt>email</dt>    <dd><a href="mailto:j.mikes@me.com">j.mikes@me.com</a></dd>
+        <dt>phone</dt>    <dd><a href="tel:+420773686207">+420 773 686 207</a></dd>
+        <dt>github</dt>   <dd><a href="https://github.com/janmikes" rel="me">github.com/janmikes</a></dd>
+        <dt>linkedin</dt> <dd><a href="https://www.linkedin.com/in/jan-mikes/" rel="me">linkedin.com/in/jan-mikes</a></dd>
+      </dl>
+    </section>
+
+  </main>
+
+  <footer>
+    <p class="cmd">uptime</p>
+    <p>20+ years up · load average: too many projects, one human</p>
+    <p>Hand-written HTML. No framework, no tracking, no cookies. <a href="https://github.com/JanMikes/janmikes.cz">Source on GitHub</a>.</p>
+  </footer>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Jan Mikeš",
+  "alternateName": "Jan Mikes",
+  "url": "https://janmikes.cz/",
+  "image": "https://janmikes.cz/assets/og.jpg",
+  "jobTitle": "Tech founder & software engineer",
+  "email": "mailto:j.mikes@me.com",
+  "telephone": "+420773686207",
+  "nationality": "Czech",
+  "description": "Tech founder and hands-on engineer from the Czech Republic with 20+ years of building products end to end. Trained at Salesforce, Oracle and Google in Silicon Valley. Builder of MySpeedPuzzling.com.",
+  "knowsAbout": ["Software architecture","PHP","CI/CD","Containers","Docker","Test-driven development","Domain-driven design","Monorepos","Legacy code modernisation","Performance profiling","AI-assisted development","Claude Code"],
+  "sameAs": [
+    "https://github.com/janmikes",
+    "https://www.linkedin.com/in/jan-mikes/"
+  ]
+}
+</script>
+</body>
+</html>
