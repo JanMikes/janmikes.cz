@@ -88,17 +88,12 @@ a:hover{text-decoration:underline; text-underline-offset:3px}
 @media (min-width:37.5rem){.recent__grid{grid-template-columns:1fr 1fr}}
 .talk{
   display:block; position:relative;
-  padding:.6rem .85rem .65rem 1.85rem;
+  padding:.6rem .9rem .65rem .9rem;
   border:1px solid var(--border); border-left:2px solid var(--accent);
   border-radius:8px; background:var(--raise);
   color:inherit; transition:border-color .15s, transform .15s, background .15s;
 }
 .talk:hover,.talk:focus-visible{text-decoration:none; border-color:var(--accent); border-left-color:var(--accent); transform:translateY(-1px)}
-.talk::before{
-  content:"→"; position:absolute; left:.75rem; top:.6rem;
-  color:var(--accent); transition:transform .15s;
-}
-.talk:hover::before{transform:translateX(2px)}
 .talk b{display:block; font-weight:600; font-size:.84rem; color:var(--fg-strong); line-height:1.5}
 
 /* ---------- terminal ---------- */
@@ -117,7 +112,7 @@ a:hover{text-decoration:underline; text-underline-offset:3px}
 @media (max-width:30rem){.term__body{padding:1.15rem 1.1rem 1.35rem}}
 h1{
   font-size:clamp(1.35rem,5.5vw,1.7rem); font-weight:600; letter-spacing:-.015em;
-  color:var(--fg-strong); margin:.5rem 0 1rem;
+  color:var(--fg-strong); margin:0 0 1rem;
 }
 .term__body p{margin:0 0 .9rem}
 .term__body p:last-child{margin-bottom:0}
@@ -165,7 +160,8 @@ em{font-style:italic; color:var(--fg-strong)}
 .hero h3 a{color:var(--fg-strong)}
 .hero h3 a:hover{color:var(--link)}
 .hero p{margin:0; font-size:.89rem; color:var(--dim)}
-.badges{display:flex; flex-wrap:wrap; gap:.4rem; margin:1.05rem 0 0}
+.badges{display:flex; flex-wrap:wrap; gap:.4rem}
+.hero .badges{margin:1.05rem 0 0}
 .badge{
   font-size:.72rem; letter-spacing:.03em; color:var(--accent);
   border:1px solid var(--border); border-radius:999px; padding:.1rem .55rem; background:var(--bg);
@@ -189,10 +185,6 @@ em{font-style:italic; color:var(--fg-strong)}
 .contact{display:grid; grid-template-columns:auto 1fr; gap:.35rem 1.1rem; margin:0}
 .contact dt{color:var(--dim); font-size:.85rem}
 .contact dd{margin:0; overflow-wrap:anywhere}
-
-/* footer */
-footer{margin-top:3rem; padding-top:1.4rem; border-top:1px solid var(--border-soft); color:var(--dim); font-size:.8rem}
-footer p{margin:0 0 .4rem}
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important; transition:none !important}
@@ -252,12 +244,6 @@ footer p{margin:0 0 .4rem}
     <section id="building" aria-labelledby="h-building">
       <h2 id="h-building">currently building</h2>
 
-      <div class="hero">
-        <h3><a href="https://myspeedpuzzling.com">MySpeedPuzzling.com</a></h3>
-        <p>The largest speed puzzling community database in the world, built from scratch and bootstrapped. It is a nights-and-weekends hobby that quietly grew past 11,000 users — and it is fully open source.</p>
-        <p class="badges"><span class="badge">11k+ users</span><span class="badge">open source</span><span class="badge">bootstrapped</span><span class="badge">side project</span></p>
-      </div>
-
       <!-- Add a short one-line description per project here when you have a moment. -->
       <div class="grid">
         <a href="https://sorticai.com">sorticai.com</a>
@@ -265,7 +251,15 @@ footer p{margin:0 0 .4rem}
         <a href="https://autix.eu">autix.eu</a>
         <a href="https://sendvery.com">sendvery.com</a>
         <a href="https://peon.dev">peon.dev</a>
+        <a href="https://wboost.cz">wboost.cz</a>
       </div>
+
+      <div class="hero">
+        <h3><a href="https://myspeedpuzzling.com">MySpeedPuzzling.com</a></h3>
+        <p>The largest speed puzzling community database in the world, built from scratch and bootstrapped. It is a nights-and-weekends hobby that quietly grew past 11,000 users — and it is fully open source.</p>
+        <p class="badges"><span class="badge">11k+ users</span><span class="badge">open source</span><span class="badge">bootstrapped</span><span class="badge">side project</span></p>
+      </div>
+
       <p class="note">…and many more. Consulting and advisory alongside it.</p>
     </section>
 
@@ -291,10 +285,6 @@ footer p{margin:0 0 .4rem}
     </section>
 
   </main>
-
-  <footer>
-    <p>Hand-written HTML. No framework, no tracking, no cookies. <a href="https://github.com/JanMikes/janmikes.cz">Source on GitHub</a>.</p>
-  </footer>
 
 </div>
 
