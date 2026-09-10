@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talks &amp; slides — Jan Mikeš</title>
+<meta name="description" content="Slides from talks by Jan Mikeš — Claude Code, autonomous AI development, Symfony, RAG and OCR. Given at Tech Meetup and elsewhere.">
+<link rel="canonical" href="https://janmikes.cz/slides/">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Talks &amp; slides — Jan Mikeš">
+<meta property="og:description" content="Slides from my talks — Claude Code, autonomous AI development, Symfony, RAG and OCR.">
+<meta property="og:url" content="https://janmikes.cz/slides/">
+<meta property="og:image" content="https://janmikes.cz/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Talks &amp; slides — Jan Mikeš">
+<meta name="twitter:description" content="Slides from my talks — Claude Code, autonomous AI development, Symfony, RAG and OCR.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/og.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<style>
+:root{
+  --bg:#0d1117; --panel:#010409; --raise:#0f151d;
+  --border:#21262d; --border-soft:#191f27;
+  --fg:#c9d1d9; --fg-strong:#e6edf3; --dim:#8b949e;
+  --accent:#3fb950; --link:#58a6ff;
+  --glow:rgba(63,185,80,.16);
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f6f8fa; --panel:#ffffff; --raise:#ffffff;
+    --border:#d0d7de; --border-soft:#e4e8ec;
+    --fg:#24292f; --fg-strong:#0b0e12; --dim:#59636e;
+    --accent:#116329; --link:#0969da;
+    --glow:rgba(17,99,41,.10);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+::selection{background:var(--accent); color:var(--panel)}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono","Roboto Mono",monospace;
+  font-size:15px; line-height:1.75;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+.glow{
+  position:fixed; inset:-20% 0 auto 0; height:70vh; pointer-events:none; z-index:0;
+  background:radial-gradient(60% 55% at 50% 0%, var(--glow), transparent 70%);
+}
+.wrap{position:relative; z-index:1; width:100%; max-width:46rem; margin:0 auto; padding:clamp(1.25rem,4vw,3rem) 1.25rem 3rem}
+a{color:var(--link); text-decoration:none}
+a:hover{text-decoration:underline; text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
+
+.back{display:inline-block; font-size:.8rem; color:var(--dim); margin:0 0 1.6rem}
+.back:hover{color:var(--accent); text-decoration:none}
+.back::before{content:"← "; color:var(--accent)}
+
+h1{
+  font-size:clamp(1.35rem,5.5vw,1.7rem); font-weight:600; letter-spacing:-.015em;
+  color:var(--fg-strong); margin:0 0 .7rem;
+}
+.lead{margin:0 0 2.4rem; color:var(--dim); font-size:.9rem; max-width:34rem}
+
+h2{
+  display:flex; align-items:center; gap:.6rem;
+  font-size:.78rem; font-weight:600; color:var(--dim);
+  letter-spacing:.12em; text-transform:uppercase;
+  margin:0 0 .9rem;
+}
+h2::after{content:""; flex:1; height:1px; background:var(--border-soft)}
+section{margin:0 0 2.4rem}
+section:last-of-type{margin-bottom:0}
+
+.decks{display:grid; gap:.6rem}
+.deck{
+  display:block; padding:.8rem 1rem .85rem;
+  border:1px solid var(--border); border-left:2px solid var(--accent);
+  border-radius:8px; background:var(--raise); color:inherit;
+  transition:border-color .15s, transform .15s;
+}
+.deck:hover,.deck:focus-visible{text-decoration:none; border-color:var(--accent); transform:translateY(-1px)}
+.deck b{display:block; font-weight:600; font-size:.9rem; color:var(--fg-strong); line-height:1.5}
+.deck span{display:block; margin-top:.25rem; font-size:.8rem; color:var(--dim); line-height:1.6}
+.tag{
+  display:inline-block; margin-top:.5rem;
+  font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);
+  border:1px solid var(--border); border-radius:999px; padding:.05rem .5rem; background:var(--bg);
+}
+.note{margin:2.4rem 0 0; color:var(--dim); font-size:.85rem}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+
+<div class="wrap">
+  <a class="back" href="/">janmikes.cz</a>
+
+  <h1>Talks &amp; slides</h1>
+  <p class="lead">I speak at meetups and conferences about the things I actually do — AI-assisted development, architecture, and taming code that got out of hand. Slides are public, always.</p>
+
+  <section aria-labelledby="tm43">
+    <h2 id="tm43">Tech Meetup #43 · September 2026</h2>
+    <div class="decks">
+      <a class="deck" href="https://techmeetup-43-1.janmikes.cz">
+        <b>Clean context — running Claude Code for days</b>
+        <span>How to keep long Claude Code sessions sharp instead of drowning them in bloated context.</span>
+      </a>
+      <a class="deck" href="https://techmeetup-43-2.janmikes.cz">
+        <b lang="cs">A vývojáři nebudou mít co žrát</b>
+        <span>“Devs will have nothing to eat” — a light-hearted look at autonomous Claude Code platforms and what they mean for the rest of us.</span>
+        <span class="tag">in Czech</span>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="tm39">
+    <h2 id="tm39">Tech Meetup #39</h2>
+    <div class="decks">
+      <a class="deck" href="https://techmeetup-39.janmikes.cz">
+        <b>Homemade AI chatbot — Symfony, RAG &amp; OCR</b>
+        <span>Building a genuinely useful chatbot on your own data, without handing the whole problem to a vendor.</span>
+      </a>
+    </div>
+  </section>
+
+  <p class="note">Want me to speak at your event? <a href="mailto:j.mikes@me.com">j.mikes@me.com</a></p>
+</div>
+</body>
+</html>
