@@ -64,10 +64,10 @@ body{
   text-rendering:optimizeLegibility;
 }
 .glow{
-  position:fixed; inset:-20% 0 auto 0; height:70vh; pointer-events:none; z-index:0;
-  background:radial-gradient(60% 55% at 50% 0%, var(--glow), transparent 70%);
+  position:fixed; inset:-25% 0 auto 0; height:95vh; pointer-events:none; z-index:0;
+  background:radial-gradient(85% 70% at 50% 0%, var(--glow), transparent 72%);
 }
-.wrap{position:relative; z-index:1; width:100%; max-width:46rem; margin:0 auto; padding:clamp(1.25rem,4vw,3rem) 1.25rem 3rem}
+.wrap{position:relative; z-index:1; width:100%; max-width:46rem; margin:0 auto; padding:clamp(1rem,2.5vw,1.75rem) 1.25rem 3rem}
 a{color:var(--link); text-decoration:none}
 a:hover{text-decoration:underline; text-underline-offset:3px}
 :focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
@@ -76,6 +76,7 @@ a:hover{text-decoration:underline; text-underline-offset:3px}
 
 /* ---------- terminal ---------- */
 .term{
+  margin-top:0;
   border:1px solid var(--border); border-radius:10px;
   background:var(--panel); overflow:hidden; box-shadow:var(--shadow);
 }
