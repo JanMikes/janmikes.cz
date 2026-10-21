@@ -24,6 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history, for the talks page's real last-modified date
 
       - name: Refresh GitHub activity strip
         # On an API hiccup, deploy the snapshot committed in index.html instead of failing.
@@ -36,6 +38,19 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html slides assets favicon.svg favicon.ico apple-touch-icon.png robots.txt sitemap.xml CNAME _site/
+
+      - name: Stamp sitemap dates
+        # Home changes daily (activity band); the talks page only when its file changes.
+        run: |
+          python3 - "$(date -u +%F)" "$(git log -1 --format=%cs -- slides/index.html)" <<'EOF'
+          import re, sys
+          home, talks = sys.argv[1], sys.argv[2]
+          path = "_site/sitemap.xml"
+          xml = open(path).read()
+          for loc, date in (("https://janmikes.cz/", home), ("https://janmikes.cz/slides/", talks)):
+              xml = re.sub(rf"(<loc>{re.escape(loc)}</loc>\s*<lastmod>)[^<]*", rf"\g<1>{date}", xml)
+          open(path, "w").write(xml)
+          EOF
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

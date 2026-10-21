@@ -138,6 +138,10 @@ h1{
   max-width:36rem;
   margin:0;
 }
+.lede strong{
+  display:inline-block; margin-bottom:.35rem;
+  font-size:1.2em; font-weight:600; letter-spacing:-.025em; line-height:1.2;
+}
 .lede span{color:var(--muted)}
 .intro__photo img{
   display:block; width:100%; height:auto;
