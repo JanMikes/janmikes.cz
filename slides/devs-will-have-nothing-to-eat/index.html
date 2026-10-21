@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Will developers be jobless? Yes. But not all of them · Jan Mikeš</title>
+<meta name="description" content="Autonomous coding agents now take a task, not a prompt. What that means for engineers, why experience becomes the operator's edge, and why companies should keep hiring juniors.">
+<link rel="canonical" href="https://janmikes.cz/slides/devs-will-have-nothing-to-eat/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Will developers be jobless? Yes. But not all of them">
+<meta property="og:description" content="Autonomous coding agents take a task, not a prompt. Experience becomes the operator's edge, and juniors are the ones at risk.">
+<meta property="og:url" content="https://janmikes.cz/slides/devs-will-have-nothing-to-eat/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/techmeetup-43-2.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2026-09-09">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Will developers be jobless? Yes. But not all of them">
+<meta name="twitter:description" content="Autonomous coding agents take a task, not a prompt. Experience becomes the operator's edge, and juniors are the ones at risk.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/techmeetup-43-2.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=9">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2026-09-09">9 September 2026</time> · Tech Meetup #43 · lightning talk, given in Czech</p>
+    <h1>Will developers be jobless? Yes. But not all of them</h1>
+    <p class="lede"><span>The talk&rsquo;s Czech title was &ldquo;A vývojáři nebudou mít co žrát&rdquo;: devs will have nothing to eat. The translation is polite. The original is not.</span></p>
+
+    <h2>The spoiler</h2>
+    <p>Will developers be jobless? Yes. But not all of them. That&rsquo;s the whole talk; the rest is about which half of the room you&rsquo;re in.</p>
+
+    <h2>Where we actually are</h2>
+    <p>Six months ago, this was &ldquo;the future&rdquo;. Today you give an agent a task, not a prompt. It plans, writes, tests and opens the merge request. It runs unattended, on your own hardware or someone&rsquo;s cloud. It wakes itself up, and asks you when it&rsquo;s stuck. You&rsquo;re no longer prompting. You&rsquo;re delegating.</p>
+    <p>It&rsquo;s real and it&rsquo;s plural: Devin, Codex, Jules, Copilot Agent, Factory, Replit, OpenClaw, and a new one every week. The dates make the point better than the logos:</p>
+<pre>NOV 2022  ChatGPT: public, free, and very stupid
+NOV 2025  OpenClaw: one developer, a side project
+MAR 2026  Replit Agent 4: parallel task forking
+APR 2026  Factory raises a $150M Series C
+2026      Devin · Codex · Jules · Copilot Agent ship PRs</pre>
+    <p>Three years from a chatbot that couldn&rsquo;t do arithmetic to &ldquo;it opened the merge request&rdquo;.</p>
+
+    <h2>My opinion: engineering as we knew it has ended</h2>
+    <p>This is opinion, not data. Every generation thinks its change is the big one, and I might be wrong too. But the shape is the same as before at a very different speed: roughly a hundred years for the industrial revolution, forty for electricity, ten for the dot-com era, five for mobile, and eighteen months for this. It&rsquo;s also the first change where the thing being automated is the automating itself.</p>
+    <p>Who doesn&rsquo;t adapt, dies. That&rsquo;s why I&rsquo;m not afraid. And honestly, I have no idea where this leads. Maybe trouble, maybe not, maybe it pops. Self-hosted models, hardware and energy are a different talk.</p>
+
+    <h2>So we built another one</h2>
+    <p>Yes, the world needed one more of these. It started in June 2026 as <a href="https://github.com/JanMikes/Cadence">Cadence</a>, a local, single-user experiment: capture tasks all day, press play, and it plans, implements, verifies and delivers. It worked. That was the problem: it stopped being a toy and became something we had to build properly, for the whole company.</p>
+    <p>The flow is modelled on a real team. Every stage is a role, not a prompt, and a return is normal, not a failure:</p>
+<pre>  TICKET
+    ↓
+ REFINE  ──→  ARCHITECT  ──→  IMPLEMENT  ──→  CI
+    ↑             ↑               ↑           │
+    └─────────────┴─── return ────┴───────────┤
+                                              ↓
+ RETRO  ←──  MERGE  ←──  HUMAN  ←──  REVIEW  ←┘
+   ↓
+ KNOWLEDGE BASE  ─→  every future task</pre>
+    <p>The reviewer never sees the implementer&rsquo;s session: fresh context, same as with people. And the retro writes back into the knowledge base, so the next task starts smarter. That last arrow is the whole product.</p>
+    <p>It doesn&rsquo;t live in a chat window either. It picks up Jira tickets, works in GitLab branches, merge requests and CI, reads the Sentry stack trace before planning a fix, queries Loki logs around an incident, and when it&rsquo;s genuinely stuck, asks in Slack and waits instead of guessing. Compared with running Claude by hand, you get memory, process, governance and throughput: a session forgets, a platform compounds.</p>
+    <p>It&rsquo;s <a href="https://github.com/gtfo-ai/platform">open source and self-hosted</a> under Apache-2.0, built in public. The knowledge is markdown in your own git repository, so if you delete the platform, the knowledge stays. Implementation has just started. Come break it.</p>
+
+    <h2>The part nobody puts on a slide</h2>
+    <p>New toys, new problems. Who reviews forty merge requests a day? Throughput moves the bottleneck from writing to reviewing, and review doesn&rsquo;t scale by hiring one more person. Then there&rsquo;s AI slop in production: plausible, tested, reviewed, and wrong.</p>
+    <p>The agent isn&rsquo;t lying to you; it genuinely can&rsquo;t tell. <a href="https://arxiv.org/abs/2605.29442">Research</a> found that when an agent misjudges its own work, 75.8% of the time it claims success. In the same work, independently verifying the actual state, rather than asking the agent, cut false successes roughly tenfold. That&rsquo;s why the answer is a pipeline with independent review and deterministic gates, not a bigger prompt.</p>
+
+    <h2>The adaptation: from engineer to operator</h2>
+    <blockquote>Less typing the solution. More building the context, framing the problem, and knowing when it&rsquo;s lying.</blockquote>
+    <p>&ldquo;Operator&rdquo; isn&rsquo;t a demotion. It&rsquo;s the job that&rsquo;s left, and it&rsquo;s the one that actually needs the twenty years.</p>
+    <p>A friend asked me whether he could build <a href="https://myspeedpuzzling.com">myspeedpuzzling.com</a> with Claude, exactly like I did. My honest answer: yes. But he would need enough time to step in every single mistake I made along the way. Anyone can iterate to the same solution. The real question is how many iterations it takes, and whether you notice you&rsquo;re wrong. Experience isn&rsquo;t the code you can write; it&rsquo;s the wrong turns you no longer take.</p>
+
+    <h2>Meanwhile, for juniors</h2>
+    <p>This part isn&rsquo;t funny. Employment of developers aged 22 to 25 is down about 20% from its late-2022 peak, according to the Stanford Digital Economy Lab. The junior share of tech hiring has reportedly fallen from 15% to 7%.</p>
+    <p>I&rsquo;m thrilled about what I can do with Claude Code because of twenty years of scar tissue. A junior doesn&rsquo;t have that yet, and software can replace them easily.</p>
+    <p>My opinion, again: healthy companies with the budget should invest in juniors. Not as charity, but as compound interest. In fifteen years there will be no seniors if nobody grows any.</p>
+
+    <h2>Back to the spoiler</h2>
+    <p>Will developers be jobless? Yes. But not you, assuming you&rsquo;re already uncomfortable. So, how far is your company? What tools are you actually using, what have you built yourselves, and how satisfied are you, honestly? I genuinely want to know.</p>
+
+    <p class="links">
+      <a href="https://techmeetup-43-2.janmikes.cz">Slides</a>
+      <a href="https://github.com/gtfo-ai/platform">The platform on GitHub</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Will developers be jobless? Yes. But not all of them",
+  "description": "Autonomous coding agents now take a task, not a prompt. What that means for engineers, why experience becomes the operator's edge, and why companies should keep hiring juniors.",
+  "url": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/",
+  "datePublished": "2026-09-09",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/techmeetup-43-2.jpg",
+  "about": ["AI agents", "Software engineering", "Developer careers"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

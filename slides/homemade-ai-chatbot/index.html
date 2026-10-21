@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A homemade AI chatbot with Symfony, RAG and OCR · Jan Mikeš</title>
+<meta name="description" content="How we built a self-hosted chatbot for a municipal website with Symfony, PostgreSQL and pgvector: RAG instead of fine-tuning, hybrid search with RRF, OCR for scanned PDFs, and SSE streaming, on a budget of a few dollars a month.">
+<link rel="canonical" href="https://janmikes.cz/slides/homemade-ai-chatbot/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="A homemade AI chatbot with Symfony, RAG and OCR">
+<meta property="og:description" content="A self-hosted chatbot for a municipal website: RAG instead of fine-tuning, hybrid search, OCR for scanned PDFs, SSE streaming. About $3 a month.">
+<meta property="og:url" content="https://janmikes.cz/slides/homemade-ai-chatbot/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/techmeetup-39.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2026-01-28">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="A homemade AI chatbot with Symfony, RAG and OCR">
+<meta name="twitter:description" content="A self-hosted chatbot for a municipal website: RAG instead of fine-tuning, hybrid search, OCR for scanned PDFs, SSE streaming. About $3 a month.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/techmeetup-39.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=9">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2026-01-28">28 January 2026</time> · Tech Meetup #39 · Impact Hub Ostrava</p>
+    <h1>A homemade AI chatbot with Symfony, RAG and OCR</h1>
+    <p class="lede"><span>A chatbot that understands a municipal website, self-hosted, for about $3 a month in API costs. The interesting part isn&rsquo;t any single trick. It&rsquo;s how the pieces fit together.</span></p>
+
+    <h2>The requirements</h2>
+    <p>The chatbot answers questions about <a href="https://terlicko.cz">terlicko.cz</a>, the website of the municipality of Těrlicko. The constraints were simple: a maximum of $50 a month for the OpenAI API, self-hosted, and no fine-tuning, which would have been too expensive to run on our hardware. In practice it costs around $3 a month and handles roughly 100 conversations a day.</p>
+    <p>Why build it instead of buying a SaaS chatbot? The data stays on our server, SaaS pricing is per message, we control the rules and the prompts, Czech needs custom handling, and building it is the best way to understand how this actually works.</p>
+
+    <h2>RAG instead of fine-tuning</h2>
+    <p>Retrieval-augmented generation means giving the model your documents as a cheat sheet. The model doesn&rsquo;t know your data, so for every question you find the relevant pieces and hand them over as context. With dynamic CMS content and a small budget, RAG wins easily.</p>
+    <p>A few terms the rest depends on:</p>
+    <ul>
+      <li><b>Embedding:</b> text turned into a vector of numbers, where similar meaning gives similar numbers. OpenAI&rsquo;s embeddings give 1,536 dimensions per piece of text.</li>
+      <li><b>Chunking:</b> documents are split into pieces of about 1,000 tokens, so search finds the right paragraph rather than a whole PDF.</li>
+      <li><b>Ingestion:</b> extract, clean, chunk, embed, store. It runs on content change, not per question.</li>
+      <li><b>Moderation:</b> user input goes through OpenAI&rsquo;s moderation check before anything else. Cheap insurance against abuse.</li>
+    </ul>
+
+    <h2>The architecture: two pipelines</h2>
+    <p>Everything is one Symfony application on PostgreSQL with pgvector, plus Redis for caching. Content comes from a Strapi CMS, and the AI parts are OpenAI APIs: chat, embeddings, vision and moderation. The work splits into two pipelines.</p>
+    <p><b>Ingestion</b> runs offline as a console command on cron, getting content into the system:</p>
+<pre>CMS pages ─┐
+PDF files ─┼─→ extract text ─→ clean ─→ chunk ─→ embed ─→ pgvector
+images    ─┘   (OCR if needed)          ~1000 tokens</pre>
+    <p><b>The query pipeline</b> runs per request:</p>
+<pre>question ─→ moderation ─→ embed ─→ vector search
+                                        │
+          stream answer ←─ LLM call ←─ build context</pre>
+    <p>The schema keeps documents, chunks and embeddings in separate tables on purpose. Separate chunks mean you can re-chunk without re-fetching. Separate embeddings mean you can swap the embedding model without touching the rest.</p>
+
+    <h2>Hybrid search</h2>
+    <p>Retrieval is a plain pgvector query on cosine distance, with a 0.7 threshold that filters out weak matches:</p>
+<pre><code>SELECT c.content, c.source_url, (e.vector &lt;=&gt; :vector) AS distance
+FROM ai_embeddings e
+JOIN ai_chunks c ON c.id = e.chunk_id
+WHERE (e.vector &lt;=&gt; :vector) &lt; 0.7
+ORDER BY distance
+LIMIT :limit</code></pre>
+    <p>Pure vector search misses exact keywords, and keyword search misses meaning. So every question is searched twice: once as typed, and once after an LLM normalises it. The two result lists are merged with reciprocal rank fusion, which combines them by rank position rather than raw score:</p>
+<pre><code>public function dualQueryHybridSearch(string $query): array
+{
+    // 1. Search with the original query
+    $resultsOriginal = $this->repo->findSimilar($this->embed($query));
+
+    // 2. Search with the LLM-normalised query
+    $normalized = $this->normalizer->normalize($query);
+    $resultsNorm = $this->repo->findSimilar($this->embed($normalized));
+
+    // 3. Merge with RRF (score = 1/(k + rank), k=60)
+    return $this->mergeWithRRF($resultsOriginal, $resultsNorm);
+}</code></pre>
+    <p>Czech gets extra care on top: stemming, stop words and diacritics.</p>
+
+    <h2>OCR for scanned documents</h2>
+    <p>Municipal PDFs are sometimes real text and sometimes scans. Ingestion first tries plain text extraction with PdfParser. If it finds no text, the page goes to OpenAI&rsquo;s vision model instead, and pure images go straight there. Rate limits are handled with exponential backoff.</p>
+
+    <h2>Context and streaming</h2>
+    <p>The matched chunks are packed into the prompt as numbered sources, up to a 2,000-token budget, so the answer can cite where it came from. The response streams back token by token with plain server-sent events: a Symfony <code>StreamedResponse</code> that echoes each chunk and flushes. No Mercure needed.</p>
+<pre><code>$response = new StreamedResponse();
+$response->headers->set('Content-Type', 'text/event-stream');
+$response->setCallback(function () {
+    foreach ($this->ai->stream() as $chunk) {
+        echo "data: {$chunk}\n\n";
+        flush();
+    }
+});</code></pre>
+
+    <h2>Lessons learned</h2>
+    <ul>
+      <li><b>It&rsquo;s mostly search.</b> RAG is smart retrieval plus text generation.</li>
+      <li><b>Start simple, then iterate.</b> Ship the MVP first.</li>
+      <li><b>Chunking matters a lot.</b> Experiment with the size.</li>
+      <li><b>Cache everything.</b> Query normalisation is cached for 24 hours.</li>
+      <li><b>Czech needs love:</b> stemming and diacritics.</li>
+      <li><b>Test with real questions early.</b> Users ask weird things.</li>
+      <li><b>Limit it.</b> People will try to abuse it.</li>
+    </ul>
+    <p>Users can rate answers, which closes the loop: failed questions show where chunking needs work, where content is missing from the CMS and which distance thresholds need tuning. The chatbot gets better over time. The obvious next step is going agentic, from answering questions to doing things like booking a room at the town hall, through tool use and MCP.</p>
+    <p>The whole thing is open source: <a href="https://github.com/JanMikes/terlicko.cz">github.com/JanMikes/terlicko.cz</a>.</p>
+
+    <p class="links">
+      <a href="https://techmeetup-39.janmikes.cz">Slides</a>
+      <a href="https://github.com/JanMikes/terlicko.cz">Source on GitHub</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "A homemade AI chatbot with Symfony, RAG and OCR",
+  "description": "How we built a self-hosted chatbot for a municipal website with Symfony, PostgreSQL and pgvector: RAG instead of fine-tuning, hybrid search with RRF, OCR for scanned PDFs, and SSE streaming, on a budget of a few dollars a month.",
+  "url": "https://janmikes.cz/slides/homemade-ai-chatbot/",
+  "datePublished": "2026-01-28",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/techmeetup-39.jpg",
+  "about": ["Symfony", "Retrieval-augmented generation", "pgvector", "OCR"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>
