@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Talks &amp; slides — Jan Mikeš</title>
+<title>Talks — Jan Mikeš</title>
 <meta name="description" content="Slides from talks by Jan Mikeš — Claude Code, autonomous AI development, Symfony, RAG and OCR. Given at Tech Meetup and elsewhere.">
 <link rel="canonical" href="https://janmikes.cz/slides/">
-<meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
 <meta name="author" content="Jan Mikeš">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="janmikes.cz">
-<meta property="og:title" content="Talks &amp; slides — Jan Mikeš">
+<meta property="og:title" content="Talks — Jan Mikeš">
 <meta property="og:description" content="Slides from my talks — Claude Code, autonomous AI development, Symfony, RAG and OCR.">
 <meta property="og:url" content="https://janmikes.cz/slides/">
 <meta property="og:image" content="https://janmikes.cz/assets/og.jpg">
@@ -21,162 +21,77 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Talks &amp; slides — Jan Mikeš">
+<meta name="twitter:title" content="Talks — Jan Mikeš">
 <meta name="twitter:description" content="Slides from my talks — Claude Code, autonomous AI development, Symfony, RAG and OCR.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/og.jpg">
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
-<style>
-:root{
-  --bg:#0d1117; --panel:#010409; --raise:#0f151d;
-  --border:#21262d; --border-soft:#191f27;
-  --fg:#c9d1d9; --fg-strong:#e6edf3; --dim:#8b949e;
-  --accent:#3fb950; --link:#58a6ff;
-  --glow:rgba(63,185,80,.16);
-}
-@media (prefers-color-scheme: light){
-  :root{
-    --bg:#f6f8fa; --panel:#ffffff; --raise:#ffffff;
-    --border:#d0d7de; --border-soft:#e4e8ec;
-    --fg:#24292f; --fg-strong:#0b0e12; --dim:#59636e;
-    --accent:#116329; --link:#0969da;
-    --glow:rgba(17,99,41,.10);
-  }
-}
-*,*::before,*::after{box-sizing:border-box}
-::selection{background:var(--accent); color:var(--panel)}
-html{-webkit-text-size-adjust:100%}
-body{
-  margin:0; background:var(--bg); color:var(--fg);
-  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono","Roboto Mono",monospace;
-  font-size:15px; line-height:1.75;
-  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-}
-.glow{
-  position:fixed; inset:-25% 0 auto 0; height:95vh; pointer-events:none; z-index:0;
-  background:radial-gradient(85% 70% at 50% 0%, var(--glow), transparent 72%);
-}
-.wrap{position:relative; z-index:1; width:100%; max-width:46rem; margin:0 auto; padding:clamp(1rem,2.5vw,1.75rem) 1.25rem 3rem}
-a{color:var(--link); text-decoration:none}
-a:hover{text-decoration:underline; text-underline-offset:3px}
-:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:3px}
-
-.back{display:inline-block; font-size:.8rem; color:var(--dim); margin:0 0 1.6rem}
-.back:hover{color:var(--accent); text-decoration:none}
-.back::before{content:"← "; color:var(--accent)}
-
-h1{
-  font-size:clamp(1.35rem,5.5vw,1.7rem); font-weight:600; letter-spacing:-.015em;
-  color:var(--fg-strong); margin:0 0 .7rem;
-}
-.lead{margin:0 0 2.4rem; color:var(--dim); font-size:.9rem; max-width:34rem}
-
-.talks{display:grid; gap:1rem}
-.talk{
-  border:1px solid var(--border); border-left:2px solid var(--accent);
-  border-radius:10px; background:var(--raise);
-  padding:1.15rem 1.3rem 1.25rem;
-  transition:border-color .15s;
-}
-.talk:hover{border-color:var(--accent)}
-@media (max-width:30rem){.talk{padding:1rem 1.05rem 1.1rem}}
-
-.talk__meta{
-  display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .55rem;
-  margin:0 0 .55rem;
-  font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--dim);
-}
-.talk__meta .sep{color:var(--border)}
-.talk__meta .venue{text-transform:none; letter-spacing:.03em}
-
-h2{
-  font-size:1.02rem; font-weight:600; letter-spacing:-.01em;
-  color:var(--fg-strong); margin:0 0 .45rem; line-height:1.45;
-}
-.talk__desc{margin:0; font-size:.87rem; color:var(--fg); line-height:1.7}
-
-.tags{display:flex; flex-wrap:wrap; gap:.35rem; margin:.75rem 0 0; padding:0; list-style:none}
-.tags li{
-  font-size:.67rem; letter-spacing:.07em; text-transform:uppercase; color:var(--accent);
-  border:1px solid var(--border); border-radius:999px; padding:.08rem .55rem; background:var(--bg);
-}
-
-.links{display:flex; flex-wrap:wrap; align-items:center; gap:.55rem .9rem; margin:1rem 0 0}
-.btn{
-  display:inline-flex; align-items:center; gap:.45rem;
-  font-size:.82rem; color:var(--fg-strong);
-  border:1px solid var(--accent); border-radius:7px;
-  padding:.38rem .8rem;
-  transition:background .15s, color .15s;
-}
-.btn::after{content:"\2192"}
-.btn:hover,.btn:focus-visible{text-decoration:none; background:var(--accent); color:var(--panel)}
-.aside{font-size:.82rem; color:var(--link)}
-
-.note{margin:2.4rem 0 0; color:var(--dim); font-size:.85rem}
-
-@media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{animation:none !important; transition:none !important}
-}
-</style>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=5">
 </head>
 <body>
-<div class="glow" aria-hidden="true"></div>
 
-<div class="wrap">
-  <a class="back" href="/">janmikes.cz</a>
+<div class="page">
 
-  <h1>Talks &amp; slides</h1>
-  <p class="lead">I speak at meetups and conferences about the things I actually do — AI-assisted development, architecture, and taming code that got out of hand. Slides are public, always.</p>
+  <nav class="top">
+    <a class="crumb" href="/">← Jan Mikeš</a>
+  </nav>
 
-  <div class="talks">
+  <header class="title">
+    <h1>Talks</h1>
+    <p class="lede">I speak at meetups and conferences about the work I actually do — AI-assisted development, architecture, and code that got out of hand. The slides are always public.</p>
+    <p class="actions">
+      <a class="cta" href="mailto:j.mikes@me.com">Invite me to speak <span aria-hidden="true">→</span></a>
+    </p>
+  </header>
 
-    <article class="talk">
-      <p class="talk__meta">
-        <time datetime="2026-09-09">9 September 2026</time>
-        <span class="sep">/</span> Tech Meetup #43
-      </p>
-      <h2>Clean context — running Claude Code for days</h2>
-      <p class="talk__desc">How to run Claude Code for days without remembering anything.</p>
-      <ul class="tags"><li>lightning talk</li><li>Claude Code</li></ul>
-      <p class="links">
-        <a class="btn" href="https://techmeetup-43-1.janmikes.cz">Open slides</a>
-        <a class="aside" href="https://techmeetup-43-1.janmikes.cz/prompt.html">Full prompt</a>
-      </p>
-    </article>
+  <main>
 
-    <article class="talk">
-      <p class="talk__meta">
-        <time datetime="2026-09-09">9 September 2026</time>
-        <span class="sep">/</span> Tech Meetup #43
-      </p>
-      <h2 lang="cs">A vývojáři nebudou mít co žrát</h2>
-      <p class="talk__desc">“Devs will have nothing to eat” — autonomous delivery agents, the end of engineering as we knew it, and who is left standing.</p>
-      <ul class="tags"><li>lightning talk</li><li>in Czech</li></ul>
-      <p class="links">
-        <a class="btn" href="https://techmeetup-43-2.janmikes.cz">Open slides</a>
-      </p>
-    </article>
+    <section class="row" aria-labelledby="h-2026">
+      <h2 id="h-2026">2026</h2>
+      <div>
 
-    <article class="talk">
-      <p class="talk__meta">
-        <time datetime="2026-01-28">28 January 2026</time>
-        <span class="sep">/</span> Tech Meetup #39
-        <span class="sep">/</span> <span class="venue">Impact Hub Ostrava</span>
-      </p>
-      <h2>Homemade AI Chatbot: Symfony, RAG &amp; OCR</h2>
-      <p class="talk__desc">A self-hosted chatbot that understands a municipal website — RAG and vector search instead of fine-tuning, handling around 100 conversations a day on a single Hetzner box for about $3 a month.</p>
-      <ul class="tags"><li>Symfony</li><li>RAG</li><li>OCR</li></ul>
-      <p class="links">
-        <a class="btn" href="https://techmeetup-39.janmikes.cz">Open slides</a>
-      </p>
-    </article>
+        <article class="talk">
+          <p class="talk__meta"><time datetime="2026-09-09">9 September</time> · Tech Meetup #43 · lightning talk</p>
+          <h3>Clean context — running Claude Code for days</h3>
+          <p>How to run Claude Code for days without it remembering anything.</p>
+          <p class="talk__links">
+            <a href="https://techmeetup-43-1.janmikes.cz">Slides</a>
+            <a href="https://techmeetup-43-1.janmikes.cz/prompt.html">Full prompt</a>
+          </p>
+        </article>
 
-  </div>
+        <article class="talk">
+          <p class="talk__meta"><time datetime="2026-09-09">9 September</time> · Tech Meetup #43 · lightning talk, in Czech</p>
+          <h3 lang="cs">A vývojáři nebudou mít co žrát</h3>
+          <p>&ldquo;Devs will have nothing to eat&rdquo; — autonomous delivery agents, the end of engineering as we knew it, and who is left standing.</p>
+          <p class="talk__links">
+            <a href="https://techmeetup-43-2.janmikes.cz">Slides</a>
+          </p>
+        </article>
 
-  <p class="note">Want me to speak at your event? <a href="mailto:j.mikes@me.com">j.mikes@me.com</a></p>
+        <article class="talk">
+          <p class="talk__meta"><time datetime="2026-01-28">28 January</time> · Tech Meetup #39 · Impact Hub Ostrava</p>
+          <h3>Homemade AI chatbot: Symfony, RAG &amp; OCR</h3>
+          <p>A self-hosted chatbot that understands a municipal website — RAG and vector search instead of fine-tuning, handling around 100 conversations a day on a single Hetzner box for about $3 a month.</p>
+          <p class="talk__links">
+            <a href="https://techmeetup-39.janmikes.cz">Slides</a>
+          </p>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="row" aria-labelledby="h-invite">
+      <h2 id="h-invite">Invite me</h2>
+      <p class="prose">Organising an event? Write to <a href="mailto:j.mikes@me.com">j.mikes@me.com</a>.</p>
+    </section>
+
+  </main>
+
+
 </div>
 </body>
 </html>

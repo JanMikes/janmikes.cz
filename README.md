@@ -2,15 +2,18 @@
 
 Personal one-pager for [Jan Mikeš](https://janmikes.cz) — tech founder & engineer.
 
-Hand-written static HTML. No framework, no build step, no dependencies, no tracking,
-no cookies. One file plus a few assets.
+Hand-written static HTML. No framework, no build step, no JavaScript, no tracking,
+no cookies. Fonts are self-hosted, so the site makes no third-party requests.
 
 ## Structure
 
 ```
-index.html          the whole site (inline CSS, no JS)
+index.html          home page
+slides/index.html   talks and slides
+assets/site.css     shared styles (tokens, light + dark)
+assets/fonts/       Hanken Grotesk + JetBrains Mono (woff2, latin + latin-ext)
 assets/             optimised portrait (WebP + JPEG) and OG image
-favicon.svg         terminal-prompt favicon
+favicon.svg         "J" with an accent háček
 CNAME               custom domain: janmikes.cz
 robots.txt          + sitemap.xml
 ```
