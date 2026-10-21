@@ -1,0 +1,53 @@
+# Builds and deploys janmikes.cz to GitHub Pages.
+# Runs on every push to master and once a day, so the "last 12 months"
+# activity strip stays current without committing anything back.
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Refresh GitHub activity strip
+        # On an API hiccup, deploy the snapshot committed in index.html instead of failing.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/activity.py janmikes
+
+      - name: Collect public files
+        run: |
+          mkdir _site
+          cp -r index.html slides assets favicon.svg favicon.ico apple-touch-icon.png robots.txt sitemap.xml CNAME _site/
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
