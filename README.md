@@ -37,6 +37,9 @@ API before publishing, so it stays current without committing anything back.
 
 To refresh the committed snapshot locally: `python3 tools/activity.py` (needs `gh auth login`).
 
+The domain sits behind Cloudflare, which caches `assets/site.css`. After changing the CSS,
+bump the `?v=` number on its `<link>` in both `index.html` and `slides/index.html`.
+
 DNS for the apex domain should point at GitHub Pages:
 
 ```
