@@ -171,8 +171,7 @@ h1{
 .pulse{display:block; width:100%; height:clamp(3.5rem,8vw,5rem); touch-action:pan-y; cursor:crosshair}
 .pulse rect{transition:opacity .15s}
 .pulse .a0{fill:var(--rule)}
-.pulse .a1{fill:var(--muted); opacity:.5}
-.pulse .a2{fill:var(--accent)}
+.pulse .a1{fill:var(--muted); opacity:.65}
 .pulse.is-scrubbing rect{opacity:.25}
 .pulse.is-scrubbing rect.is-on{opacity:1; fill:var(--ink)}
 .pulse{animation:draw 1.8s cubic-bezier(.65,0,.25,1) .45s both}

@@ -42,7 +42,6 @@ def fetch_days(login):
 def render(days):
     counts = [d["contributionCount"] for d in days]
     peak = max(counts) or 1
-    busy = sorted(counts)[int(len(counts) * 0.9)]  # top 10% of days get the accent
     total, active = sum(counts), sum(1 for c in counts if c)
     summary = f"{total:,} contributions · active on {active} of {len(counts)} days"
 
@@ -53,8 +52,7 @@ def render(days):
             bars.append(f'<rect class="a0" x="{x}" y="{HEIGHT - 1}" width="{BAR}" height="1" {data}/>')
             continue
         h = max(2.0, HEIGHT * math.sqrt(c / peak))  # sqrt keeps quiet days visible
-        cls = "a2" if c >= busy else "a1"
-        bars.append(f'<rect class="{cls}" x="{x}" y="{HEIGHT - h:.1f}" width="{BAR}" height="{h:.1f}" {data}/>')
+        bars.append(f'<rect class="a1" x="{x}" y="{HEIGHT - h:.1f}" width="{BAR}" height="{h:.1f}" {data}/>')
 
     return (
         f'<figcaption class="year__head"><span>last 365 days on <a href="https://github.com/{LOGIN}">GitHub</a></span>'
