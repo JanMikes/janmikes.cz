@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Running Claude Code for days on a clean context · Jan Mikeš</title>
+<meta name="description" content="How I ran one autonomous Claude Code session for a week: 42 work packages, 3 milestones, one paste. The orchestrator pattern, eight rules for clean context, and what it really costs.">
+<link rel="canonical" href="https://janmikes.cz/slides/clean-context/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Running Claude Code for days on a clean context">
+<meta property="og:description" content="One autonomous session, 42 work packages, one paste. The orchestrator pattern, eight rules, and the honest costs.">
+<meta property="og:url" content="https://janmikes.cz/slides/clean-context/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/techmeetup-43-1.webp">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2026-09-09">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Running Claude Code for days on a clean context">
+<meta name="twitter:description" content="One autonomous session, 42 work packages, one paste. The orchestrator pattern, eight rules, and the honest costs.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/techmeetup-43-1.webp">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=9">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2026-09-09">9 September 2026</time> · Tech Meetup #43 · lightning talk</p>
+    <h1>Running Claude Code for days on a clean context</h1>
+    <p class="lede"><span>What I&rsquo;ve learned from letting one autonomous session build a project for a week, and the single prompt that sets it all up for you.</span></p>
+
+    <h2>A record I don&rsquo;t remember</h2>
+    <p>I opened the talk by asking the room about their longest Claude Code session. Ten minutes, an hour, a day. Mine? I honestly don&rsquo;t know, and I don&rsquo;t want to remember. That isn&rsquo;t a punchline. It&rsquo;s the architecture.</p>
+    <p>One session, in the week before the talk, delivered 42 work packages across 3 milestones. I wrote zero lines of code and pasted one prompt. To me, it was just an ordinary week. Then I mentioned it to a friend, and the reaction was: wait, how did you do that? That reaction is the reason this exists.</p>
+
+    <h2>The conversation is not the memory</h2>
+    <blockquote>If you keep one idea, keep this one: the context window will fill, so stop using it as storage.</blockquote>
+    <p>The memory lives in files: a <code>PROGRESS.md</code> ledger, the git history and <code>CLAUDE.md</code>. Files survive compaction. Chat doesn&rsquo;t. Everything else follows from that.</p>
+
+    <h2>The shape</h2>
+    <p>One session acts as the orchestrator. It&rsquo;s a project manager who has never opened the repo, and that&rsquo;s the entire point: it reads only the ledger, so its own context stays flat at roughly 6 to 10k tokens per package. The real work happens in fresh subagents.</p>
+<pre>        ORCHESTRATOR      ← reads only the ledger
+     (never reads code)   ~6-10k tokens / package
+              │
+   ┌──────────┼──────────┐
+   ▼          ▼          ▼
+implementer  reviewer  architect
+  (fresh)    (fresh)  (read-only)
+   │
+   ▼
+PROGRESS.md ── commit ── push</pre>
+
+    <h2>Eight rules</h2>
+    <ol>
+      <li><b>The boss never opens the repo.</b> The orchestrator writes no source code, so its context stays flat across dozens of packages.</li>
+      <li><b>Fresh context per unit of work.</b> Every implementer and reviewer starts clean. Quality drops noticeably past about 100 to 150k tokens in one window.</li>
+      <li><b>State lives in files.</b> <code>PROGRESS.md</code>, git history and <code>CLAUDE.md</code> are the memory.</li>
+      <li><b>Never trust the report.</b> The orchestrator re-runs verification in its own shell. Agents report optimistically, like a junior dev at 17:55 on a Friday.</li>
+      <li><b>A different agent reviews the work.</b> A separate reviewer, with a bound: at most 3 rounds, then the package is marked BLOCKED.</li>
+      <li><b>Push after every package.</b> A crash then costs one package instead of a day.</li>
+      <li><b>Write the resume note early.</b> Before the conversation grows long, and read it first after any compaction. This is the survival mechanism.</li>
+      <li><b>Blocked is not stopped.</b> Write a blocker brief and take the next package. There is no &ldquo;ask Jan&rdquo;. Jan is asleep.</li>
+    </ol>
+
+    <h2>Launching it</h2>
+    <p>Three things keep a multi-day run alive: <code>tmux</code> so a dropped terminal or SSH session doesn&rsquo;t kill it, <code>caffeinate</code> so the Mac doesn&rsquo;t sleep, and bypass mode so it never stops to ask.</p>
+<pre>tmux new -s claude
+caffeinate -dimsu
+claude --permission-mode bypassPermissions</pre>
+    <p>Bypass mode means the agents can run anything: installs, Docker, pushes. Run it on a dedicated VM or user account, not on the laptop with your production keys.</p>
+
+    <h2>What goes wrong</h2>
+    <p><b>Autocompaction is not the enemy.</b> It will happen, several times, and it&rsquo;s supposed to. With the ledger and the resume note, the worst case is one repeated review round, and nothing gets committed until it&rsquo;s green.</p>
+    <p><b>There is no budget cap.</b> No per-agent limit, no &ldquo;stop at $200&rdquo;. On the API, a plan this size ran $500 to $2,000. On a subscription, you stall until the limit resets. You are the only brake.</p>
+    <p><b>It will land early.</b> Not a crash: it decides it has done &ldquo;enough&rdquo; and writes you a tidy summary. This is the one failure that defeats the whole point of an unattended run. So you define done: the exit condition in the prompt is &ldquo;loop until every work package is DONE or BLOCKED&rdquo;, and a Stop hook refuses to let the session end while the ledger still holds a TODO row. The ledger turns &ldquo;done&rdquo; into a fact in a file rather than a feeling in the model. Leave it undefined and the model defines it for you, generously.</p>
+    <p><b>Things that killed my session:</b> a screensaver, a closed laptop lid, a dropped SSH connection, a rate limit at 03:41, and &ldquo;I have completed the implementation!&rdquo;. That&rsquo;s why the launch has <code>tmux</code> and <code>caffeinate</code>.</p>
+    <p><b>And the rest of the bill.</b> Fresh contexts forget conventions from three packages ago, so expect a cleanup package per milestone. Weak test assertions pass both verification and review. And the 42-package plan was written before any code ran: it&rsquo;s precise, and precision reads as accuracy, but some packages will turn out wrongly sized or ordered. It degrades gracefully, not to zero. Plan on reading the ledger once or twice a day.</p>
+
+    <h2>The only thing worth remembering</h2>
+    <p>Here&rsquo;s the twist from the end of the talk. I didn&rsquo;t invent any of these rules. I asked Claude Code, and what I showed was its answer. So you don&rsquo;t need to memorise the list above. Open a fresh session in your project and type:</p>
+<pre>i want a long-running, several-days autonomous session with clean context.
+write me the prompt for my task.</pre>
+    <p>It knows its own subagents, hooks, compaction and failure modes, and it will shape the prompt to your repo instead of mine. Prompt libraries go stale in weeks. Stop collecting prompts. Ask Claude how to Claude.</p>
+
+    <p class="links">
+      <a href="https://techmeetup-43-1.janmikes.cz">Slides</a>
+      <a href="https://techmeetup-43-1.janmikes.cz/prompt.html">The full orchestrator prompt</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Running Claude Code for days on a clean context",
+  "description": "How I ran one autonomous Claude Code session for a week: 42 work packages, 3 milestones, one paste. The orchestrator pattern, eight rules for clean context, and what it really costs.",
+  "url": "https://janmikes.cz/slides/clean-context/",
+  "datePublished": "2026-09-09",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/techmeetup-43-1.webp",
+  "about": ["Claude Code", "AI-assisted development", "Autonomous agents"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

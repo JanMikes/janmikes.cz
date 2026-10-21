@@ -40,15 +40,25 @@ jobs:
           cp -r index.html slides assets favicon.svg favicon.ico apple-touch-icon.png robots.txt sitemap.xml CNAME _site/
 
       - name: Stamp sitemap dates
-        # Home changes daily (activity band); the talks page only when its file changes.
+        # Home changes daily (activity band); every other page is dated by its file's last commit.
         run: |
-          python3 - "$(date -u +%F)" "$(git log -1 --format=%cs -- slides/index.html)" <<'EOF'
-          import re, sys
-          home, talks = sys.argv[1], sys.argv[2]
+          python3 - <<'EOF'
+          import datetime, re, subprocess
           path = "_site/sitemap.xml"
+          today = datetime.date.today().isoformat()
+
+          def lastmod(match):
+              loc = match.group(1)
+              page = loc.removeprefix("https://janmikes.cz/")
+              if not page:
+                  date = today
+              else:
+                  log = ["git", "log", "-1", "--format=%cs", "--", f"{page}index.html"]
+                  date = subprocess.run(log, capture_output=True, text=True).stdout.strip() or today
+              return f"<loc>{loc}</loc>\n    <lastmod>{date}</lastmod>"
+
           xml = open(path).read()
-          for loc, date in (("https://janmikes.cz/", home), ("https://janmikes.cz/slides/", talks)):
-              xml = re.sub(rf"(<loc>{re.escape(loc)}</loc>\s*<lastmod>)[^<]*", rf"\g<1>{date}", xml)
+          xml = re.sub(r"<loc>([^<]+)</loc>\s*<lastmod>[^<]*</lastmod>", lastmod, xml)
           open(path, "w").write(xml)
           EOF
 
