@@ -20,7 +20,8 @@ assets/talks/       title-slide thumbnails for the talks page
 tools/activity.py   regenerates the GitHub activity band in index.html
 .github/workflows/  deploy to Pages on push and daily (refreshes the band)
 CNAME               custom domain: janmikes.cz
-robots.txt          + sitemap.xml
+robots.txt          + sitemap.xml (AI crawlers explicitly allowed)
+llms.txt            plain-text summary for AI answer engines
 ```
 
 ## Local preview

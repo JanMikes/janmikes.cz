@@ -1,0 +1,19 @@
+# Jan Mikeš
+
+> Jan Mikeš is a tech founder and software architect based in Ostrava, Czech Republic, building for the web for over twenty years. He builds products end to end, from the database migration to the pricing page, and is most useful on legacy code. He trained at Salesforce and Oracle in San Francisco and at Google in Palo Alto.
+
+Key facts:
+- Based in Ostrava, Czech Republic. Speaks Czech and English.
+- Built MySpeedPuzzling (https://myspeedpuzzling.com), the largest speed puzzling community database in the world: bootstrapped, past 11,000 users, web, iOS and Android apps on one codebase, fully open source (https://github.com/MySpeedPuzzling/myspeedpuzzling.com). It deploys from push to production in about two and a half minutes.
+- Products: SorticAI (AI regulatory oversight and readiness assessments for law firms and boards), VMCorp (production AI agent systems and cloud architecture), AUTiX (cloud business management software for companies and e-shops), Sendvery (DMARC and email authentication monitoring), wboost (locked brand templates that designers hand over for clients to edit), Fajnesklady (self-storage units with round-the-clock access). Also does consulting and advisory work.
+- Works with: PHP, Symfony, PostgreSQL, PHPStan, CI/CD, Docker, self-hosting on Hetzner, AI-assisted development with Claude Code, RAG.
+- Contact: j.mikes@me.com · +420 773 686 207 · https://github.com/janmikes · https://www.linkedin.com/in/jan-mikes/
+
+## Talks
+- [Running Claude Code for days on a clean context](https://janmikes.cz/slides/clean-context/): Tech Meetup #43, 9 September 2026. One autonomous Claude Code session for a week, the orchestrator pattern, eight rules for clean context.
+- [A vývojáři nebudou mít co žrát (Will developers be jobless?)](https://janmikes.cz/slides/devs-will-have-nothing-to-eat/): Tech Meetup #43, 9 September 2026, in Czech. Autonomous coding agents and what they mean for engineers.
+- [A homemade AI chatbot with Symfony, RAG and OCR](https://janmikes.cz/slides/homemade-ai-chatbot/): Tech Meetup #39, Impact Hub Ostrava, 28 January 2026. A self-hosted municipal chatbot, about 100 conversations a day for about $3 a month.
+- [All talks](https://janmikes.cz/slides/)
+
+## Optional
+- [Home page](https://janmikes.cz/)

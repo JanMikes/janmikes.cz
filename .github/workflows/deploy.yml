@@ -37,7 +37,7 @@ jobs:
       - name: Collect public files
         run: |
           mkdir _site
-          cp -r index.html slides assets favicon.svg favicon.ico apple-touch-icon.png robots.txt sitemap.xml CNAME _site/
+          cp -r index.html slides assets favicon.svg favicon.ico apple-touch-icon.png robots.txt llms.txt sitemap.xml CNAME _site/
 
       - name: Stamp sitemap dates
         # Home changes daily (activity band); every other page is dated by its file's last commit.
