@@ -3,18 +3,19 @@
 Personal one-pager for [Jan Mikeš](https://janmikes.cz) — tech founder & engineer.
 
 Hand-written static HTML. No framework, no build step, no tracking, no cookies.
-One small script (assets/year.js) makes the activity band scrubbable; the page works without it. Fonts are self-hosted, so the site makes no third-party requests.
+Two small scripts: assets/glass.js draws the animated glass background, assets/year.js makes the activity band scrubbable. The page works without either. Fonts are self-hosted, so the site makes no third-party requests.
 
 ## Structure
 
 ```
-index.html          home page
+index.html          home page (styles inline)
 slides/index.html   talks and slides
 assets/site.css     shared styles (tokens, light + dark)
 assets/fonts/       Hanken Grotesk + JetBrains Mono (woff2, latin + latin-ext)
 assets/             optimised portrait (WebP + JPEG) and OG image
 favicon.svg         "J" with an accent háček
 assets/year.js      scrubbing readout for the activity band
+assets/glass.js     animated fluted-glass background (WebGL, decorative, ~7 KB)
 assets/talks/       title-slide thumbnails for the talks page
 tools/activity.py   regenerates the GitHub activity band in index.html
 .github/workflows/  deploy to Pages on push and daily (refreshes the band)

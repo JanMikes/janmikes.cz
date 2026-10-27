@@ -4,19 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Jan Mikeš · Tech founder &amp; software architect</title>
-<meta name="description" content="Jan Mikeš is a tech founder and software architect from Ostrava, Czech Republic. Twenty years of building products end to end: PHP and Symfony architecture, systems at scale, CI/CD, containers and AI-assisted delivery.">
+<meta name="description" content="Jan Mikeš is a tech founder and software architect from Ostrava, Czech Republic. Over 20 years building products end to end; creator of MySpeedPuzzling, with 11,000+ users.">
 <link rel="canonical" href="https://janmikes.cz/">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta name="author" content="Jan Mikeš">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0c0f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 
 <meta property="og:type" content="profile">
 <meta property="og:site_name" content="janmikes.cz">
 <meta property="og:title" content="Jan Mikeš · Tech founder &amp; software architect">
-<meta property="og:description" content="Twenty years of building products end to end. Architecture, systems at scale, CI/CD and AI-assisted delivery.">
+<meta property="og:description" content="Tech founder and software architect from Ostrava. Over 20 years building products end to end: legacy code, fast CI/CD, self-hosted infrastructure and AI agents.">
 <meta property="og:url" content="https://janmikes.cz/">
 <meta property="og:image" content="https://janmikes.cz/assets/og.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Jan Mikeš, tech founder and software architect">
@@ -25,143 +27,269 @@
 <meta property="profile:last_name" content="Mikeš">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Jan Mikeš · Tech founder &amp; software architect">
-<meta name="twitter:description" content="Twenty years of building products end to end. Architecture, systems at scale, CI/CD and AI-assisted delivery.">
+<meta name="twitter:description" content="Tech founder and software architect from Ostrava. Over 20 years building products end to end: legacy code, fast CI/CD, self-hosted infrastructure and AI agents.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/og.jpg">
+<meta name="twitter:image:alt" content="Jan Mikeš, tech founder and software architect">
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=9">
+<style>
+@font-face{font-family:"Hanken Grotesk"; font-weight:400 700; font-display:swap; src:url(/assets/fonts/hanken-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Hanken Grotesk"; font-weight:400 700; font-display:swap; src:url(/assets/fonts/hanken-grotesk-latin-ext.woff2) format("woff2"); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF}
+@font-face{font-family:"JetBrains Mono"; font-weight:400 500; font-display:swap; src:url(/assets/fonts/jetbrains-mono-latin.woff2) format("woff2")}
+
+:root{
+  --bg:#0b0c0f; --ink:#e8e9eb; --muted:#969aa3; --accent:#9aa6ff;
+  --line:rgba(232,233,235,.075); --line-2:rgba(232,233,235,.16); --cell:rgba(232,233,235,.025); --veil:rgba(0,0,0,.2);
+  --sans:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --gutter:clamp(1rem,4vw,2.5rem); --pad:clamp(1.1rem,2.4vw,1.75rem); --w:min(76rem, 100vw - 2 * var(--gutter)); --cols:4;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#ffffff; --ink:#141518; --muted:#61656d; --accent:#2f3fbf; --line:rgba(20,21,24,.07); --line-2:rgba(20,21,24,.14); --cell:rgba(20,21,24,.02); --veil:rgba(255,255,255,.35);
+}}
+:root[data-theme="light"]{ --bg:#ffffff; --ink:#141518; --muted:#61656d; --accent:#2f3fbf; --line:rgba(20,21,24,.07); --line-2:rgba(20,21,24,.14); --cell:rgba(20,21,24,.02); --veil:rgba(255,255,255,.35) }
+@media (max-width:760px){ :root{ --cols:2 } }
+
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg); overflow-x:clip; -webkit-text-size-adjust:100%}
+body{margin:0; color:var(--ink); font:400 1.0625rem/1.6 var(--sans); -webkit-font-smoothing:antialiased; overflow-x:clip}
+a{color:inherit; text-decoration:underline; text-decoration-color:var(--line-2); text-underline-offset:.22em}
+a:hover{color:var(--accent); text-decoration-color:currentColor}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.mono{font-family:var(--mono)}
+.label{font:500 .72rem/1.4 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+/* skip link: off-screen until focused by keyboard */
+.skip{position:absolute; z-index:10; left:var(--gutter); top:-4rem; padding:.6rem 1rem; background:var(--ink); color:var(--bg); font:500 .85rem var(--mono); text-decoration:none}
+.skip:focus{top:.6rem; color:var(--bg)}
+
+/* ---------- background: glass + rails ---------- */
+.glass{position:fixed; left:0; right:0; top:-15lvh; height:130lvh; z-index:0; pointer-events:none; background:var(--bg)}
+.glass canvas{width:100%; height:100%; display:block; opacity:0; transition:opacity 2s ease}
+.glass.on canvas{opacity:1}
+/* screen-door mesh over the light (Payload uses a 41 KB gif; two 1px gradients do it for free) */
+.glass::after{content:""; position:absolute; inset:0; mix-blend-mode:multiply; opacity:.4;
+  background:linear-gradient(rgba(0,0,0,.6) 1px, transparent 1px) 0 0/4px 4px,
+             linear-gradient(90deg, rgba(0,0,0,.6) 1px, transparent 1px) 0 0/4px 4px}
+:root[data-theme="light"] .glass::after{opacity:.1}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .glass::after{opacity:.1} }
+/* hairline columns for the whole page; they fade in from the top like Payload's */
+.rails{position:fixed; z-index:1; top:0; bottom:0; left:50%; width:var(--w); transform:translateX(-50%); pointer-events:none;
+  display:grid; grid-template-columns:repeat(var(--cols),1fr); border-left:1px solid var(--line); background:var(--veil);
+  -webkit-mask:linear-gradient(transparent, #000 220px); mask:linear-gradient(transparent, #000 220px)}
+.rails i{border-right:1px solid var(--line)}
+
+.wrap{position:relative; z-index:2; width:var(--w); margin:0 auto}
+/* cells only draw horizontal lines; the rails are their vertical lines */
+.cells{position:relative; display:grid; grid-template-columns:repeat(var(--cols),1fr); border-top:1px solid var(--line-2); border-bottom:1px solid var(--line-2)}
+.cells > *{padding:var(--pad); min-width:0}
+.cells > * + *{box-shadow:-1px 0 0 var(--line-2)}
+@media (max-width:760px){ .cells > *:nth-child(odd){box-shadow:none} .cells > *:nth-child(n+3){border-top:1px solid var(--line-2)} }
+/* "+" marks where lines cross */
+.cells::before,.cells::after{content:""; position:absolute; width:17px; height:17px; transform:translate(-50%,-50%); z-index:1;
+  background:linear-gradient(var(--ink),var(--ink)) center/1px 100% no-repeat, linear-gradient(var(--ink),var(--ink)) center/100% 1px no-repeat; opacity:.7}
+.cells::before{left:var(--x1,25%); top:0}
+.cells::after{left:var(--x2,75%); top:100%}
+@media (max-width:760px){ .cells::before{left:50%} .cells::after{left:100%} }
+.hatch{background:repeating-linear-gradient(-45deg, var(--line) 0 1px, transparent 1px 9px)}
+
+/* ---------- top bar ---------- */
+.top{display:flex; justify-content:flex-end; align-items:center; gap:1rem; padding:1.1rem var(--pad); font:500 .8rem var(--mono)}
+.top nav{display:flex; gap:clamp(.8rem,2.5vw,1.6rem); align-items:center}
+.top a{text-decoration:none; color:var(--muted)} .top a:hover{color:var(--ink)}
+
+/* ---------- hero ---------- */
+.hero{display:grid; grid-template-columns:repeat(var(--cols),1fr); padding:clamp(4rem,14vh,9rem) 0 clamp(3rem,8vh,5rem); align-items:end}
+.hero__text{grid-column:1 / span 3; padding:0 var(--gutter) 0 var(--pad)}
+.hero h1{font-size:clamp(3.2rem,10vw,7.5rem); line-height:.92; letter-spacing:-.045em; margin:.9rem 0 1.6rem; font-weight:700}
+.hacek{color:var(--accent)}
+.lede{font-size:clamp(1.15rem,2vw,1.4rem); line-height:1.45; max-width:36rem; margin:0}
+.lede span{color:var(--muted)}
+.actions{display:flex; flex-wrap:wrap; gap:.8rem 1.4rem; align-items:center; margin-top:2rem; font:500 .85rem var(--mono)}
+.cta{display:inline-block; padding:.8rem 1.2rem; background:var(--ink); color:var(--bg); text-decoration:none}
+.cta:hover{background:var(--accent); color:var(--bg)}
+.actions a:not(.cta){color:var(--muted); text-decoration:none} .actions a:not(.cta):hover{color:var(--ink)}
+.hero__photo{grid-column:4; margin:0; padding:0 var(--pad); position:relative}
+.hero__photo img{display:block; width:100%; height:auto; filter:grayscale(1) contrast(1.05); border:1px solid var(--line-2)}
+.hero__photo figcaption{margin-top:.6rem}
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr; padding-top:3rem}
+  .hero__text{grid-column:1; padding:0 var(--pad)}
+  .hero__photo{grid-column:1; grid-row:1; width:calc(42% + 2 * var(--pad)); margin:0 0 1.4rem}
+  .hero__photo figcaption{display:none}   /* the same fact is in the "Trained in Silicon Valley" row */
+}
+
+/* ---------- numbers ---------- */
+.num b{display:block; font-size:clamp(2rem,4.6vw,3.4rem); line-height:1; letter-spacing:-.04em; font-weight:600; margin-bottom:.7rem}
+.num span{color:var(--muted); font-size:.92rem; line-height:1.4; display:block}
+.band{grid-column:1 / -1; border-top:1px solid var(--line-2); box-shadow:none !important}
+.band .year__head{display:flex; flex-wrap:wrap; justify-content:space-between; gap:.3rem 1rem; margin-bottom:.8rem; font:500 .72rem/1.4 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.year__head a{color:inherit}
+.pulse{touch-action:pan-y; cursor:crosshair}
+.pulse rect{transition:opacity .15s}
+.pulse.is-scrubbing rect{opacity:.25}
+.pulse.is-scrubbing rect.is-on{opacity:1; fill:var(--ink)}
+.pulse{display:block; width:100%; height:clamp(3rem,7vw,4.5rem)}
+.pulse .a0{fill:var(--line-2)} .pulse .a1{fill:var(--muted); opacity:.7}
+
+/* ---------- statements ---------- */
+.statement{padding:clamp(5rem,18vh,11rem) 0; text-align:center}
+.statement p{font-size:clamp(1.9rem,5.2vw,4rem); line-height:1.05; letter-spacing:-.035em; font-weight:600; margin:0}
+.statement p span{color:var(--muted)}
+
+/* ---------- sections ---------- */
+.sec{padding:clamp(3rem,10vh,6rem) 0}
+.sec__head{display:grid; grid-template-columns:repeat(var(--cols),1fr); margin-bottom:1.5rem; align-items:end}
+.sec__head h2,.sec__head p{padding:0 var(--pad)}
+.sec__head h2{grid-column:1 / span 2; font-size:clamp(1.6rem,3.4vw,2.4rem); letter-spacing:-.03em; line-height:1.1; margin:.5rem 0 0}
+.sec__head p{grid-column:3 / span 2; color:var(--muted); margin:0}
+@media (max-width:760px){ .sec__head h2,.sec__head p{grid-column:1 / -1} .sec__head p{margin-top:.6rem} }
+
+.rows{border-top:1px solid var(--line-2)}
+.rows li{display:grid; grid-template-columns:repeat(var(--cols),1fr); border-bottom:1px solid var(--line-2); padding:1.3rem 0}
+.rows{list-style:none; margin:0; padding:0}
+.rows .i{font:500 .8rem var(--mono); color:var(--accent); padding-left:var(--pad)}
+.rows b{grid-column:2; font-weight:600; padding:0 var(--pad)}
+.rows li > span:last-child{grid-column:3 / span 2; color:var(--muted); padding:0 var(--pad)}
+@media (max-width:760px){ .rows li{grid-template-columns:calc(var(--pad) + 2rem) 1fr} .rows b{grid-column:2; padding-left:0} .rows li > span:last-child{grid-column:2; margin-top:.3rem; padding-left:0} }
+
+.feature{grid-template-columns:repeat(var(--cols),1fr)}
+.feature .story{grid-column:span 2}
+.feature .story h3{font-size:clamp(1.6rem,3vw,2.2rem); letter-spacing:-.03em; margin:.4rem 0 1rem}
+.feature .story p{color:var(--muted); margin:0 0 1rem}
+.feature .story p:first-of-type{color:var(--ink)}
+@media (max-width:760px){ .feature .story{grid-column:1 / -1} .feature .story + .num{border-top:1px solid var(--line-2); box-shadow:none} }
+
+.product a{font-weight:600; font-size:1.2rem; text-decoration:none}
+.product .host{display:block; font:400 .75rem var(--mono); color:var(--muted); margin:.15rem 0 .8rem}
+.product p{margin:0; color:var(--muted); font-size:.95rem; line-height:1.5}
+.cells > a.cellink, .product{transition:background .2s}
+.product:hover, .talk:hover{background:var(--cell)}
+
+.marks{align-items:center}
+.marks .wm{font-size:clamp(1.25rem,2.6vw,1.9rem); letter-spacing:-.02em; font-weight:600; line-height:1.1}
+.marks .wm small{display:block; font:400 .72rem var(--mono); color:var(--muted); letter-spacing:0; margin-top:.35rem}
+
+.talk{text-decoration:none; display:block}
+.talk img{display:block; width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; border:1px solid var(--line-2); margin-bottom:1rem; filter:saturate(.85)}
+.talk time{font:400 .75rem var(--mono); color:var(--muted)}
+.talk b{display:block; font-weight:600; line-height:1.3; margin:.3rem 0}
+.talk span{color:var(--muted); font-size:.9rem}
+.more{display:flex; align-items:flex-end; text-decoration:none; font:500 .85rem var(--mono)}
+
+.contact{text-align:center; padding:clamp(5rem,18vh,10rem) 0}
+.contact h2{font-size:clamp(2.4rem,7vw,5.5rem); letter-spacing:-.045em; line-height:1; margin:.8rem 0 1.2rem}
+.contact p{color:var(--muted); margin:0 auto 2rem; max-width:30rem}
+.contact .mail{font-size:clamp(1.2rem,3vw,1.8rem); font-weight:600}
+.contact dl{display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem 2rem; font:.85rem var(--mono); margin:2.4rem 0 0}
+.contact dt{color:var(--muted); display:inline} .contact dd{display:inline; margin:0 0 0 .5rem}
+</style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<div class="glass" aria-hidden="true"><canvas></canvas></div>
+<div class="rails" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
-<div class="page">
+<div class="wrap">
+  <header class="top">
+    <nav aria-label="Sections"><a href="#work">work</a><a href="#talks">talks</a><a href="#contact">contact</a></nav>
+  </header>
 
-  <header class="intro">
-    <div class="intro__text">
-      <h1><span class="name">Jan Mike<span class="hacek">š</span></span></h1>
-      <p class="lede"><strong>Tech founder and software architect.</strong><br><span>I build products end to end, from the database migration to the pricing page, and take on the problems others have given up on.</span></p>
-      <p class="actions">
-        <a class="cta" href="#contact">Get in touch <span aria-hidden="true">↓</span></a>
-        <a class="quiet" href="https://www.linkedin.com/in/jan-mikes/">LinkedIn</a>
-        <a class="quiet" href="https://github.com/janmikes">GitHub</a>
-      </p>
+  <main id="main">
+  <header class="hero">
+    <div class="hero__text">
+      <div class="label">Tech founder · software architect · Ostrava</div>
+      <h1>Jan Mike<span class="hacek">š</span></h1>
+      <p class="lede"><strong>I build products end to end,</strong> <span>from the database migration to the pricing page, and take on the problems others have given up on.</span></p>
+      <p class="actions"><a class="cta" href="#contact">Get in touch <span aria-hidden="true">↓</span></a><a href="https://www.linkedin.com/in/jan-mikes/" rel="me">LinkedIn</a><a href="https://github.com/janmikes" rel="me">GitHub</a></p>
     </div>
-    <picture class="intro__photo">
-      <source srcset="/assets/jan-mikes.webp" type="image/webp">
-      <img src="/assets/jan-mikes.jpg" width="440" height="550" alt="Portrait of Jan Mikeš">
-    </picture>
-    <dl class="spec">
-      <dt>based</dt>       <dd>Ostrava, Czech Republic</dd>
-      <dt>building</dt>    <dd>for the web for over twenty years</dd>
-      <dt>focus</dt>       <dd>architecture · systems at scale · CI/CD · AI-assisted delivery</dd>
-      <dt>trained at</dt>  <dd>Salesforce and Oracle, San Francisco · Google, Palo Alto</dd>
-    </dl>
-    <figure class="year">
-          <!-- activity:start -->
+    <figure class="hero__photo">
+      <picture><source srcset="/assets/jan-mikes.webp" type="image/webp"><img src="/assets/jan-mikes.jpg" width="440" height="550" alt="Portrait of Jan Mikeš" fetchpriority="high"></picture>
+      <figcaption class="label">Trained at Salesforce, Oracle &amp; Google</figcaption>
+    </figure>
+  </header>
+
+  <section class="cells" aria-label="In numbers" style="--x1:25%;--x2:75%">
+    <div class="num"><b>20+</b><span>years building for the web</span></div>
+    <div class="num"><b>11,000+</b><span>users on a product I built on nights and weekends</span></div>
+    <div class="num"><b>2.5 min</b><span>from push to production, every change tested</span></div>
+    <div class="num"><b>325/365</b><span>days with public commits in the last year</span></div>
+    <figure class="band" style="margin:0">
+      <!-- activity:start -->
           <figcaption class="year__head"><span>last 365 days on <a href="https://github.com/janmikes">GitHub</a></span><span class="year__readout" data-summary="6,999 contributions · active on 325 of 365 days">6,999 contributions · active on 325 of 365 days</span></figcaption>
           <svg class="pulse" viewBox="0 0 1095 48" preserveAspectRatio="none" role="img" aria-label="6,999 GitHub contributions in the last 365 days, on 325 of them"><rect class="a1" x="0" y="37.1" width="1.6" height="10.9" data-d="2025-10-22" data-c="8"/><rect class="a1" x="3" y="40.3" width="1.6" height="7.7" data-d="2025-10-23" data-c="4"/><rect class="a1" x="6" y="39.4" width="1.6" height="8.6" data-d="2025-10-24" data-c="5"/><rect class="a1" x="9" y="29.2" width="1.6" height="18.8" data-d="2025-10-25" data-c="24"/><rect class="a1" x="12" y="33.1" width="1.6" height="14.9" data-d="2025-10-26" data-c="15"/><rect class="a1" x="15" y="40.3" width="1.6" height="7.7" data-d="2025-10-27" data-c="4"/><rect class="a1" x="18" y="44.2" width="1.6" height="3.8" data-d="2025-10-28" data-c="1"/><rect class="a1" x="21" y="29.6" width="1.6" height="18.4" data-d="2025-10-29" data-c="23"/><rect class="a1" x="24" y="41.3" width="1.6" height="6.7" data-d="2025-10-30" data-c="3"/><rect class="a1" x="27" y="31.2" width="1.6" height="16.8" data-d="2025-10-31" data-c="19"/><rect class="a1" x="30" y="39.4" width="1.6" height="8.6" data-d="2025-11-01" data-c="5"/><rect class="a0" x="33" y="47" width="1.6" height="1" data-d="2025-11-02" data-c="0"/><rect class="a1" x="36" y="39.4" width="1.6" height="8.6" data-d="2025-11-03" data-c="5"/><rect class="a1" x="39" y="33.6" width="1.6" height="14.4" data-d="2025-11-04" data-c="14"/><rect class="a1" x="42" y="37.8" width="1.6" height="10.2" data-d="2025-11-05" data-c="7"/><rect class="a1" x="45" y="40.3" width="1.6" height="7.7" data-d="2025-11-06" data-c="4"/><rect class="a1" x="48" y="44.2" width="1.6" height="3.8" data-d="2025-11-07" data-c="1"/><rect class="a1" x="51" y="38.6" width="1.6" height="9.4" data-d="2025-11-08" data-c="6"/><rect class="a1" x="54" y="41.3" width="1.6" height="6.7" data-d="2025-11-09" data-c="3"/><rect class="a1" x="57" y="37.1" width="1.6" height="10.9" data-d="2025-11-10" data-c="8"/><rect class="a1" x="60" y="44.2" width="1.6" height="3.8" data-d="2025-11-11" data-c="1"/><rect class="a1" x="63" y="29.6" width="1.6" height="18.4" data-d="2025-11-12" data-c="23"/><rect class="a1" x="66" y="32.6" width="1.6" height="15.4" data-d="2025-11-13" data-c="16"/><rect class="a1" x="69" y="44.2" width="1.6" height="3.8" data-d="2025-11-14" data-c="1"/><rect class="a0" x="72" y="47" width="1.6" height="1" data-d="2025-11-15" data-c="0"/><rect class="a1" x="75" y="35.8" width="1.6" height="12.2" data-d="2025-11-16" data-c="10"/><rect class="a1" x="78" y="30.4" width="1.6" height="17.6" data-d="2025-11-17" data-c="21"/><rect class="a1" x="81" y="33.6" width="1.6" height="14.4" data-d="2025-11-18" data-c="14"/><rect class="a1" x="84" y="39.4" width="1.6" height="8.6" data-d="2025-11-19" data-c="5"/><rect class="a1" x="87" y="27.0" width="1.6" height="21.0" data-d="2025-11-20" data-c="30"/><rect class="a1" x="90" y="42.6" width="1.6" height="5.4" data-d="2025-11-21" data-c="2"/><rect class="a1" x="93" y="38.6" width="1.6" height="9.4" data-d="2025-11-22" data-c="6"/><rect class="a1" x="96" y="44.2" width="1.6" height="3.8" data-d="2025-11-23" data-c="1"/><rect class="a1" x="99" y="30.0" width="1.6" height="18.0" data-d="2025-11-24" data-c="22"/><rect class="a1" x="102" y="24.6" width="1.6" height="23.4" data-d="2025-11-25" data-c="37"/><rect class="a1" x="105" y="44.2" width="1.6" height="3.8" data-d="2025-11-26" data-c="1"/><rect class="a0" x="108" y="47" width="1.6" height="1" data-d="2025-11-27" data-c="0"/><rect class="a1" x="111" y="44.2" width="1.6" height="3.8" data-d="2025-11-28" data-c="1"/><rect class="a1" x="114" y="31.2" width="1.6" height="16.8" data-d="2025-11-29" data-c="19"/><rect class="a0" x="117" y="47" width="1.6" height="1" data-d="2025-11-30" data-c="0"/><rect class="a1" x="120" y="32.6" width="1.6" height="15.4" data-d="2025-12-01" data-c="16"/><rect class="a1" x="123" y="31.2" width="1.6" height="16.8" data-d="2025-12-02" data-c="19"/><rect class="a1" x="126" y="32.6" width="1.6" height="15.4" data-d="2025-12-03" data-c="16"/><rect class="a1" x="129" y="40.3" width="1.6" height="7.7" data-d="2025-12-04" data-c="4"/><rect class="a1" x="132" y="34.1" width="1.6" height="13.9" data-d="2025-12-05" data-c="13"/><rect class="a1" x="135" y="40.3" width="1.6" height="7.7" data-d="2025-12-06" data-c="4"/><rect class="a1" x="138" y="26.3" width="1.6" height="21.7" data-d="2025-12-07" data-c="32"/><rect class="a1" x="141" y="31.2" width="1.6" height="16.8" data-d="2025-12-08" data-c="19"/><rect class="a1" x="144" y="42.6" width="1.6" height="5.4" data-d="2025-12-09" data-c="2"/><rect class="a1" x="147" y="41.3" width="1.6" height="6.7" data-d="2025-12-10" data-c="3"/><rect class="a1" x="150" y="36.5" width="1.6" height="11.5" data-d="2025-12-11" data-c="9"/><rect class="a1" x="153" y="44.2" width="1.6" height="3.8" data-d="2025-12-12" data-c="1"/><rect class="a1" x="156" y="40.3" width="1.6" height="7.7" data-d="2025-12-13" data-c="4"/><rect class="a1" x="159" y="34.7" width="1.6" height="13.3" data-d="2025-12-14" data-c="12"/><rect class="a1" x="162" y="38.6" width="1.6" height="9.4" data-d="2025-12-15" data-c="6"/><rect class="a1" x="165" y="44.2" width="1.6" height="3.8" data-d="2025-12-16" data-c="1"/><rect class="a1" x="168" y="35.8" width="1.6" height="12.2" data-d="2025-12-17" data-c="10"/><rect class="a1" x="171" y="41.3" width="1.6" height="6.7" data-d="2025-12-18" data-c="3"/><rect class="a0" x="174" y="47" width="1.6" height="1" data-d="2025-12-19" data-c="0"/><rect class="a1" x="177" y="44.2" width="1.6" height="3.8" data-d="2025-12-20" data-c="1"/><rect class="a1" x="180" y="35.8" width="1.6" height="12.2" data-d="2025-12-21" data-c="10"/><rect class="a1" x="183" y="28.8" width="1.6" height="19.2" data-d="2025-12-22" data-c="25"/><rect class="a0" x="186" y="47" width="1.6" height="1" data-d="2025-12-23" data-c="0"/><rect class="a0" x="189" y="47" width="1.6" height="1" data-d="2025-12-24" data-c="0"/><rect class="a0" x="192" y="47" width="1.6" height="1" data-d="2025-12-25" data-c="0"/><rect class="a0" x="195" y="47" width="1.6" height="1" data-d="2025-12-26" data-c="0"/><rect class="a1" x="198" y="42.6" width="1.6" height="5.4" data-d="2025-12-27" data-c="2"/><rect class="a1" x="201" y="37.8" width="1.6" height="10.2" data-d="2025-12-28" data-c="7"/><rect class="a0" x="204" y="47" width="1.6" height="1" data-d="2025-12-29" data-c="0"/><rect class="a1" x="207" y="36.5" width="1.6" height="11.5" data-d="2025-12-30" data-c="9"/><rect class="a1" x="210" y="30.0" width="1.6" height="18.0" data-d="2025-12-31" data-c="22"/><rect class="a1" x="213" y="37.8" width="1.6" height="10.2" data-d="2026-01-01" data-c="7"/><rect class="a1" x="216" y="37.1" width="1.6" height="10.9" data-d="2026-01-02" data-c="8"/><rect class="a1" x="219" y="30.0" width="1.6" height="18.0" data-d="2026-01-03" data-c="22"/><rect class="a1" x="222" y="38.6" width="1.6" height="9.4" data-d="2026-01-04" data-c="6"/><rect class="a1" x="225" y="22.8" width="1.6" height="25.2" data-d="2026-01-05" data-c="43"/><rect class="a1" x="228" y="31.2" width="1.6" height="16.8" data-d="2026-01-06" data-c="19"/><rect class="a1" x="231" y="26.6" width="1.6" height="21.4" data-d="2026-01-07" data-c="31"/><rect class="a1" x="234" y="27.7" width="1.6" height="20.3" data-d="2026-01-08" data-c="28"/><rect class="a1" x="237" y="29.2" width="1.6" height="18.8" data-d="2026-01-09" data-c="24"/><rect class="a1" x="240" y="28.0" width="1.6" height="20.0" data-d="2026-01-10" data-c="27"/><rect class="a1" x="243" y="35.3" width="1.6" height="12.7" data-d="2026-01-11" data-c="11"/><rect class="a1" x="246" y="34.7" width="1.6" height="13.3" data-d="2026-01-12" data-c="12"/><rect class="a1" x="249" y="26.6" width="1.6" height="21.4" data-d="2026-01-13" data-c="31"/><rect class="a1" x="252" y="32.6" width="1.6" height="15.4" data-d="2026-01-14" data-c="16"/><rect class="a1" x="255" y="41.3" width="1.6" height="6.7" data-d="2026-01-15" data-c="3"/><rect class="a1" x="258" y="42.6" width="1.6" height="5.4" data-d="2026-01-16" data-c="2"/><rect class="a1" x="261" y="42.6" width="1.6" height="5.4" data-d="2026-01-17" data-c="2"/><rect class="a1" x="264" y="29.6" width="1.6" height="18.4" data-d="2026-01-18" data-c="23"/><rect class="a1" x="267" y="34.1" width="1.6" height="13.9" data-d="2026-01-19" data-c="13"/><rect class="a1" x="270" y="40.3" width="1.6" height="7.7" data-d="2026-01-20" data-c="4"/><rect class="a1" x="273" y="41.3" width="1.6" height="6.7" data-d="2026-01-21" data-c="3"/><rect class="a1" x="276" y="42.6" width="1.6" height="5.4" data-d="2026-01-22" data-c="2"/><rect class="a0" x="279" y="47" width="1.6" height="1" data-d="2026-01-23" data-c="0"/><rect class="a0" x="282" y="47" width="1.6" height="1" data-d="2026-01-24" data-c="0"/><rect class="a0" x="285" y="47" width="1.6" height="1" data-d="2026-01-25" data-c="0"/><rect class="a1" x="288" y="41.3" width="1.6" height="6.7" data-d="2026-01-26" data-c="3"/><rect class="a1" x="291" y="38.6" width="1.6" height="9.4" data-d="2026-01-27" data-c="6"/><rect class="a1" x="294" y="27.0" width="1.6" height="21.0" data-d="2026-01-28" data-c="30"/><rect class="a1" x="297" y="41.3" width="1.6" height="6.7" data-d="2026-01-29" data-c="3"/><rect class="a1" x="300" y="37.1" width="1.6" height="10.9" data-d="2026-01-30" data-c="8"/><rect class="a1" x="303" y="42.6" width="1.6" height="5.4" data-d="2026-01-31" data-c="2"/><rect class="a0" x="306" y="47" width="1.6" height="1" data-d="2026-02-01" data-c="0"/><rect class="a1" x="309" y="27.3" width="1.6" height="20.7" data-d="2026-02-02" data-c="29"/><rect class="a1" x="312" y="33.1" width="1.6" height="14.9" data-d="2026-02-03" data-c="15"/><rect class="a1" x="315" y="29.6" width="1.6" height="18.4" data-d="2026-02-04" data-c="23"/><rect class="a1" x="318" y="39.4" width="1.6" height="8.6" data-d="2026-02-05" data-c="5"/><rect class="a1" x="321" y="44.2" width="1.6" height="3.8" data-d="2026-02-06" data-c="1"/><rect class="a0" x="324" y="47" width="1.6" height="1" data-d="2026-02-07" data-c="0"/><rect class="a0" x="327" y="47" width="1.6" height="1" data-d="2026-02-08" data-c="0"/><rect class="a1" x="330" y="35.8" width="1.6" height="12.2" data-d="2026-02-09" data-c="10"/><rect class="a1" x="333" y="34.7" width="1.6" height="13.3" data-d="2026-02-10" data-c="12"/><rect class="a1" x="336" y="31.7" width="1.6" height="16.3" data-d="2026-02-11" data-c="18"/><rect class="a1" x="339" y="29.6" width="1.6" height="18.4" data-d="2026-02-12" data-c="23"/><rect class="a0" x="342" y="47" width="1.6" height="1" data-d="2026-02-13" data-c="0"/><rect class="a0" x="345" y="47" width="1.6" height="1" data-d="2026-02-14" data-c="0"/><rect class="a1" x="348" y="35.3" width="1.6" height="12.7" data-d="2026-02-15" data-c="11"/><rect class="a1" x="351" y="38.6" width="1.6" height="9.4" data-d="2026-02-16" data-c="6"/><rect class="a0" x="354" y="47" width="1.6" height="1" data-d="2026-02-17" data-c="0"/><rect class="a1" x="357" y="34.7" width="1.6" height="13.3" data-d="2026-02-18" data-c="12"/><rect class="a1" x="360" y="31.2" width="1.6" height="16.8" data-d="2026-02-19" data-c="19"/><rect class="a1" x="363" y="28.4" width="1.6" height="19.6" data-d="2026-02-20" data-c="26"/><rect class="a1" x="366" y="22.8" width="1.6" height="25.2" data-d="2026-02-21" data-c="43"/><rect class="a1" x="369" y="36.5" width="1.6" height="11.5" data-d="2026-02-22" data-c="9"/><rect class="a1" x="372" y="26.3" width="1.6" height="21.7" data-d="2026-02-23" data-c="32"/><rect class="a1" x="375" y="26.3" width="1.6" height="21.7" data-d="2026-02-24" data-c="32"/><rect class="a1" x="378" y="32.6" width="1.6" height="15.4" data-d="2026-02-25" data-c="16"/><rect class="a1" x="381" y="40.3" width="1.6" height="7.7" data-d="2026-02-26" data-c="4"/><rect class="a1" x="384" y="44.2" width="1.6" height="3.8" data-d="2026-02-27" data-c="1"/><rect class="a1" x="387" y="39.4" width="1.6" height="8.6" data-d="2026-02-28" data-c="5"/><rect class="a1" x="390" y="37.1" width="1.6" height="10.9" data-d="2026-03-01" data-c="8"/><rect class="a1" x="393" y="27.3" width="1.6" height="20.7" data-d="2026-03-02" data-c="29"/><rect class="a1" x="396" y="24.9" width="1.6" height="23.1" data-d="2026-03-03" data-c="36"/><rect class="a1" x="399" y="32.6" width="1.6" height="15.4" data-d="2026-03-04" data-c="16"/><rect class="a1" x="402" y="21.9" width="1.6" height="26.1" data-d="2026-03-05" data-c="46"/><rect class="a1" x="405" y="18.0" width="1.6" height="30.0" data-d="2026-03-06" data-c="61"/><rect class="a1" x="408" y="29.2" width="1.6" height="18.8" data-d="2026-03-07" data-c="24"/><rect class="a1" x="411" y="35.3" width="1.6" height="12.7" data-d="2026-03-08" data-c="11"/><rect class="a1" x="414" y="34.1" width="1.6" height="13.9" data-d="2026-03-09" data-c="13"/><rect class="a1" x="417" y="35.3" width="1.6" height="12.7" data-d="2026-03-10" data-c="11"/><rect class="a1" x="420" y="30.0" width="1.6" height="18.0" data-d="2026-03-11" data-c="22"/><rect class="a0" x="423" y="47" width="1.6" height="1" data-d="2026-03-12" data-c="0"/><rect class="a1" x="426" y="44.2" width="1.6" height="3.8" data-d="2026-03-13" data-c="1"/><rect class="a1" x="429" y="36.5" width="1.6" height="11.5" data-d="2026-03-14" data-c="9"/><rect class="a1" x="432" y="27.0" width="1.6" height="21.0" data-d="2026-03-15" data-c="30"/><rect class="a0" x="435" y="47" width="1.6" height="1" data-d="2026-03-16" data-c="0"/><rect class="a1" x="438" y="33.6" width="1.6" height="14.4" data-d="2026-03-17" data-c="14"/><rect class="a1" x="441" y="32.6" width="1.6" height="15.4" data-d="2026-03-18" data-c="16"/><rect class="a1" x="444" y="39.4" width="1.6" height="8.6" data-d="2026-03-19" data-c="5"/><rect class="a1" x="447" y="41.3" width="1.6" height="6.7" data-d="2026-03-20" data-c="3"/><rect class="a1" x="450" y="42.6" width="1.6" height="5.4" data-d="2026-03-21" data-c="2"/><rect class="a1" x="453" y="41.3" width="1.6" height="6.7" data-d="2026-03-22" data-c="3"/><rect class="a1" x="456" y="30.8" width="1.6" height="17.2" data-d="2026-03-23" data-c="20"/><rect class="a1" x="459" y="33.1" width="1.6" height="14.9" data-d="2026-03-24" data-c="15"/><rect class="a1" x="462" y="29.2" width="1.6" height="18.8" data-d="2026-03-25" data-c="24"/><rect class="a1" x="465" y="35.8" width="1.6" height="12.2" data-d="2026-03-26" data-c="10"/><rect class="a1" x="468" y="25.6" width="1.6" height="22.4" data-d="2026-03-27" data-c="34"/><rect class="a1" x="471" y="37.8" width="1.6" height="10.2" data-d="2026-03-28" data-c="7"/><rect class="a1" x="474" y="41.3" width="1.6" height="6.7" data-d="2026-03-29" data-c="3"/><rect class="a1" x="477" y="32.2" width="1.6" height="15.8" data-d="2026-03-30" data-c="17"/><rect class="a1" x="480" y="25.6" width="1.6" height="22.4" data-d="2026-03-31" data-c="34"/><rect class="a1" x="483" y="30.0" width="1.6" height="18.0" data-d="2026-04-01" data-c="22"/><rect class="a1" x="486" y="37.1" width="1.6" height="10.9" data-d="2026-04-02" data-c="8"/><rect class="a1" x="489" y="42.6" width="1.6" height="5.4" data-d="2026-04-03" data-c="2"/><rect class="a1" x="492" y="44.2" width="1.6" height="3.8" data-d="2026-04-04" data-c="1"/><rect class="a1" x="495" y="44.2" width="1.6" height="3.8" data-d="2026-04-05" data-c="1"/><rect class="a1" x="498" y="34.7" width="1.6" height="13.3" data-d="2026-04-06" data-c="12"/><rect class="a1" x="501" y="35.8" width="1.6" height="12.2" data-d="2026-04-07" data-c="10"/><rect class="a1" x="504" y="37.8" width="1.6" height="10.2" data-d="2026-04-08" data-c="7"/><rect class="a1" x="507" y="39.4" width="1.6" height="8.6" data-d="2026-04-09" data-c="5"/><rect class="a1" x="510" y="42.6" width="1.6" height="5.4" data-d="2026-04-10" data-c="2"/><rect class="a1" x="513" y="42.6" width="1.6" height="5.4" data-d="2026-04-11" data-c="2"/><rect class="a1" x="516" y="41.3" width="1.6" height="6.7" data-d="2026-04-12" data-c="3"/><rect class="a1" x="519" y="29.2" width="1.6" height="18.8" data-d="2026-04-13" data-c="24"/><rect class="a1" x="522" y="25.6" width="1.6" height="22.4" data-d="2026-04-14" data-c="34"/><rect class="a1" x="525" y="29.6" width="1.6" height="18.4" data-d="2026-04-15" data-c="23"/><rect class="a1" x="528" y="32.6" width="1.6" height="15.4" data-d="2026-04-16" data-c="16"/><rect class="a1" x="531" y="40.3" width="1.6" height="7.7" data-d="2026-04-17" data-c="4"/><rect class="a1" x="534" y="44.2" width="1.6" height="3.8" data-d="2026-04-18" data-c="1"/><rect class="a1" x="537" y="36.5" width="1.6" height="11.5" data-d="2026-04-19" data-c="9"/><rect class="a1" x="540" y="22.5" width="1.6" height="25.5" data-d="2026-04-20" data-c="44"/><rect class="a1" x="543" y="24.9" width="1.6" height="23.1" data-d="2026-04-21" data-c="36"/><rect class="a1" x="546" y="33.1" width="1.6" height="14.9" data-d="2026-04-22" data-c="15"/><rect class="a1" x="549" y="44.2" width="1.6" height="3.8" data-d="2026-04-23" data-c="1"/><rect class="a0" x="552" y="47" width="1.6" height="1" data-d="2026-04-24" data-c="0"/><rect class="a1" x="555" y="44.2" width="1.6" height="3.8" data-d="2026-04-25" data-c="1"/><rect class="a0" x="558" y="47" width="1.6" height="1" data-d="2026-04-26" data-c="0"/><rect class="a0" x="561" y="47" width="1.6" height="1" data-d="2026-04-27" data-c="0"/><rect class="a0" x="564" y="47" width="1.6" height="1" data-d="2026-04-28" data-c="0"/><rect class="a1" x="567" y="36.5" width="1.6" height="11.5" data-d="2026-04-29" data-c="9"/><rect class="a1" x="570" y="40.3" width="1.6" height="7.7" data-d="2026-04-30" data-c="4"/><rect class="a1" x="573" y="29.2" width="1.6" height="18.8" data-d="2026-05-01" data-c="24"/><rect class="a0" x="576" y="47" width="1.6" height="1" data-d="2026-05-02" data-c="0"/><rect class="a1" x="579" y="44.2" width="1.6" height="3.8" data-d="2026-05-03" data-c="1"/><rect class="a1" x="582" y="41.3" width="1.6" height="6.7" data-d="2026-05-04" data-c="3"/><rect class="a1" x="585" y="35.8" width="1.6" height="12.2" data-d="2026-05-05" data-c="10"/><rect class="a1" x="588" y="30.0" width="1.6" height="18.0" data-d="2026-05-06" data-c="22"/><rect class="a1" x="591" y="33.6" width="1.6" height="14.4" data-d="2026-05-07" data-c="14"/><rect class="a1" x="594" y="20.0" width="1.6" height="28.0" data-d="2026-05-08" data-c="53"/><rect class="a1" x="597" y="44.2" width="1.6" height="3.8" data-d="2026-05-09" data-c="1"/><rect class="a1" x="600" y="44.2" width="1.6" height="3.8" data-d="2026-05-10" data-c="1"/><rect class="a1" x="603" y="44.2" width="1.6" height="3.8" data-d="2026-05-11" data-c="1"/><rect class="a1" x="606" y="40.3" width="1.6" height="7.7" data-d="2026-05-12" data-c="4"/><rect class="a1" x="609" y="36.5" width="1.6" height="11.5" data-d="2026-05-13" data-c="9"/><rect class="a1" x="612" y="31.7" width="1.6" height="16.3" data-d="2026-05-14" data-c="18"/><rect class="a0" x="615" y="47" width="1.6" height="1" data-d="2026-05-15" data-c="0"/><rect class="a1" x="618" y="31.2" width="1.6" height="16.8" data-d="2026-05-16" data-c="19"/><rect class="a1" x="621" y="44.2" width="1.6" height="3.8" data-d="2026-05-17" data-c="1"/><rect class="a1" x="624" y="32.2" width="1.6" height="15.8" data-d="2026-05-18" data-c="17"/><rect class="a1" x="627" y="29.2" width="1.6" height="18.8" data-d="2026-05-19" data-c="24"/><rect class="a1" x="630" y="22.8" width="1.6" height="25.2" data-d="2026-05-20" data-c="43"/><rect class="a1" x="633" y="32.6" width="1.6" height="15.4" data-d="2026-05-21" data-c="16"/><rect class="a1" x="636" y="24.3" width="1.6" height="23.7" data-d="2026-05-22" data-c="38"/><rect class="a1" x="639" y="25.9" width="1.6" height="22.1" data-d="2026-05-23" data-c="33"/><rect class="a1" x="642" y="26.3" width="1.6" height="21.7" data-d="2026-05-24" data-c="32"/><rect class="a1" x="645" y="13.6" width="1.6" height="34.4" data-d="2026-05-25" data-c="80"/><rect class="a1" x="648" y="31.7" width="1.6" height="16.3" data-d="2026-05-26" data-c="18"/><rect class="a1" x="651" y="19.0" width="1.6" height="29.0" data-d="2026-05-27" data-c="57"/><rect class="a0" x="654" y="47" width="1.6" height="1" data-d="2026-05-28" data-c="0"/><rect class="a1" x="657" y="35.8" width="1.6" height="12.2" data-d="2026-05-29" data-c="10"/><rect class="a1" x="660" y="40.3" width="1.6" height="7.7" data-d="2026-05-30" data-c="4"/><rect class="a1" x="663" y="41.3" width="1.6" height="6.7" data-d="2026-05-31" data-c="3"/><rect class="a1" x="666" y="19.8" width="1.6" height="28.2" data-d="2026-06-01" data-c="54"/><rect class="a1" x="669" y="28.8" width="1.6" height="19.2" data-d="2026-06-02" data-c="25"/><rect class="a1" x="672" y="31.2" width="1.6" height="16.8" data-d="2026-06-03" data-c="19"/><rect class="a1" x="675" y="42.6" width="1.6" height="5.4" data-d="2026-06-04" data-c="2"/><rect class="a1" x="678" y="19.8" width="1.6" height="28.2" data-d="2026-06-05" data-c="54"/><rect class="a1" x="681" y="2.9" width="1.6" height="45.1" data-d="2026-06-06" data-c="138"/><rect class="a1" x="684" y="35.3" width="1.6" height="12.7" data-d="2026-06-07" data-c="11"/><rect class="a0" x="687" y="47" width="1.6" height="1" data-d="2026-06-08" data-c="0"/><rect class="a1" x="690" y="25.3" width="1.6" height="22.7" data-d="2026-06-09" data-c="35"/><rect class="a1" x="693" y="13.6" width="1.6" height="34.4" data-d="2026-06-10" data-c="80"/><rect class="a1" x="696" y="36.5" width="1.6" height="11.5" data-d="2026-06-11" data-c="9"/><rect class="a1" x="699" y="38.6" width="1.6" height="9.4" data-d="2026-06-12" data-c="6"/><rect class="a1" x="702" y="28.4" width="1.6" height="19.6" data-d="2026-06-13" data-c="26"/><rect class="a1" x="705" y="44.2" width="1.6" height="3.8" data-d="2026-06-14" data-c="1"/><rect class="a1" x="708" y="24.6" width="1.6" height="23.4" data-d="2026-06-15" data-c="37"/><rect class="a1" x="711" y="10.3" width="1.6" height="37.7" data-d="2026-06-16" data-c="96"/><rect class="a0" x="714" y="47" width="1.6" height="1" data-d="2026-06-17" data-c="0"/><rect class="a1" x="717" y="35.3" width="1.6" height="12.7" data-d="2026-06-18" data-c="11"/><rect class="a1" x="720" y="26.6" width="1.6" height="21.4" data-d="2026-06-19" data-c="31"/><rect class="a1" x="723" y="36.5" width="1.6" height="11.5" data-d="2026-06-20" data-c="9"/><rect class="a1" x="726" y="21.9" width="1.6" height="26.1" data-d="2026-06-21" data-c="46"/><rect class="a1" x="729" y="20.6" width="1.6" height="27.4" data-d="2026-06-22" data-c="51"/><rect class="a1" x="732" y="39.4" width="1.6" height="8.6" data-d="2026-06-23" data-c="5"/><rect class="a1" x="735" y="37.8" width="1.6" height="10.2" data-d="2026-06-24" data-c="7"/><rect class="a1" x="738" y="35.8" width="1.6" height="12.2" data-d="2026-06-25" data-c="10"/><rect class="a1" x="741" y="37.1" width="1.6" height="10.9" data-d="2026-06-26" data-c="8"/><rect class="a1" x="744" y="44.2" width="1.6" height="3.8" data-d="2026-06-27" data-c="1"/><rect class="a1" x="747" y="14.9" width="1.6" height="33.1" data-d="2026-06-28" data-c="74"/><rect class="a1" x="750" y="27.0" width="1.6" height="21.0" data-d="2026-06-29" data-c="30"/><rect class="a1" x="753" y="30.8" width="1.6" height="17.2" data-d="2026-06-30" data-c="20"/><rect class="a1" x="756" y="42.6" width="1.6" height="5.4" data-d="2026-07-01" data-c="2"/><rect class="a1" x="759" y="31.7" width="1.6" height="16.3" data-d="2026-07-02" data-c="18"/><rect class="a1" x="762" y="28.4" width="1.6" height="19.6" data-d="2026-07-03" data-c="26"/><rect class="a1" x="765" y="33.1" width="1.6" height="14.9" data-d="2026-07-04" data-c="15"/><rect class="a1" x="768" y="33.1" width="1.6" height="14.9" data-d="2026-07-05" data-c="15"/><rect class="a1" x="771" y="36.5" width="1.6" height="11.5" data-d="2026-07-06" data-c="9"/><rect class="a1" x="774" y="30.0" width="1.6" height="18.0" data-d="2026-07-07" data-c="22"/><rect class="a1" x="777" y="37.8" width="1.6" height="10.2" data-d="2026-07-08" data-c="7"/><rect class="a1" x="780" y="26.6" width="1.6" height="21.4" data-d="2026-07-09" data-c="31"/><rect class="a1" x="783" y="33.6" width="1.6" height="14.4" data-d="2026-07-10" data-c="14"/><rect class="a1" x="786" y="23.7" width="1.6" height="24.3" data-d="2026-07-11" data-c="40"/><rect class="a1" x="789" y="30.8" width="1.6" height="17.2" data-d="2026-07-12" data-c="20"/><rect class="a1" x="792" y="33.1" width="1.6" height="14.9" data-d="2026-07-13" data-c="15"/><rect class="a1" x="795" y="42.6" width="1.6" height="5.4" data-d="2026-07-14" data-c="2"/><rect class="a1" x="798" y="41.3" width="1.6" height="6.7" data-d="2026-07-15" data-c="3"/><rect class="a1" x="801" y="40.3" width="1.6" height="7.7" data-d="2026-07-16" data-c="4"/><rect class="a1" x="804" y="44.2" width="1.6" height="3.8" data-d="2026-07-17" data-c="1"/><rect class="a1" x="807" y="36.5" width="1.6" height="11.5" data-d="2026-07-18" data-c="9"/><rect class="a1" x="810" y="33.6" width="1.6" height="14.4" data-d="2026-07-19" data-c="14"/><rect class="a1" x="813" y="26.3" width="1.6" height="21.7" data-d="2026-07-20" data-c="32"/><rect class="a1" x="816" y="34.7" width="1.6" height="13.3" data-d="2026-07-21" data-c="12"/><rect class="a1" x="819" y="30.8" width="1.6" height="17.2" data-d="2026-07-22" data-c="20"/><rect class="a1" x="822" y="18.5" width="1.6" height="29.5" data-d="2026-07-23" data-c="59"/><rect class="a1" x="825" y="33.6" width="1.6" height="14.4" data-d="2026-07-24" data-c="14"/><rect class="a1" x="828" y="30.0" width="1.6" height="18.0" data-d="2026-07-25" data-c="22"/><rect class="a1" x="831" y="30.0" width="1.6" height="18.0" data-d="2026-07-26" data-c="22"/><rect class="a1" x="834" y="17.0" width="1.6" height="31.0" data-d="2026-07-27" data-c="65"/><rect class="a1" x="837" y="28.0" width="1.6" height="20.0" data-d="2026-07-28" data-c="27"/><rect class="a1" x="840" y="17.5" width="1.6" height="30.5" data-d="2026-07-29" data-c="63"/><rect class="a1" x="843" y="0.8" width="1.6" height="47.2" data-d="2026-07-30" data-c="151"/><rect class="a1" x="846" y="28.4" width="1.6" height="19.6" data-d="2026-07-31" data-c="26"/><rect class="a1" x="849" y="25.3" width="1.6" height="22.7" data-d="2026-08-01" data-c="35"/><rect class="a1" x="852" y="39.4" width="1.6" height="8.6" data-d="2026-08-02" data-c="5"/><rect class="a1" x="855" y="29.6" width="1.6" height="18.4" data-d="2026-08-03" data-c="23"/><rect class="a1" x="858" y="25.6" width="1.6" height="22.4" data-d="2026-08-04" data-c="34"/><rect class="a1" x="861" y="15.4" width="1.6" height="32.6" data-d="2026-08-05" data-c="72"/><rect class="a1" x="864" y="24.3" width="1.6" height="23.7" data-d="2026-08-06" data-c="38"/><rect class="a1" x="867" y="33.1" width="1.6" height="14.9" data-d="2026-08-07" data-c="15"/><rect class="a1" x="870" y="28.0" width="1.6" height="20.0" data-d="2026-08-08" data-c="27"/><rect class="a1" x="873" y="35.3" width="1.6" height="12.7" data-d="2026-08-09" data-c="11"/><rect class="a1" x="876" y="22.2" width="1.6" height="25.8" data-d="2026-08-10" data-c="45"/><rect class="a1" x="879" y="37.1" width="1.6" height="10.9" data-d="2026-08-11" data-c="8"/><rect class="a1" x="882" y="34.1" width="1.6" height="13.9" data-d="2026-08-12" data-c="13"/><rect class="a1" x="885" y="35.8" width="1.6" height="12.2" data-d="2026-08-13" data-c="10"/><rect class="a0" x="888" y="47" width="1.6" height="1" data-d="2026-08-14" data-c="0"/><rect class="a1" x="891" y="44.2" width="1.6" height="3.8" data-d="2026-08-15" data-c="1"/><rect class="a0" x="894" y="47" width="1.6" height="1" data-d="2026-08-16" data-c="0"/><rect class="a1" x="897" y="41.3" width="1.6" height="6.7" data-d="2026-08-17" data-c="3"/><rect class="a1" x="900" y="37.1" width="1.6" height="10.9" data-d="2026-08-18" data-c="8"/><rect class="a1" x="903" y="19.2" width="1.6" height="28.8" data-d="2026-08-19" data-c="56"/><rect class="a1" x="906" y="40.3" width="1.6" height="7.7" data-d="2026-08-20" data-c="4"/><rect class="a1" x="909" y="42.6" width="1.6" height="5.4" data-d="2026-08-21" data-c="2"/><rect class="a0" x="912" y="47" width="1.6" height="1" data-d="2026-08-22" data-c="0"/><rect class="a0" x="915" y="47" width="1.6" height="1" data-d="2026-08-23" data-c="0"/><rect class="a0" x="918" y="47" width="1.6" height="1" data-d="2026-08-24" data-c="0"/><rect class="a1" x="921" y="25.3" width="1.6" height="22.7" data-d="2026-08-25" data-c="35"/><rect class="a1" x="924" y="41.3" width="1.6" height="6.7" data-d="2026-08-26" data-c="3"/><rect class="a1" x="927" y="39.4" width="1.6" height="8.6" data-d="2026-08-27" data-c="5"/><rect class="a1" x="930" y="39.4" width="1.6" height="8.6" data-d="2026-08-28" data-c="5"/><rect class="a0" x="933" y="47" width="1.6" height="1" data-d="2026-08-29" data-c="0"/><rect class="a0" x="936" y="47" width="1.6" height="1" data-d="2026-08-30" data-c="0"/><rect class="a1" x="939" y="31.7" width="1.6" height="16.3" data-d="2026-08-31" data-c="18"/><rect class="a1" x="942" y="28.0" width="1.6" height="20.0" data-d="2026-09-01" data-c="27"/><rect class="a1" x="945" y="35.3" width="1.6" height="12.7" data-d="2026-09-02" data-c="11"/><rect class="a1" x="948" y="7.7" width="1.6" height="40.3" data-d="2026-09-03" data-c="110"/><rect class="a1" x="951" y="36.5" width="1.6" height="11.5" data-d="2026-09-04" data-c="9"/><rect class="a0" x="954" y="47" width="1.6" height="1" data-d="2026-09-05" data-c="0"/><rect class="a0" x="957" y="47" width="1.6" height="1" data-d="2026-09-06" data-c="0"/><rect class="a1" x="960" y="41.3" width="1.6" height="6.7" data-d="2026-09-07" data-c="3"/><rect class="a1" x="963" y="34.7" width="1.6" height="13.3" data-d="2026-09-08" data-c="12"/><rect class="a1" x="966" y="21.4" width="1.6" height="26.6" data-d="2026-09-09" data-c="48"/><rect class="a1" x="969" y="11.9" width="1.6" height="36.1" data-d="2026-09-10" data-c="88"/><rect class="a1" x="972" y="20.3" width="1.6" height="27.7" data-d="2026-09-11" data-c="52"/><rect class="a1" x="975" y="27.0" width="1.6" height="21.0" data-d="2026-09-12" data-c="30"/><rect class="a1" x="978" y="30.8" width="1.6" height="17.2" data-d="2026-09-13" data-c="20"/><rect class="a1" x="981" y="27.0" width="1.6" height="21.0" data-d="2026-09-14" data-c="30"/><rect class="a1" x="984" y="28.4" width="1.6" height="19.6" data-d="2026-09-15" data-c="26"/><rect class="a1" x="987" y="35.3" width="1.6" height="12.7" data-d="2026-09-16" data-c="11"/><rect class="a1" x="990" y="24.9" width="1.6" height="23.1" data-d="2026-09-17" data-c="36"/><rect class="a1" x="993" y="16.1" width="1.6" height="31.9" data-d="2026-09-18" data-c="69"/><rect class="a1" x="996" y="37.1" width="1.6" height="10.9" data-d="2026-09-19" data-c="8"/><rect class="a1" x="999" y="34.7" width="1.6" height="13.3" data-d="2026-09-20" data-c="12"/><rect class="a1" x="1002" y="34.1" width="1.6" height="13.9" data-d="2026-09-21" data-c="13"/><rect class="a1" x="1005" y="35.3" width="1.6" height="12.7" data-d="2026-09-22" data-c="11"/><rect class="a1" x="1008" y="35.3" width="1.6" height="12.7" data-d="2026-09-23" data-c="11"/><rect class="a1" x="1011" y="37.1" width="1.6" height="10.9" data-d="2026-09-24" data-c="8"/><rect class="a1" x="1014" y="33.1" width="1.6" height="14.9" data-d="2026-09-25" data-c="15"/><rect class="a1" x="1017" y="26.6" width="1.6" height="21.4" data-d="2026-09-26" data-c="31"/><rect class="a1" x="1020" y="27.3" width="1.6" height="20.7" data-d="2026-09-27" data-c="29"/><rect class="a1" x="1023" y="32.2" width="1.6" height="15.8" data-d="2026-09-28" data-c="17"/><rect class="a1" x="1026" y="24.6" width="1.6" height="23.4" data-d="2026-09-29" data-c="37"/><rect class="a1" x="1029" y="15.2" width="1.6" height="32.8" data-d="2026-09-30" data-c="73"/><rect class="a1" x="1032" y="23.1" width="1.6" height="24.9" data-d="2026-10-01" data-c="42"/><rect class="a1" x="1035" y="13.8" width="1.6" height="34.2" data-d="2026-10-02" data-c="79"/><rect class="a1" x="1038" y="21.7" width="1.6" height="26.3" data-d="2026-10-03" data-c="47"/><rect class="a1" x="1041" y="14.3" width="1.6" height="33.7" data-d="2026-10-04" data-c="77"/><rect class="a1" x="1044" y="5.6" width="1.6" height="42.4" data-d="2026-10-05" data-c="122"/><rect class="a1" x="1047" y="1.9" width="1.6" height="46.1" data-d="2026-10-06" data-c="144"/><rect class="a1" x="1050" y="22.2" width="1.6" height="25.8" data-d="2026-10-07" data-c="45"/><rect class="a1" x="1053" y="19.8" width="1.6" height="28.2" data-d="2026-10-08" data-c="54"/><rect class="a1" x="1056" y="28.8" width="1.6" height="19.2" data-d="2026-10-09" data-c="25"/><rect class="a0" x="1059" y="47" width="1.6" height="1" data-d="2026-10-10" data-c="0"/><rect class="a1" x="1062" y="36.5" width="1.6" height="11.5" data-d="2026-10-11" data-c="9"/><rect class="a1" x="1065" y="24.6" width="1.6" height="23.4" data-d="2026-10-12" data-c="37"/><rect class="a1" x="1068" y="0.0" width="1.6" height="48.0" data-d="2026-10-13" data-c="156"/><rect class="a1" x="1071" y="8.2" width="1.6" height="39.8" data-d="2026-10-14" data-c="107"/><rect class="a1" x="1074" y="34.7" width="1.6" height="13.3" data-d="2026-10-15" data-c="12"/><rect class="a1" x="1077" y="33.6" width="1.6" height="14.4" data-d="2026-10-16" data-c="14"/><rect class="a1" x="1080" y="22.5" width="1.6" height="25.5" data-d="2026-10-17" data-c="44"/><rect class="a1" x="1083" y="13.8" width="1.6" height="34.2" data-d="2026-10-18" data-c="79"/><rect class="a1" x="1086" y="9.6" width="1.6" height="38.4" data-d="2026-10-19" data-c="100"/><rect class="a1" x="1089" y="28.0" width="1.6" height="20.0" data-d="2026-10-20" data-c="27"/><rect class="a1" x="1092" y="22.5" width="1.6" height="25.5" data-d="2026-10-21" data-c="44"/></svg>
           <!-- activity:end -->
     </figure>
-  </header>
+  </section>
 
-  <main id="main">
+  <div class="statement"><p>Legacy code is where I&rsquo;m most useful.<br><span>Deploys should take minutes.</span></p></div>
 
-    <section class="row" aria-labelledby="h-how">
-      <h2 id="h-how">How I work</h2>
-      <ul class="positions">
-        <li>
-          <b>Legacy code is where I&rsquo;m most useful.</b>
-          <span>I genuinely like technical debt. Taming large systems that outgrew the assumptions they were built on is a rare skill, and it&rsquo;s the one I&rsquo;m best at.</span>
-        </li>
-        <li>
-          <b>Deploys should take minutes.</b>
-          <span>MySpeedPuzzling goes from push to production in about two and a half minutes. Every change passes PHPStan and a test suite sharded three ways.</span>
-        </li>
-        <li>
-          <b>Own the infrastructure.</b>
-          <span>Self-hosted on Hetzner, open-source components wherever possible. The chatbot from my RAG talk answers around 100 conversations a day for about $3 a month.</span>
-        </li>
-        <li>
-          <b>Public by default.</b>
-          <span>Whatever can be open source, is. That includes the entire MySpeedPuzzling codebase.</span>
-        </li>
-        <li>
-          <b>Agents are on the team now.</b>
-          <span>I was a sceptic. Today Claude Code runs for days on my projects, and I speak about how to make that work.</span>
-        </li>
-      </ul>
-    </section>
+  <section class="sec" id="work" aria-labelledby="h-how">
+    <div class="sec__head"><h2 id="h-how">How I work</h2><p>Five habits that shape every project, whether it&rsquo;s mine or a client&rsquo;s.</p></div>
+    <ol class="rows">
+      <li><span class="i">01</span><b>Legacy code is where I&rsquo;m most useful.</b><span>I genuinely like technical debt. Taming large systems that outgrew the assumptions they were built on is a rare skill, and it&rsquo;s the one I&rsquo;m best at.</span></li>
+      <li><span class="i">02</span><b>Deploys should take minutes.</b><span>MySpeedPuzzling goes from push to production in about two and a half minutes. Every change passes PHPStan and a test suite sharded three ways.</span></li>
+      <li><span class="i">03</span><b>Own the infrastructure.</b><span>Self-hosted on Hetzner, open-source components wherever possible. The chatbot from my RAG talk answers around 100 conversations a day for about $3 a month.</span></li>
+      <li><span class="i">04</span><b>Public by default.</b><span>Whatever can be open source, is. That includes the entire MySpeedPuzzling codebase.</span></li>
+      <li><span class="i">05</span><b>Agents are on the team now.</b><span>I was a sceptic. Today Claude Code runs for days on my projects, and I speak about how to make that work.</span></li>
+    </ol>
+  </section>
 
-    <section class="row system" aria-labelledby="h-system">
-      <h2 id="h-system">Building now</h2>
-      <div>
+  <section class="sec" aria-labelledby="h-now">
+    <div class="sec__head"><h2 id="h-now">Building now</h2></div>
+    <div class="cells feature" style="--x1:50%;--x2:100%">
+      <div class="story">
+        <span class="label">nights &amp; weekends · since 2023</span>
         <h3><a href="https://myspeedpuzzling.com">MySpeedPuzzling</a></h3>
-        <div class="prose">
-          <p>The largest speed puzzling community database in the world. I built it from scratch as a nights-and-weekends project: bootstrapped, past 11,000 users, with web, iOS and Android apps on one codebase.</p>
-          <p>2,343 commits since October 2023, every one of them public. <a href="https://github.com/MySpeedPuzzling/myspeedpuzzling.com">The source is on GitHub</a>.</p>
-        </div>
-
-
+        <p>The largest speed puzzling community database in the world. Bootstrapped from scratch, with web, iOS and Android apps on one codebase.</p>
+        <p>Every commit is public. <a href="https://github.com/MySpeedPuzzling/myspeedpuzzling.com">The source is on GitHub</a>.</p>
       </div>
-    </section>
+      <div class="num"><b>11k+</b><span>users</span></div>
+      <div class="num"><b>2,343</b><span>public commits</span></div>
+    </div>
+  </section>
 
-    <section class="row" aria-labelledby="h-products">
-      <h2 id="h-products">Products</h2>
-      <div>
-        <ul class="list">
-          <li><a href="https://sorticai.com" data-host="sorticai.com">SorticAI</a><span>AI regulatory oversight and readiness assessments for law firms and boards.</span></li>
-          <li><a href="https://vmcorp.cz" data-host="vmcorp.cz">VMCorp</a><span>Production AI agent systems and cloud architecture for growing companies.</span></li>
-          <li><a href="https://autix.eu" data-host="autix.eu">AUTiX</a><span>Cloud business management software for companies and <span class="nowrap">e-shops</span>.</span></li>
-          <li><a href="https://sendvery.com" data-host="sendvery.com">Sendvery</a><span>DMARC and email authentication monitoring for domain owners.</span></li>
-          <li><a href="https://wboost.cz" data-host="wboost.cz">wboost</a><span>Locked brand templates that designers hand over for clients to edit.</span></li>
-          <li><a href="https://fajnesklady.cz" data-host="fajnesklady.cz">Fajnesklady</a><span>Self-storage units with round-the-clock access.</span></li>
-        </ul>
-        <p class="aside">Plus consulting and advisory work alongside.</p>
-      </div>
-    </section>
+  <section class="sec" aria-labelledby="h-products">
+    <div class="sec__head"><h2 id="h-products">Products</h2><p>Companies and products I founded or co-founded, plus consulting and advisory work alongside.</p></div>
+    <div class="cells" role="list" style="--x1:75%;--x2:50%">
+      <div class="product" role="listitem"><a href="https://sorticai.com">SorticAI</a><span class="host">sorticai.com</span><p>AI regulatory oversight and readiness assessments for law firms and boards.</p></div>
+      <div class="product" role="listitem"><a href="https://vmcorp.cz">VMCorp</a><span class="host">vmcorp.cz</span><p>Production AI agent systems and cloud architecture for growing companies.</p></div>
+      <div class="product" role="listitem"><a href="https://autix.eu">AUTiX</a><span class="host">autix.eu</span><p>Cloud business management software for companies and e&#8209;shops.</p></div>
+      <div class="product" role="listitem"><a href="https://sendvery.com">Sendvery</a><span class="host">sendvery.com</span><p>DMARC and email authentication monitoring for domain owners.</p></div>
+      <div class="product" role="listitem"><a href="https://wboost.cz">wboost</a><span class="host">wboost.cz</span><p>Locked brand templates that designers hand over for clients to edit.</p></div>
+      <div class="product" role="listitem"><a href="https://fajnesklady.cz">Fajnesklady</a><span class="host">fajnesklady.cz</span><p>Self-storage units with round-the-clock access.</p></div>
+      <div class="hatch" aria-hidden="true"></div>
+      <div class="hatch" aria-hidden="true"></div>
+    </div>
+  </section>
 
-    <section class="row" aria-labelledby="h-talks">
-      <h2 id="h-talks">Talks</h2>
-      <div>
-        <ul class="list list--talks">
-          <li>
-            <time datetime="2026-09-09">2026-09</time>
-            <a href="/slides/clean-context/">Clean context: running Claude Code for days</a>
-            <span>Tech Meetup #43</span>
-          </li>
-          <li>
-            <time datetime="2026-09-09">2026-09</time>
-            <a href="/slides/devs-will-have-nothing-to-eat/" lang="cs">A vývojáři nebudou mít co žrát</a>
-            <span>Tech Meetup #43 · in Czech</span>
-          </li>
-          <li>
-            <time datetime="2026-01-28">2026-01</time>
-            <a href="/slides/homemade-ai-chatbot/">Homemade AI chatbot: Symfony, RAG &amp; OCR</a>
-            <span>Tech Meetup #39 · Impact Hub Ostrava</span>
-          </li>
-        </ul>
-        <p class="aside"><a href="/slides/">All talks</a></p>
-      </div>
-    </section>
+  <section class="cells marks" aria-label="Trained at" style="--x1:25%;--x2:100%">
+    <div class="label">Trained in<br>Silicon Valley</div>
+    <div class="wm">Salesforce<small>San Francisco</small></div>
+    <div class="wm">Oracle<small>San Francisco</small></div>
+    <div class="wm">Google<small>Palo Alto</small></div>
+  </section>
 
-    <section class="row" id="contact" aria-labelledby="h-contact">
-      <h2 id="h-contact">Contact</h2>
-      <div>
-        <p class="prose">Write about a product, a stuck codebase, a talk, or jigsaw puzzles.</p>
-        <dl class="contact">
-          <dt>email</dt>    <dd><a href="mailto:j.mikes@me.com">j.mikes@me.com</a></dd>
-          <dt>phone</dt>    <dd><a href="tel:+420773686207">+420 773 686 207</a></dd>
-          <dt>github</dt>   <dd><a href="https://github.com/janmikes" rel="me">janmikes</a></dd>
-          <dt>linkedin</dt> <dd><a href="https://www.linkedin.com/in/jan-mikes/" rel="me">jan-mikes</a></dd>
-        </dl>
-      </div>
-    </section>
+  <section class="sec" id="talks" aria-labelledby="h-talks">
+    <div class="sec__head"><h2 id="h-talks">Talks</h2><p>On running AI agents for real, and on building things cheaply that last.</p></div>
+    <div class="cells" style="--x1:50%;--x2:25%">
+      <a class="talk" href="/slides/clean-context/"><img src="/assets/talks/techmeetup-43-1.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-09-09">2026-09</time><b>Clean context: running Claude Code for days</b><span>Tech Meetup #43</span></a>
+      <a class="talk" href="/slides/devs-will-have-nothing-to-eat/"><img src="/assets/talks/techmeetup-43-2.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-09-09">2026-09</time><b lang="cs">A vývojáři nebudou mít co žrát</b><span>Tech Meetup #43 · in Czech</span></a>
+      <a class="talk" href="/slides/homemade-ai-chatbot/"><img src="/assets/talks/techmeetup-39.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-01-28">2026-01</time><b>Homemade AI chatbot: Symfony, RAG &amp; OCR</b><span>Tech Meetup #39 · Impact Hub Ostrava</span></a>
+      <a class="more" href="/slides/">All talks →</a>
+    </div>
+  </section>
 
+  <section class="contact" id="contact" aria-labelledby="h-contact">
+    <div class="label">Contact</div>
+    <h2 id="h-contact">Let&rsquo;s talk.</h2>
+    <p>Write about a product, a stuck codebase, a talk, or jigsaw puzzles.</p>
+    <a class="mail" href="mailto:j.mikes@me.com">j.mikes@me.com</a>
+    <dl><div><dt>phone</dt><dd><a href="tel:+420773686207">+420 773 686 207</a></dd></div><div><dt>github</dt><dd><a href="https://github.com/janmikes" rel="me">janmikes</a></dd></div><div><dt>linkedin</dt><dd><a href="https://www.linkedin.com/in/jan-mikes/" rel="me">jan-mikes</a></dd></div></dl>
+  </section>
   </main>
-
 
 </div>
 
@@ -188,6 +316,7 @@
   ]
 }
 </script>
+<script src="/assets/glass.js" defer></script>
 <script src="/assets/year.js" defer></script>
 </body>
 </html>
