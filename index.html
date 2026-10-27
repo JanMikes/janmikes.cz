@@ -252,7 +252,7 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
   </section>
 
   <section class="sec" aria-labelledby="h-products">
-    <div class="sec__head"><h2 id="h-products">Products</h2><p>Companies and products I founded or co-founded, plus consulting and advisory work alongside.</p></div>
+    <div class="sec__head"><h2 id="h-products">Products</h2><p>Plus consulting and advisory work alongside.</p></div>
     <div class="cells" role="list" style="--x1:75%;--x2:50%">
       <div class="product" role="listitem"><a href="https://sorticai.com">SorticAI</a><span class="host">sorticai.com</span><p>AI regulatory oversight and readiness assessments for law firms and boards.</p></div>
       <div class="product" role="listitem"><a href="https://vmcorp.cz">VMCorp</a><span class="host">vmcorp.cz</span><p>Production AI agent systems and cloud architecture for growing companies.</p></div>
@@ -296,23 +296,182 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Person",
-  "@id": "https://janmikes.cz/#person",
-  "name": "Jan Mikeš",
-  "alternateName": "Jan Mikes",
-  "url": "https://janmikes.cz/",
-  "image": "https://janmikes.cz/assets/jan-mikes.jpg",
-  "jobTitle": "Tech founder & software architect",
-  "email": "mailto:j.mikes@me.com",
-  "telephone": "+420773686207",
-  "nationality": "Czech",
-  "description": "Tech founder and software architect from Ostrava, Czech Republic, with twenty years of building products end to end. Trained at Salesforce, Oracle and Google in Silicon Valley. Builder of MySpeedPuzzling.com.",
-  "address": { "@type": "PostalAddress", "addressLocality": "Ostrava", "addressCountry": "CZ" },
-  "knowsLanguage": ["cs", "en"],
-  "knowsAbout": ["Startups","Software architecture","PHP","Symfony","PostgreSQL","CI/CD","Containers","Docker","Test-driven development","Domain-driven design","CQRS","Monorepos","Legacy code modernisation","Performance profiling","AI-assisted development","Claude Code"],
-  "sameAs": [
-    "https://github.com/janmikes",
-    "https://www.linkedin.com/in/jan-mikes/"
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://janmikes.cz/#website",
+      "url": "https://janmikes.cz/",
+      "name": "Jan Mikeš",
+      "alternateName": "janmikes.cz",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://janmikes.cz/#person" }
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://janmikes.cz/#webpage",
+      "url": "https://janmikes.cz/",
+      "name": "Jan Mikeš · Tech founder & software architect",
+      "description": "Jan Mikeš is a tech founder and software architect from Ostrava, Czech Republic. Over 20 years building products end to end; creator of MySpeedPuzzling, with 11,000+ users.",
+      "inLanguage": "en",
+      "isPartOf": { "@id": "https://janmikes.cz/#website" },
+      "mainEntity": { "@id": "https://janmikes.cz/#person" },
+      "about": { "@id": "https://janmikes.cz/#person" },
+      "primaryImageOfPage": { "@id": "https://janmikes.cz/#portrait" }
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://janmikes.cz/#portrait",
+      "url": "https://janmikes.cz/assets/jan-mikes.jpg",
+      "contentUrl": "https://janmikes.cz/assets/jan-mikes.jpg",
+      "width": 440,
+      "height": 550,
+      "caption": "Portrait of Jan Mikeš"
+    },
+    {
+      "@type": "Person",
+      "@id": "https://janmikes.cz/#person",
+      "name": "Jan Mikeš",
+      "alternateName": "Jan Mikes",
+      "givenName": "Jan",
+      "familyName": "Mikeš",
+      "url": "https://janmikes.cz/",
+      "mainEntityOfPage": { "@id": "https://janmikes.cz/#webpage" },
+      "image": { "@id": "https://janmikes.cz/#portrait" },
+      "jobTitle": "Tech founder & software architect",
+      "description": "Jan Mikeš is a tech founder and software architect based in Ostrava, Czech Republic, who has been building for the web for over twenty years. He builds products end to end, from the database migration to the pricing page, and is most useful on legacy code: large systems that outgrew the assumptions they were built on. He trained at Salesforce and Oracle in San Francisco and at Google in Palo Alto. He built MySpeedPuzzling, the largest speed puzzling community database in the world, with over 11,000 users. His products include SorticAI, VMCorp, AUTiX, Sendvery, wboost and Fajnesklady. He speaks at Tech Meetup about AI-assisted development with Claude Code, RAG and Symfony.",
+      "email": "mailto:j.mikes@me.com",
+      "telephone": "+420773686207",
+      "nationality": { "@type": "Country", "name": "Czech Republic" },
+      "address": { "@type": "PostalAddress", "addressLocality": "Ostrava", "addressCountry": "CZ" },
+      "knowsLanguage": ["cs", "en"],
+      "knowsAbout": ["Startups", "Software architecture", "PHP", "Symfony", "PostgreSQL", "PHPStan", "CI/CD", "Containers", "Docker", "Self-hosting", "Open source", "Test-driven development", "Domain-driven design", "CQRS", "Monorepos", "Legacy code modernisation", "Performance profiling", "AI-assisted development", "AI agents", "Claude Code", "Retrieval-augmented generation", "OCR"],
+      "sameAs": [
+        "https://github.com/janmikes",
+        "https://www.linkedin.com/in/jan-mikes/"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://janmikes.cz/#myspeedpuzzling",
+      "name": "MySpeedPuzzling",
+      "url": "https://myspeedpuzzling.com/",
+      "description": "The largest speed puzzling community database in the world, with over 11,000 users. Bootstrapped from scratch as a nights-and-weekends project, with web, iOS and Android apps on one codebase.",
+      "operatingSystem": "Web, iOS, Android",
+      "dateCreated": "2023-10",
+      "creator": { "@id": "https://janmikes.cz/#person" }
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://janmikes.cz/#myspeedpuzzling-source",
+      "name": "MySpeedPuzzling source code",
+      "codeRepository": "https://github.com/MySpeedPuzzling/myspeedpuzzling.com",
+      "targetProduct": { "@id": "https://janmikes.cz/#myspeedpuzzling" },
+      "author": { "@id": "https://janmikes.cz/#person" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://janmikes.cz/#sorticai",
+      "name": "SorticAI",
+      "url": "https://sorticai.com/",
+      "description": "AI regulatory oversight and readiness assessments for law firms and boards."
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://janmikes.cz/#vmcorp",
+      "name": "VMCorp",
+      "url": "https://vmcorp.cz/",
+      "description": "Production AI agent systems and cloud architecture for growing companies."
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://janmikes.cz/#autix",
+      "name": "AUTiX",
+      "url": "https://autix.eu/",
+      "description": "Cloud business management software for companies and e-shops."
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://janmikes.cz/#sendvery",
+      "name": "Sendvery",
+      "url": "https://sendvery.com/",
+      "description": "DMARC and email authentication monitoring for domain owners."
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://janmikes.cz/#wboost",
+      "name": "wboost",
+      "url": "https://wboost.cz/",
+      "description": "Locked brand templates that designers hand over for clients to edit."
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://janmikes.cz/#fajnesklady",
+      "name": "Fajnesklady",
+      "url": "https://fajnesklady.cz/",
+      "description": "Self-storage units with round-the-clock access."
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/#techmeetup-43",
+      "name": "Tech Meetup #43",
+      "startDate": "2026-09-09"
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/#techmeetup-39",
+      "name": "Tech Meetup #39",
+      "startDate": "2026-01-28",
+      "location": {
+        "@type": "Place",
+        "name": "Impact Hub Ostrava",
+        "address": { "@type": "PostalAddress", "addressLocality": "Ostrava", "addressCountry": "CZ" }
+      }
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/clean-context/#talk",
+      "name": "Clean context: running Claude Code for days",
+      "description": "Lightning talk on how to run Claude Code for days without it remembering anything.",
+      "startDate": "2026-09-09",
+      "inLanguage": "en",
+      "url": "https://janmikes.cz/slides/clean-context/",
+      "image": "https://janmikes.cz/assets/talks/techmeetup-43-1.jpg",
+      "superEvent": { "@id": "https://janmikes.cz/#techmeetup-43" },
+      "performer": { "@id": "https://janmikes.cz/#person" },
+      "workPerformed": { "@type": "PresentationDigitalDocument", "name": "Clean context: running Claude Code for days (slides)", "url": "https://techmeetup-43-1.janmikes.cz/" }
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/#talk",
+      "name": "A vývojáři nebudou mít co žrát",
+      "alternateName": "Devs will have nothing to eat",
+      "description": "Lightning talk, in Czech, on autonomous delivery agents, the end of engineering as we knew it, and who is left standing.",
+      "startDate": "2026-09-09",
+      "inLanguage": "cs",
+      "url": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/",
+      "image": "https://janmikes.cz/assets/talks/techmeetup-43-2.jpg",
+      "superEvent": { "@id": "https://janmikes.cz/#techmeetup-43" },
+      "performer": { "@id": "https://janmikes.cz/#person" },
+      "workPerformed": { "@type": "PresentationDigitalDocument", "name": "A vývojáři nebudou mít co žrát (slides)", "url": "https://techmeetup-43-2.janmikes.cz/", "inLanguage": "cs" }
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/homemade-ai-chatbot/#talk",
+      "name": "Homemade AI chatbot: Symfony, RAG & OCR",
+      "description": "A self-hosted chatbot that understands a municipal website, using RAG and vector search instead of fine-tuning. It handles around 100 conversations a day on a single Hetzner box for about $3 a month.",
+      "startDate": "2026-01-28",
+      "inLanguage": "en",
+      "url": "https://janmikes.cz/slides/homemade-ai-chatbot/",
+      "image": "https://janmikes.cz/assets/talks/techmeetup-39.jpg",
+      "location": {
+        "@type": "Place",
+        "name": "Impact Hub Ostrava",
+        "address": { "@type": "PostalAddress", "addressLocality": "Ostrava", "addressCountry": "CZ" }
+      },
+      "superEvent": { "@id": "https://janmikes.cz/#techmeetup-39" },
+      "performer": { "@id": "https://janmikes.cz/#person" },
+      "workPerformed": { "@type": "PresentationDigitalDocument", "name": "Homemade AI chatbot: Symfony, RAG & OCR (slides)", "url": "https://techmeetup-39.janmikes.cz/" }
+    }
   ]
 }
 </script>
