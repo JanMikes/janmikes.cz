@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern PHP web servers: Apache, Nginx, Caddy, Unit and FrankenPHP · Jan Mikeš</title>
+<meta name="description" content="A practical comparison of PHP web servers: how SAPI and PHP-FPM fit in, what Apache, Nginx, Caddy, NGINX Unit and FrankenPHP are good and bad at, benchmark numbers, and which one to pick.">
+<link rel="canonical" href="https://janmikes.cz/slides/php-web-servers/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Modern PHP web servers">
+<meta property="og:description" content="Apache, Nginx, Caddy, NGINX Unit and FrankenPHP compared: architecture, strengths, benchmarks, and which one to pick.">
+<meta property="og:url" content="https://janmikes.cz/slides/php-web-servers/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/php-web-servers.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2024-05-17">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Modern PHP web servers">
+<meta name="twitter:description" content="Apache, Nginx, Caddy, NGINX Unit and FrankenPHP compared: architecture, strengths, benchmarks, and which one to pick.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/php-web-servers.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2024-05-17">17 May 2024</time> · PHPLive 2024</p>
+    <h1>Modern PHP web servers</h1>
+    <p class="lede"><span>Apache, Nginx, Caddy, NGINX Unit and FrankenPHP. They all serve PHP, but they do it in very different ways, and that difference matters more than any benchmark.</span></p>
+
+    <div class="note"><b>Update, 2026</b>Two things changed since this talk. <a href="https://unit.nginx.org">NGINX Unit was archived in October 2025</a> and no longer gets features or security fixes, so don&rsquo;t pick it for new projects. <a href="https://thephp.foundation/blog/2025/05/15/frankenphp/">FrankenPHP became officially supported by the PHP Foundation</a> in May 2025, which answers the &ldquo;bus factor 1&rdquo; worry below.</div>
+
+    <h2>First, how PHP gets served</h2>
+    <p>PHP is an interpreted language. The interpreter, php-src, is written in C, and a web server can&rsquo;t run PHP by itself. It needs a SAPI, a Server Application Programming Interface, which is the bridge between the web server and the interpreter.</p>
+    <p>There are two ways to do it:</p>
+    <ul>
+      <li><b>External:</b> the web server talks to a separate PHP-FPM process over the FastCGI protocol. PHP-FPM has a process manager that keeps a pool of PHP workers ready.</li>
+      <li><b>Embedded:</b> the interpreter lives inside the web server process. Apache with mod_php, Unit and FrankenPHP work this way.</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/php-web-servers/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Diagram: the user sends an HTTP request to Nginx, which passes it over the FastCGI protocol to the PHP-FPM process manager and its PHP workers.">
+      <figcaption>The classic setup: Nginx as the web server, PHP-FPM as the SAPI, FastCGI between them.</figcaption>
+    </figure>
+    <p>This matters for containers. An external SAPI means two processes, usually two containers, that you have to wire together. An embedded one is a single process and a single container.</p>
+
+    <h2>What I expect from a web server</h2>
+    <ul>
+      <li>Stability and performance</li>
+      <li>Easy to configure and run</li>
+      <li>Current PHP (8.3 at the time of the talk)</li>
+      <li>Open source, good documentation and a community</li>
+      <li>Cloud friendly, with observability such as Prometheus metrics</li>
+    </ul>
+
+    <h2>Apache (since 1995)</h2>
+    <p>Twenty-nine years old at the time of the talk and still everywhere. It runs PHP either embedded through mod_php, which fits in a single container, or through PHP-FPM. It&rsquo;s written in C, it&rsquo;s stable, and it has the legendary <code>.htaccess</code>. On the other side: performance isn&rsquo;t great, and configuring it is painful.</p>
+
+    <h2>Nginx (since 2004)</h2>
+    <p>The industry standard. Written in C, with great performance and an excellent reverse proxy. It only talks to PHP through PHP-FPM, which makes it less container friendly: you always run two processes. It&rsquo;s also complex to configure well.</p>
+
+    <h2>Caddy (since 2015)</h2>
+    <p>Written in Go, and the easiest one to start with. Its defaults are good enough for production as they are:</p>
+    <ul>
+      <li>Automatic HTTPS out of the box</li>
+      <li>HTTP/2 and HTTP/3 without extra configuration</li>
+      <li>Zero-downtime config reloads, through the Caddyfile or a REST API</li>
+      <li>A good reverse proxy, modular, with a big community (54k GitHub stars at the time)</li>
+    </ul>
+    <p>The catch: it uses PHP-FPM like Nginx, and it&rsquo;s slower than Nginx.</p>
+
+    <h2>NGINX Unit (since 2017)</h2>
+    <p>Unit is a different idea: an application server that runs many languages (PHP, Python, Node, Go, Java, Perl, Ruby, WebAssembly) and embeds PHP directly. You configure it entirely through a REST API with an OpenAPI spec, and routing goes through listeners, routes and applications or upstreams.</p>
+    <p>The good parts were great performance and stability with a small footprint, zero-downtime reloads, powerful routing with NJS scripting, easy TLS, and security. The weak parts were no native Prometheus support, a slower release cycle than I hoped, and some missing advanced features.</p>
+
+    <h2>FrankenPHP (since 2022)</h2>
+    <p>FrankenPHP is by Kévin Dunglas, the author of Mercure, Vulcain and API Platform. It&rsquo;s a combination of three things:</p>
+    <ul>
+      <li><b>Caddy</b> as the web server,</li>
+      <li><b>FrankenPHP</b> as a SAPI embedded into Caddy, written in Go with <code>//go:embed</code>,</li>
+      <li>optionally <b>static-php-cli</b>, which compiles PHP statically, so the whole app can ship as one self-contained binary.</li>
+    </ul>
+    <p>You get everything Caddy offers (HTTP/2 and HTTP/3, automatic HTTPS, zero-downtime reloads), plus:</p>
+    <ul>
+      <li><b>Worker mode:</b> the app boots once and stays in memory between requests. This is where the speed comes from.</li>
+      <li>A built-in Mercure hub for real-time apps</li>
+      <li>103 Early Hints</li>
+      <li>Convention over configuration</li>
+      <li>Native support for Symfony, Laravel, API Platform, Drupal and WordPress</li>
+    </ul>
+    <p>My worries in 2024 were stability and a bus factor of one.</p>
+
+    <h2>The benchmarks</h2>
+    <p>Numbers from <a href="https://dev.to/dimdev/performance-benchmark-of-php-runtimes-2lmc">a benchmark of PHP runtimes</a>, in a Docker container with 1 CPU and 1 GB of RAM, measured with k6 at a concurrency of 1,000:</p>
+    <figure>
+      <img src="/assets/talks/php-web-servers/37.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Bar chart of average requests per second at concurrency 1000. Apache with mod_php 211.6, Apache with PHP-FPM 223.6, Nginx with PHP-FPM 435.62, Nginx Unit 1,383.01, Roadrunner 768.83, Nginx with Roadrunner 672.94, FrankenPHP 414.36, FrankenPHP in worker mode 5,472.41, Swoole 3,706.58.">
+      <figcaption>Average requests per second. Higher is better.</figcaption>
+    </figure>
+    <p>FrankenPHP in worker mode handled about 5,470 requests per second, 25× more than Apache and more than 12× Nginx with PHP-FPM. Its average response time was 180 ms, against almost 3 seconds for Apache. Without worker mode, FrankenPHP was roughly on par with Nginx and PHP-FPM. Unit was the best of the classic setups at about 1,380 requests per second.</p>
+    <p>A <a href="https://habr.com/en/articles/646397/">separate stress test</a> of Unit, Nginx with PHP-FPM, and Laravel Octane on Swoole found that Unit was the only one that didn&rsquo;t drop a single request, with low resource usage and very fast cold starts.</p>
+
+    <h2>Which one to pick</h2>
+    <ul>
+      <li><b>Nginx over Apache:</b> more performant, better at load balancing and reverse proxying. Apache uses more resources because of its process-driven architecture.</li>
+      <li><b>Caddy vs Nginx:</b> Caddy is far easier to start with, so it&rsquo;s the go-to choice for beginners and small sites. Nginx is faster, it&rsquo;s the industry standard, and it has the bigger ecosystem.</li>
+      <li><b>Unit:</b> my 2024 verdict was &ldquo;very fast and reliable, go for it&rdquo;. It&rsquo;s archived now, so no longer.</li>
+      <li><b>FrankenPHP:</b> super cool, go for it. With the PHP Foundation behind it, that&rsquo;s an even easier call today.</li>
+    </ul>
+    <p>The demo code from the talk is on GitHub: <a href="https://github.com/janmikes/phplive-2024">github.com/janmikes/phplive-2024</a>.</p>
+
+    <details class="deck">
+      <summary>All 43 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/php-web-servers/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Modern PHP Web Servers"></li>
+        <li><img src="/assets/talks/php-web-servers/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Modern PHP Web Servers"></li>
+        <li><img src="/assets/talks/php-web-servers/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Apache, Nginx, Caddy, Unit, FrankenPHP"></li>
+        <li><img src="/assets/talks/php-web-servers/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: PHP is interpreted language (Zend Engine interpreter is written in C)"></li>
+        <li><img src="/assets/talks/php-web-servers/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: PHP is interpreted language (interpreter - php-src is in C)"></li>
+        <li><img src="/assets/talks/php-web-servers/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: PHP is interpreted language"></li>
+        <li><img src="/assets/talks/php-web-servers/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Cloud friendly"></li>
+        <li><img src="/assets/talks/php-web-servers/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Stability"></li>
+        <li><img src="/assets/talks/php-web-servers/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: 1995"></li>
+        <li><img src="/assets/talks/php-web-servers/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Since 1995 (29 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Since 1995 (29 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: 2004"></li>
+        <li><img src="/assets/talks/php-web-servers/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Since 2004 (20 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Since 1995 (29 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: 2015"></li>
+        <li><img src="/assets/talks/php-web-servers/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Since 2015 (9 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Since 2015 (9 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: 2017"></li>
+        <li><img src="/assets/talks/php-web-servers/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Since 2017 (7 years)"></li>
+        <li><img src="/assets/talks/php-web-servers/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Great performance and stability, low resources footprint"></li>
+        <li><img src="/assets/talks/php-web-servers/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: 2017"></li>
+        <li><img src="/assets/talks/php-web-servers/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: 2017"></li>
+        <li><img src="/assets/talks/php-web-servers/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: - worker mode"></li>
+        <li><img src="/assets/talks/php-web-servers/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: https://Vulcain.rocks"></li>
+        <li><img src="/assets/talks/php-web-servers/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Caddy + FrankenPHP      + static-php-cli (optional)"></li>
+        <li><img src="/assets/talks/php-web-servers/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Caddy + FrankenPHP + static-php-cli"></li>
+        <li><img src="/assets/talks/php-web-servers/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: All the Caddy offers (HTTP 2/3, SSL, Zero downtime)"></li>
+        <li><img src="/assets/talks/php-web-servers/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: - worker mode"></li>
+        <li><img src="/assets/talks/php-web-servers/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: - worker mode"></li>
+        <li><img src="/assets/talks/php-web-servers/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: - worker mode"></li>
+        <li><img src="/assets/talks/php-web-servers/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: - worker mode"></li>
+        <li><img src="/assets/talks/php-web-servers/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: - worker mode"></li>
+        <li><img src="/assets/talks/php-web-servers/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: All the Caddy offers (HTTP 2/3, SSL, Zero downtime)"></li>
+        <li><img src="/assets/talks/php-web-servers/34.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 34: All the Caddy offers (HTTP 2/3, SSL, Zero downtime)"></li>
+        <li><img src="/assets/talks/php-web-servers/35.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 35"></li>
+        <li><img src="/assets/talks/php-web-servers/36.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 36"></li>
+        <li><img src="/assets/talks/php-web-servers/37.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 37: Source: https://dev.to/dimdev/performance-benchmark-of-php-runtimes-2lmc"></li>
+        <li><img src="/assets/talks/php-web-servers/38.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 38: Source: https://dev.to/dimdev/performance-benchmark-of-php-runtimes-2lmc"></li>
+        <li><img src="/assets/talks/php-web-servers/39.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 39: Unit vs Nginx+FPM vs Octane (Swoole)"></li>
+        <li><img src="/assets/talks/php-web-servers/40.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 40: Nginx vs Apache"></li>
+        <li><img src="/assets/talks/php-web-servers/41.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 41: Unit"></li>
+        <li><img src="/assets/talks/php-web-servers/42.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 42: https://github.com/janmikes/phplive-2024"></li>
+        <li><img src="/assets/talks/php-web-servers/43.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 43: Thank you!"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://github.com/janmikes/phplive-2024">Demo code on GitHub</a>
+      <a href="https://frankenphp.dev">FrankenPHP</a>
+      <a href="https://caddyserver.com">Caddy</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Modern PHP web servers: Apache, Nginx, Caddy, Unit and FrankenPHP",
+  "description": "A practical comparison of PHP web servers: how SAPI and PHP-FPM fit in, what Apache, Nginx, Caddy, NGINX Unit and FrankenPHP are good and bad at, benchmark numbers, and which one to pick.",
+  "url": "https://janmikes.cz/slides/php-web-servers/",
+  "datePublished": "2024-05-17",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/php-web-servers.jpg",
+  "about": ["PHP", "Web servers", "FrankenPHP", "Caddy", "Nginx", "PHP-FPM"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

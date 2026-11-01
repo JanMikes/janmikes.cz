@@ -291,6 +291,16 @@ p.prose{margin:0 0 1.5rem}
 .article pre code{font-size:inherit}
 .article blockquote{margin:1.75rem 0; padding:0 0 0 1.25rem; border-left:2px solid var(--ink); font:500 1.25rem/1.4 var(--sans); letter-spacing:-.015em}
 .article .links{display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--rule)}
+.article .note{margin:1.75rem 0; padding:1rem 1.25rem; background:var(--tint); border-left:2px solid var(--accent); border-radius:0 4px 4px 0; font-size:.9375rem}
+.article .note b:first-child{font:500 .75rem var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--accent); display:block; margin-bottom:.35rem}
+.article figure{margin:1.75rem 0}
+.article figure img,.deck img{display:block; width:100%; height:auto; background:var(--tint); border:1px solid var(--rule); border-radius:4px}
+.article figcaption{margin-top:.5rem; color:var(--muted); font:400 .8125rem/1.5 var(--mono)}
+.deck{margin-top:2.5rem; border-top:1px solid var(--rule); padding-top:1.25rem}
+.deck summary{cursor:pointer; font:500 .875rem var(--mono); color:var(--ink)}
+.deck summary:hover{color:var(--accent)}
+.deck ol{list-style:none; padding:0; margin:1.25rem 0 0; display:grid; gap:1rem}
+.deck li{margin:0}
 
 /* ---------- small screens ---------- */
 @media (max-width:52rem){
