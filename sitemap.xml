@@ -139,6 +139,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://janmikes.cz/slides/blackfire-profiling/</loc>
+    <lastmod>2026-11-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://janmikes.cz/slides/dont-be-afraid-to-move-on/</loc>
     <lastmod>2026-11-01</lastmod>
     <changefreq>yearly</changefreq>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CI in a monorepo with GitLab parent-child pipelines · Jan Mikeš</title>
-<meta name="description" content="How GitLab parent-child and dynamic child pipelines split one huge .gitlab-ci.yml into smaller pipelines, why that helps, and how it fits a monorepo.">
+<meta name="description" content="GitLab parent-child and dynamic child pipelines in a monorepo: split a huge .gitlab-ci.yml, stop failing silently, and test only what a change affects.">
 <link rel="canonical" href="https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -14,7 +14,7 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="janmikes.cz">
 <meta property="og:title" content="CI in a monorepo with GitLab parent-child pipelines">
-<meta property="og:description" content="Parent-child and dynamic child pipelines in GitLab CI: what they are, why they help, and how they fit a monorepo.">
+<meta property="og:description" content="Parent-child and dynamic child pipelines in a GitLab monorepo, with a live demo that runs only what a change affects.">
 <meta property="og:url" content="https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/">
 <meta property="og:image" content="https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg">
 <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CI in a monorepo with GitLab parent-child pipelines">
-<meta name="twitter:description" content="Parent-child and dynamic child pipelines in GitLab CI: what they are, why they help, and how they fit a monorepo.">
+<meta name="twitter:description" content="Parent-child and dynamic child pipelines in a GitLab monorepo, with a live demo that runs only what a change affects.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg">
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -44,9 +44,9 @@
   <article class="article title">
     <p class="meta"><time datetime="2021-10-01">1 October 2021</time> · php.live 2021 · Ostrava · given in Czech</p>
     <h1>CI in a monorepo with GitLab parent-child pipelines</h1>
-    <p class="lede"><span lang="cs">CI v monorepu pomocí Gitlab parent-child pipelines.</span> <span>One <code>.gitlab-ci.yml</code> for a whole monorepo grows until nobody wants to touch it. GitLab lets one pipeline start other pipelines in the same project, and even generate them on the fly.</span></p>
+    <p class="lede"><span lang="cs">CI v monorepu pomocí Gitlab parent-child pipelines.</span> <span>One <code>.gitlab-ci.yml</code> for a whole monorepo grows until nobody wants to touch it. GitLab lets one pipeline start other pipelines in the same project, generate them on the fly, and run only the ones a change actually affects.</span></p>
 
-    <p>We used this setup in production at Carvago and Sharry, so this isn&rsquo;t a toy. The talk had four parts: what a parent-child pipeline is, what a dynamic child pipeline is, the use case (a monorepo), and a live demo. A shorter, demo-focused version of the same topic was also at WarpCamp 2021.</p>
+    <p>We used this setup in production at Carvago and Sharry, so this isn&rsquo;t a toy. The feature was still fresh: parent-child pipelines arrived officially in January 2020 and dynamic child pipelines around February or March 2020. The talk had four parts: what a parent-child pipeline is, what a dynamic child pipeline is, the use case (a monorepo), and a long live demo. I only flew through the theory; GitLab&rsquo;s documentation is excellent for almost everything it does. A shorter, demo-focused version of the same topic was also at WarpCamp 2021.</p>
 
     <h2>What is a parent-child pipeline?</h2>
     <p>GitLab already had multi-project pipelines, where a job in one project triggers a pipeline in another project. Parent-child pipelines, introduced in GitLab 12.7, do the same within one project. In the words of the GitLab docs: a pipeline can trigger a set of concurrently running child pipelines, but within the same project.</p>
@@ -72,16 +72,16 @@
         file: 'path/to/ci-config.yml'</code></pre>
 
     <h2>Why bother?</h2>
-    <p>These are the problems that show up as a single pipeline grows, and the ones parent-child pipelines solve:</p>
+    <p>Everything this technique does could be done before, with some hacking. It just solves these problems better:</p>
     <ul>
-      <li><b>Too big <code>.gitlab-ci.yml</code>.</b> The one global configuration becomes very long and hard to manage.</li>
-      <li><b>Inefficient blocking stages.</b> With classic stages, every job in a stage must finish before the next stage starts. A slow test for one part of the repo holds up the deploy of a completely unrelated part. Each child pipeline still runs its own stages in order, but it doesn&rsquo;t wait for unrelated jobs in the parent.</li>
-      <li><b>Imports complexity and collisions.</b> Splitting the file with <code>include</code> helps with length, but all included files share one namespace, so job names can collide and jobs can get duplicated by accident.</li>
-      <li><b>Pipeline UX.</b> One pipeline with dozens of jobs and stages is hard to read in the UI. Child pipelines group related jobs together.</li>
+      <li><b>Too big <code>.gitlab-ci.yml</code>.</b> If your CI file has hundreds or thousands of lines, this is for you.</li>
+      <li><b>Inefficient blocking stages.</b> With classic stages, every job in a stage waits for the last one to finish before the next stage starts. Child pipelines don&rsquo;t wait for each other; they run in parallel, fully isolated.</li>
+      <li><b>Imports complexity and collisions.</b> Splitting the file with <code>include</code> helps with length, but all included files share one namespace, so you end up prefixing job names to avoid collisions. Isolated child pipelines don&rsquo;t need any of that.</li>
+      <li><b>Pipeline UX.</b> One pipeline with dozens of jobs is hard to read. Child pipelines group related jobs together.</li>
     </ul>
 
     <h2>Dynamic child pipelines</h2>
-    <p>The second half of the idea: instead of running a child pipeline from a static YAML file, you write a job that runs your own script to generate the YAML, save it as an artifact, and trigger a child pipeline from that artifact.</p>
+    <p>Normally your YAML has to exist when the pipeline starts; GitLab takes it and runs it. A dynamic child pipeline goes one step further: one job runs your own script to generate the YAML, saves it as an artifact, and the next job triggers a child pipeline from that artifact. When the pipeline starts, nobody knows yet which jobs will run.</p>
     <pre><code>generate-config:
   stage: build
   script: generate-ci-config &gt; generated-config.yml
@@ -95,18 +95,80 @@ child-pipeline:
     include:
       - artifact: generated-config.yml
         job: generate-config</code></pre>
-    <p>The generator can be anything: a shell script, a PHP script, whatever you like. It can look at the repository, decide what needs to run, and write only those jobs. That&rsquo;s the real power. The pipeline is no longer a fixed list of jobs, it&rsquo;s the output of a program.</p>
+    <p>The generator can be anything. I used PHP, because it was php.live. That&rsquo;s the whole magic; the rest is up to your imagination.</p>
     <figure>
       <img src="/assets/talks/gitlab-ci-parent-child-pipelines/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitLab pipeline mini graph: two green successful stages, then three orange warning icons for downstream pipelines and a grey bubble with a tooltip saying +42 more downstream pipelines.">
-      <figcaption>Why generate pipelines dynamically: because writing 45 child pipelines by hand is no fun.</figcaption>
+      <figcaption>45 child pipelines, all triggered by every change.</figcaption>
     </figure>
+    <p>I ran into the need when we first put parent-child pipelines into our monorepo. Any change triggered all the children: some 40 child pipelines for packages and microservices, each with roughly ten jobs and running maybe ten minutes. Change one line and 600 to 700 jobs ran (<a href="https://www.youtube.com/watch?v=XqS6YkCBOuI&amp;t=448s">7:28 in the video</a>). Multiply that out and you see how much machine time burns for 40 parts of the application where nothing changed. Generating the pipeline lets you trigger only what matters.</p>
 
     <h2>The use case: a monorepo</h2>
-    <p>A monorepo keeps many packages or services in one repository. That&rsquo;s exactly where one big pipeline hurts the most: every package adds its own test and deploy jobs, the file keeps growing, and stages block each other across packages that have nothing in common.</p>
-    <p>With parent-child pipelines, each package gets its own child pipeline. With a dynamic child pipeline, a script can produce the configuration for all the packages, so adding a new package doesn&rsquo;t mean copy-pasting another block of YAML.</p>
+    <p>Honestly, I couldn&rsquo;t think of a use case other than a monorepo, which keeps many packages or services in one repository. At Carvago we had over 30 developers on the backend alone, several teams working fully in isolation, and we were moving to a monorepo. When one team changes a part of the application that doesn&rsquo;t affect another part, there is no reason to build the other part. The other reason is simply a lot of code you want to split up. Symfony, which also lives in a monorepo, is a good example.</p>
 
     <h2>Live demo</h2>
-    <p>The rest of the talk was a live demo (&ldquo;what could go wrong&rdquo;). It starts from a small PHP monorepo with packages A, B and C and a single flat pipeline with build, test and deploy jobs for each package, and turns it into parent-child pipelines. The code is on GitLab: <a href="https://gitlab.com/janmikes/phplive-2021-parent-child-pipelines">gitlab.com/janmikes/phplive-2021-parent-child-pipelines</a>. To see the steps, watch <a href="https://www.youtube.com/watch?v=XqS6YkCBOuI">the video</a>.</p>
+    <p>The demo (&ldquo;what could go wrong&rdquo;, <a href="https://www.youtube.com/watch?v=XqS6YkCBOuI&amp;t=560s">9:20 in the video</a>) is on GitLab, one branch per step: <a href="https://gitlab.com/janmikes/phplive-2021-parent-child-pipelines">gitlab.com/janmikes/phplive-2021-parent-child-pipelines</a>. The app is a tiny monorepo with three packages, each a single nearly empty file. Package A uses B and C; B and C use nothing. Imagine each is published as a Composer package.</p>
+
+    <p><b>1. The classic pipeline.</b> Three stages, build, test and deploy. A <code>composer</code> build job (faked with <code>echo</code> so the demo runs fast), then <code>package-a-tests</code>, <code>package-b-tests</code>, <code>package-c-tests</code>, then three deploy jobs. Job names must be unique across the whole pipeline, hence the prefixes. And the stages block: if the tests for C take 20 minutes and A is tested in one, A waits 19 minutes before it can deploy.</p>
+
+    <p><b>2. Parent-child.</b> The build job stays shared in the parent; artifacts from it still reach the children. Each package gets its own <code>.gitlab-ci.yml</code> with plain job names, <code>tests</code> and <code>deploy</code>, no prefixes. I copy-pasted them on purpose; <code>include</code> would remove the duplication. The parent only triggers:</p>
+    <pre><code>package-a:
+  stage: triggers
+  trigger:
+    include: "packages/A/.gitlab-ci.yml"</code></pre>
+    <p>In the UI the children show up as downstream pipelines you can click into, and back. The UX still isn&rsquo;t ideal and GitLab has plenty of issues about it (I sent them feedback too), but it&rsquo;s far better than when the feature appeared; back then it was a massacre. On a rerun you could see the point: one package was already deploying while another was still running its tests.</p>
+
+    <p><b>3 and 4. When a child fails.</b> I added <code>exit 1</code> to the tests of package C. By default the parent doesn&rsquo;t care how its children end: C failed and the parent pipeline was green. Sometimes that&rsquo;s what you want. We don&rsquo;t. We want nothing to deploy until everything, integration, functional and end-to-end tests, is green. One keyword in the parent fixes it:</p>
+    <pre><code>package-c:
+  stage: triggers
+  trigger:
+    include: "packages/C/.gitlab-ci.yml"
+    strategy: depend</code></pre>
+    <p>With <code>strategy: depend</code> the trigger job mirrors the child&rsquo;s status, and the parent turned red.</p>
+
+    <p><b>5. Generating the pipeline.</b> The three trigger jobs are copy-paste that differs only in the package name, and GitLab couldn&rsquo;t use variables in job names. So a PHP script generates them. A job runs it, prints the result with <code>cat</code> to check it, and passes the file on as an artifact; a second job triggers it. The script, which took me &ldquo;a whole afternoon&rdquo;:</p>
+    <pre><code>$packages = ['A', 'B', 'C'];
+$ciFileContent = '';
+
+foreach ($packages as $package) {
+    $ciFileContent .= &lt;&lt;&lt;FILE_CONTENT
+package-$package:
+  trigger:
+    include: "packages/$package/.gitlab-ci.yml"
+    strategy: depend
+FILE_CONTENT . "\n\n";
+}
+
+file_put_contents(__DIR__ . '/generated-gitlab-ci.yml', $ciFileContent);</code></pre>
+    <p>The result was the same pipeline as before, only no longer written by hand.</p>
+
+    <p><b>6 and 7. Merge request pipelines.</b> Then a short detour that makes all of this powerful (<a href="https://www.youtube.com/watch?v=XqS6YkCBOuI&amp;t=1220s">20:20 in the video</a>). By default a pipeline only knows about the last commit. For a merge request you want to decide based on every file the whole branch changed, and that&rsquo;s what merge request pipelines are for. I took the condition from GitLab&rsquo;s official merge request pipelines template rather than writing it myself, and added a rule to each trigger:</p>
+    <pre><code>  rules:
+    - if: $CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - packages/C/**/*</code></pre>
+    <p>Why test A if nothing in A changed? In a merge request that touched only package C, only C&rsquo;s child pipeline ran. Then the same thing generated: the PHP script got an <code>if</code> per package and writes the <code>rules</code> block itself. The generator job also only runs when something under <code>packages/</code> changed.</p>
+
+    <p><b>The ultimate version: a dependency map.</b> This is how we use it in practice, for microservices (<a href="https://www.youtube.com/watch?v=XqS6YkCBOuI&amp;t=1526s">25:26 in the video</a>). A depends on B and C. In the previous demo I changed C and only C ran. But what if that change broke A, and I have no idea?</p>
+    <p>You need a map of dependencies between your packages or services. How you get it, and in which language, doesn&rsquo;t matter. My approach, which I called stupid but which works great, is about 80 lines of PHP: read all PSR-4 roots from <code>composer.json</code>, go through every package directory, read every PHP file in it, and check whether it mentions a namespace from another package&rsquo;s root. If it does, this package depends on that one. Every package also depends on itself. The generated YAML then lists all those paths under <code>changes</code>:</p>
+    <pre><code>packages-A:
+  trigger:
+    include: packages/A/.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: $CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - packages/A/**/*
+        - packages/B/**/*
+        - packages/C/**/*</code></pre>
+    <p>B and C list only themselves. Proof instead of promises: a merge request adding a &ldquo;much wow, useful comment&rdquo; to A ran only A, since nothing depends on A. The same comment in C ran C and A, because A depends on C.</p>
+
+    <h2>Questions</h2>
+    <ul>
+      <li><b>How do you make sure a change in one component doesn&rsquo;t break another, when its pipeline doesn&rsquo;t run?</b> With the dependency map. Once you can describe the dependencies and put them into the dynamic pipeline, everything that depends on a change gets tested.</li>
+      <li><b>Do you split the monorepo into separate package repositories, like Symfony does?</b> Yes, after the tests pass. A split stage adds an SSH key with write access to the target repository and uses a tool built on <code>git subtree</code> to push each package there. At WarpCamp I learned how to sync changes pushed to a split repository back into the monorepo: also <code>git subtree</code>, about four lines.</li>
+      <li><b>Would you use this for parts of an app, like running only database migrations?</b> No. A merge request pipeline with the right conditions on changed files is enough for that.</li>
+      <li><b>Shouldn&rsquo;t testing A wait for C to be built and released?</b> It depends on your use case, and both can be done. We didn&rsquo;t need it: in a monorepo the packages see each other&rsquo;s files directly.</li>
+    </ul>
 
     <details class="deck">
       <summary>All 18 slides</summary>
@@ -147,10 +209,10 @@ child-pipeline:
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "CI in a monorepo with GitLab parent-child pipelines",
-  "description": "How GitLab parent-child and dynamic child pipelines split one huge .gitlab-ci.yml into smaller pipelines, why that helps, and how it fits a monorepo.",
+  "description": "GitLab parent-child and dynamic child pipelines in a monorepo: split a huge .gitlab-ci.yml, stop failing silently, and test only what a change affects.",
   "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
   "datePublished": "2021-10-01",
-  "dateModified": "2021-10-01",
+  "dateModified": "2026-11-01",
   "inLanguage": "en",
   "image": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg",
   "about": ["GitLab CI", "CI/CD", "Parent-child pipelines", "Dynamic child pipelines", "Monorepo"],

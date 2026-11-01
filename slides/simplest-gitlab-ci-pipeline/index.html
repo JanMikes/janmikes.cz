@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The simplest GitLab CI pipeline ever · Jan Mikeš</title>
-<meta name="description" content="A three-line .gitlab-ci.yml that runs, then how GitLab CI jobs work: Docker images, stages, artifacts, a multi-stage PHP pipeline with Composer and PHPStan.">
+<meta name="description" content="A three-line .gitlab-ci.yml, how GitLab CI jobs, stages and artifacts work, and a live demo from an empty repository to a green PHP pipeline.">
 <link rel="canonical" href="https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -14,7 +14,7 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="janmikes.cz">
 <meta property="og:title" content="The simplest GitLab CI pipeline ever">
-<meta property="og:description" content="Three lines of YAML, a green pipeline, and how GitLab CI jobs, stages and artifacts work.">
+<meta property="og:description" content="Three lines of YAML, how GitLab CI jobs, stages and artifacts work, and a live demo to a green pipeline.">
 <meta property="og:url" content="https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/">
 <meta property="og:image" content="https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.jpg">
 <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The simplest GitLab CI pipeline ever">
-<meta name="twitter:description" content="Three lines of YAML, a green pipeline, and how GitLab CI jobs, stages and artifacts work.">
+<meta name="twitter:description" content="Three lines of YAML, how GitLab CI jobs, stages and artifacts work, and a live demo to a green pipeline.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.jpg">
 
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -44,10 +44,12 @@
   <article class="article title">
     <p class="meta"><time datetime="2018-06-23">23 June 2018</time> · PHPPrague 2018 · Prague</p>
     <h1>The simplest GitLab CI pipeline ever</h1>
-    <p class="lede"><span>Continuous integration sounds like a project of its own. In GitLab it starts with one file and three lines of YAML. The goal of this talk was simple: share my CI experience and show how little you need to begin.</span></p>
+    <p class="lede"><span>Continuous integration sounds like a project of its own. In GitLab it starts with one file and three lines of YAML. The goal of this talk was simple: share my CI experience and show, live, how little you need to begin.</span></p>
+
+    <p>A few years before this talk I knew basically nothing about Docker, CI or even GitLab. Starting with something when you have no experience can be hard, so this talk is for that moment.</p>
 
     <h2>A quick show of hands</h2>
-    <p>I started with some quick research in the room. Who knows GitLab exists? Who uses GitLab? Who automates anything with CI?</p>
+    <p>I started with some quick research in the room. Who knows GitLab exists? Most hands. Who uses GitLab? Quite a few. Who automates anything with CI? Fewer. If you didn&rsquo;t raise your hand for the last one, this talk is for you.</p>
 
     <h2>Three lines</h2>
     <p>Here is the simplest GitLab CI pipeline ever:</p>
@@ -67,10 +69,10 @@ Skipping Git submodules setup
 $ echo "Hello PHPPrague 2018!"
 Hello PHPPrague 2018!
 Job succeeded</code></pre>
-    <p>I didn&rsquo;t pick a Docker image, so the shared runner on GitLab.com used its default one, <code>ruby:2.5</code>. I didn&rsquo;t install or configure a runner either. Wasn&rsquo;t that simple?</p>
+    <p>I didn&rsquo;t pick a Docker image, so the runner used its default one. That depends on the runner&rsquo;s settings; on the shared runners of GitLab.com it was <code>ruby:2.5</code>. I didn&rsquo;t install or configure a runner either. Wasn&rsquo;t that simple? At that point I thanked everyone for their attention, as if the talk were over. Then I continued.</p>
 
     <h2>How does it work?</h2>
-    <p>The <code>.gitlab-ci.yml</code> file is all you need. GitLab sees it on every push, creates a pipeline, and hands its jobs to runners. Every job goes through the same lifecycle:</p>
+    <p>The <code>.gitlab-ci.yml</code> file is all you need. Nothing else. GitLab sees it on every push, creates a pipeline, and hands its jobs to runners. Every job goes through the same lifecycle, and you can follow most of it in the log above:</p>
     <ol>
       <li>choose a Docker image,</li>
       <li>git clone the repository,</li>
@@ -78,10 +80,10 @@ Job succeeded</code></pre>
       <li>run the script,</li>
       <li>upload its own artifacts.</li>
     </ol>
-    <p>Artifacts are files a job keeps after it finishes, for example an installed <code>vendor/</code> directory, so later jobs don&rsquo;t have to build it again. Each job starts in a fresh container, so artifacts are how jobs share work.</p>
+    <p>Artifacts are files a job keeps after it finishes. Say one job runs <code>composer install</code> and a later job needs the files it created: the <code>vendor/</code> directory gets passed along as an artifact, so it doesn&rsquo;t have to be built again. Each job starts in a fresh container, so artifacts are how jobs share work.</p>
 
     <h2>A multi-stage pipeline</h2>
-    <p>Real projects need more than one job, and some jobs have to wait for others. That&rsquo;s what stages are for: jobs in the same stage run in parallel, and the next stage starts only when the previous one succeeds. A typical PHP setup:</p>
+    <p>Real projects need more than one job, and some jobs have to wait for others. That&rsquo;s what stages are for. The common three are build, test and deploy. A stage can hold several jobs, and those run in parallel; they don&rsquo;t wait for each other. When all jobs in a stage pass, the pipeline moves to the next stage. If even a single job fails, it stops there. A typical PHP setup:</p>
 <pre><code>stages:
   - build
   - test
@@ -101,23 +103,42 @@ phpstan:
   image: php:7.1
   script:
     - composer phpstan</code></pre>
-    <p>The <code>composer</code> job installs dependencies in the official Composer image and saves <code>vendor/</code> as an artifact for 24 hours. The <code>phpstan</code> job runs in a plain PHP image, gets <code>vendor/</code> passed in, and runs static analysis. Each job picks the image that fits it.</p>
+    <p>The <code>composer</code> job installs dependencies in the official Composer image and saves <code>vendor/</code> as an artifact for 24 hours. The <code>phpstan</code> job runs in a plain PHP image, gets <code>vendor/</code> passed in, and runs static analysis. Each job picks the image that fits it. PHPStan had its own talk earlier that day, so this was the natural example. Again: easy.</p>
 
     <h2>Where it can go</h2>
     <figure>
       <img src="/assets/talks/simplest-gitlab-ci-pipeline/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="A GitLab pipeline with 12 jobs in five stages. Build: build. Test: codequality, dependency scanning, sast, sast:container, test. Staging: staging. Production: rollout 10%, rollout 25%, rollout 50%, rollout 100%. Performance: performance.">
       <figcaption>A complex pipeline: build, five kinds of tests, staging, a production rollout in four steps, and a performance check.</figcaption>
     </figure>
-    <p>The same file scales up to this: 12 jobs in five stages, with code quality, dependency and security scanning, a staging deploy, and a production rollout to 10%, 25%, 50% and then 100% of traffic.</p>
-    <p>After that came the demo, live. The recording is linked below.</p>
+    <p>The same file scales up to this: 12 jobs in five stages instead of three, with code quality, dependency and security scanning, a staging deploy, a production rollout to 10%, 25%, 50% and then 100% of traffic, and a final performance check. Someone asked during the demo where this pipeline came from. It was an example from GitLab&rsquo;s Auto DevOps, which was quite new back then, and yes, I would use it.</p>
+
+    <h2>The demo</h2>
+    <p>Then the live demo (<a href="https://www.youtube.com/watch?v=HG0HgeUDbR8&amp;t=394s">6:34 in the video</a>): from an empty repository on GitLab.com to a green pipeline in a few minutes. After a short fight with not being signed in, I created two files.</p>
+    <p>The first one, <code>test.php</code>, does nothing except end with an exit code. That is how tests work in CI: the runner checks whether the program&rsquo;s exit code is zero or not. The second one was the CI config:</p>
+<pre><code>test:
+  script:
+    - php test.php</code></pre>
+    <p>I already knew what would happen, but I wanted to show it. The pipeline started on its own, and we waited for GitLab to pull the default Ruby image. Then it failed: <code>php: command not found</code>. There is no PHP in a Ruby image. You never want to see that red cross, but the fix is one line, telling the runner which image to use:</p>
+<pre><code>test:
+  image: php:7.1
+  script:
+    - php test.php</code></pre>
+    <p>The pipeline ran again and failed again. This time not because of the setup: the script itself returned a non-zero exit code. That&rsquo;s the normal developer loop: look at what failed, debug, fix, and get the green check. After a fix to <code>test.php</code> and a wait for the slow conference Wi-Fi, the job succeeded.</p>
+    <p>That&rsquo;s the whole magic. You can write your tests in PHPUnit, Nette Tester or any testing framework you like; in the background CI only looks at the return code.</p>
+    <p>The last step was a quick multi-stage version. Once you have more than one stage, you have to list them under <code>stages:</code>. I added a first stage with a few jobs and moved the PHP test to a <code>test</code> stage after it. In the pipeline view you could watch the first-stage jobs run in parallel while the test job waited for all of them to succeed.</p>
+    <p>While that ran I showed one more thing: the CI Lint button (<a href="https://www.youtube.com/watch?v=HG0HgeUDbR8&amp;t=924s">15:24 in the video</a>). The config is standard YAML, and CI Lint checks whether your <code>.gitlab-ci.yml</code> is valid. I broke the indentation on purpose, and it reported the file as incorrect, with the line and column of the problem. Starting with CI on GitLab really takes minutes.</p>
+
+    <h2>Hosted or self-hosted?</h2>
+    <p>One question while the Wi-Fi was slow: GitLab.com felt slow, were we staying on it? At the time we were moving from hosted GitLab to self-hosted. Not because of speed, but because of features: the self-hosted version and its Kubernetes cluster integration felt like magic.</p>
 
     <h2>GitLab is much more than Git</h2>
-    <p>Git hosting is only the start. GitLab covers the whole cycle: plan, create, verify, package, release, configure and monitor. CI is the &ldquo;verify&rdquo; part.</p>
+    <p>For a lot of people, GitHub, GitLab or Bitbucket are just storage for Git repositories. GitLab is much more. It covers the whole cycle: plan, create, verify, package, release, configure and monitor. CI is the &ldquo;verify&rdquo; part. If you work with Docker you know Docker Hub; GitLab has its own registry for Docker images built in, which makes working with CI even easier. Its ambition is to be the number one all-in-one platform for development and DevOps, not only a place for your repositories.</p>
+    <p>My comparison: GitHub is a very good place for open source. For a company project with more people, code you don&rsquo;t want to share in public, and more complex pipelines, GitLab is number one for me.</p>
     <figure>
       <img src="/assets/talks/simplest-gitlab-ci-pipeline/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Bar chart titled GitHub Imports, from GitLab, by day. 26 May 2018: 0, 27 May: 0, 28 May: 594, 29 May: 711, 30 May: 339, 31 May: 674, 1 June: 1,990, 2 June: 1,916, 3 June: 8,897, 4 June: 46,900, 5 June: 98,300, 6 June: 113,900.">
       <figcaption>#movingtogitlab: daily imports from GitHub to GitLab, late May to early June 2018.</figcaption>
     </figure>
-    <p>And the timing was right. A few weeks before the talk, imports of GitHub projects into GitLab jumped from hundreds a day to 46,900 on 4 June, 98,300 on 5 June and 113,900 on 6 June. That was the week Microsoft announced it was buying GitHub.</p>
+    <p>The timing was interesting. A few weeks before the talk, imports of GitHub projects into GitLab jumped from hundreds a day to 46,900 on 4 June, 98,300 on 5 June and 113,900 on 6 June. That was the week Microsoft announced it was buying GitHub. Developers panicked, because when Microsoft buys something it often doesn&rsquo;t end well, and #movingtogitlab was all over Twitter. That&rsquo;s also part of why GitLab.com was slow those days. I said the panic wasn&rsquo;t necessary: many people were moving for no real reason. Don&rsquo;t hurry, wait and see what comes out of it.</p>
 
     <details class="deck">
       <summary>All 19 slides</summary>
@@ -158,9 +179,10 @@ phpstan:
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "The simplest GitLab CI pipeline ever",
-  "description": "A three-line .gitlab-ci.yml that runs, then how GitLab CI jobs work: Docker images, stages, artifacts, a multi-stage PHP pipeline with Composer and PHPStan.",
+  "description": "A three-line .gitlab-ci.yml, how GitLab CI jobs, stages and artifacts work, and a live demo from an empty repository to a green PHP pipeline.",
   "url": "https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/",
   "datePublished": "2018-06-23",
+  "dateModified": "2026-11-01",
   "inLanguage": "en",
   "image": "https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.jpg",
   "about": ["GitLab CI", "Continuous integration", "Docker", "PHP", "PHPStan"],
