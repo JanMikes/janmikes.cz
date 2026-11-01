@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -76,7 +76,7 @@
     <p>For a web page, open it, click the Blackfire icon next to the address bar and press Profile. You can also turn on profiling for every page you load. Blackfire first sends one warm-up request to fill caches, then several more (10 by default) and averages them, so a short hiccup on your machine doesn&rsquo;t skew the result. (<a href="https://www.youtube.com/watch?v=wFJEOclHcnc&amp;t=1392s">23:12</a>)</p>
     <p>The profile also warned me that Xdebug was on, which hurts performance. I left it on because I needed it later.</p>
     <p>For a REST API or a POST request, put <code>blackfire</code> in front of curl: (<a href="https://www.youtube.com/watch?v=wFJEOclHcnc&amp;t=1973s">32:53</a>)</p>
-<pre><code>blackfire --samples 5 curl -X POST -H "…" -d '…' http://localhost/api/…</code></pre>
+<pre data-lang="Shell"><code class="language-bash">blackfire --samples <span class="m">5</span> curl -X POST -H <span class="s2">"…"</span> -d <span class="s1">'…'</span> http://localhost/api/…</code></pre>
     <p>For a CLI command there is <code>blackfire run</code>. You can mark a profile as a <b>reference</b>, for example the version you deployed, and compare every later profile against it. Our plan allowed only two references.</p>
 
     <h2>The slow endpoint</h2>
@@ -96,19 +96,19 @@
 
     <h2>Profiling from code</h2>
     <p>With the <a href="https://github.com/blackfireio/php-sdk">PHP SDK</a> you can start a profile from code, for example in CI. I put it into <code>bootstrap.php</code> right after the autoloader, before the DI container is built, and ran it only when a request has a trigger header. Without that check, anyone could make your server profile every request, which is an easy way to DDoS you. Everything between creating the probe and ending it is profiled. (<a href="https://www.youtube.com/watch?v=wFJEOclHcnc&amp;t=6600s">110:00</a>)</p>
-<pre><code>if (isset($_SERVER['HTTP_BLACKFIRETRIGGER'])) {
-    $blackfire = new \Blackfire\Client();
-    $probe = $blackfire-&gt;createProbe();
+<pre data-lang="PHP"><code class="language-php"><span class="k">if</span> <span class="p">(</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">'HTTP_BLACKFIRETRIGGER'</span><span class="p">]))</span> <span class="p">{</span>
+    <span class="nv">$blackfire</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\Blackfire\Client</span><span class="p">();</span>
+    <span class="nv">$probe</span> <span class="o">=</span> <span class="nv">$blackfire</span><span class="o">-&gt;</span><span class="na">createProbe</span><span class="p">();</span>
 
-    register_shutdown_function(function () use ($blackfire, $probe) {
-        $blackfire-&gt;endProbe($probe);
-    });
-}</code></pre>
+    <span class="nb">register_shutdown_function</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$blackfire</span><span class="p">,</span> <span class="nv">$probe</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$blackfire</span><span class="o">-&gt;</span><span class="na">endProbe</span><span class="p">(</span><span class="nv">$probe</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">}</span></code></pre>
     <p>The SDK can go into normal dependencies, not dev ones, since Blackfire doesn&rsquo;t slow down requests you don&rsquo;t profile. The docs also had a Guzzle middleware for profiling calls to your microservices, and assertions in a YAML file, for example that every request under a path must take less than 100 ms.</p>
 
     <h2>Fix two: select only what you need</h2>
     <p>At the end I tried the second idea. I listed the fields the response actually uses and loaded only those with a Doctrine partial select: (<a href="https://www.youtube.com/watch?v=wFJEOclHcnc&amp;t=7509s">125:09</a>)</p>
-<pre><code>-&gt;select('partial t.{id, code, locale, email, firstName, lastName, …}')</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="o">-&gt;</span><span class="na">select</span><span class="p">(</span><span class="s1">'partial t.{id, code, locale, email, firstName, lastName, …}'</span><span class="p">)</span></code></pre>
     <p>It took a few attempts (<code>status</code> was a method, not a property, and I forgot <code>locale</code>), but in the diff it was one changed line. The request was clearly faster even by eye. Blackfire showed about 50,000 and another 47,000 fewer calls, far fewer <code>convertToPHPValue</code> calls, and 1.9 seconds less in hydration. Looking back, I should have started with this one-line change instead of the value object.</p>
     <p>The next steps would be the same for the second entity, and then going around the ORM: write plain SQL with Doctrine DBAL, get the rows as arrays, and if you don&rsquo;t want to work with associative arrays, wrap them in a small read-only DTO.</p>
 

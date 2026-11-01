@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -72,7 +72,7 @@
 
     <h2>Step 2: get the request body</h2>
     <p>Besides the access log, our app stored every incoming request in MongoDB: the request ID, method, URI, headers, query and the full request body. With the request ID from the access log, finding the original order was a single query:</p>
-    <pre><code>db.getCollection('requests').find({'request_id': '&hellip;'})</code></pre>
+    <pre data-lang="MongoDB"><code class="language-javascript"><span class="nx">db</span><span class="p">.</span><span class="nx">getCollection</span><span class="p">(</span><span class="s1">'requests'</span><span class="p">).</span><span class="nx">find</span><span class="p">({</span><span class="s1">'request_id'</span><span class="o">:</span> <span class="s1">'…'</span><span class="p">})</span></code></pre>
     <figure>
       <img src="/assets/talks/logging-saved-us/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Robomongo screenshot: a find query on the requests collection by request_id returns one document with the fields _id, request_id, method (POST), uri, headers (20 fields), query (empty) and requestBody, which holds the order data as JSON.">
       <figcaption>One stored request: everything needed to rebuild the order.</figcaption>
@@ -84,16 +84,16 @@
     <h2>Step 4: cover the tracks</h2>
     <p>Two things were still wrong. The recreated order wasn&rsquo;t paid, so we marked it as paid. And the new order generated a ticket with a <i>different</i> code from the one the customer already had in their inbox.</p>
     <p>But we still had the original e-mail, including its attachment: the ticket PDF, base64-encoded in the raw message. Turning that back into a file takes a few lines of PHP:</p>
-    <pre><code>&lt;?php
+    <pre data-lang="PHP"><code class="language-php"><span class="cp">&lt;?php</span>
 
-header('Content-Transfer-Encoding: base64');
-header('Content-Disposition: attachment; filename="Paidticket.pdf"');
-header('Content-Type: application/pdf; name="Paidticket.pdf"');
-header('Mime-Version: 1.0');
+<span class="nb">header</span><span class="p">(</span><span class="s1">'Content-Transfer-Encoding: base64'</span><span class="p">);</span>
+<span class="nb">header</span><span class="p">(</span><span class="s1">'Content-Disposition: attachment; filename="Paidticket.pdf"'</span><span class="p">);</span>
+<span class="nb">header</span><span class="p">(</span><span class="s1">'Content-Type: application/pdf; name="Paidticket.pdf"'</span><span class="p">);</span>
+<span class="nb">header</span><span class="p">(</span><span class="s1">'Mime-Version: 1.0'</span><span class="p">);</span>
 
-$data = '...';
+<span class="nv">$data</span> <span class="o">=</span> <span class="s1">'...'</span><span class="p">;</span>
 
-echo base64_decode($data);</code></pre>
+<span class="k">echo</span> <span class="nb">base64_decode</span><span class="p">(</span><span class="nv">$data</span><span class="p">);</span></code></pre>
     <p>Open the PDF, read the ticket code printed above the barcode, edit the column in the database, and the ticket the customer already had works again.</p>
 
     <h2>Step 5: talk to the customer</h2>

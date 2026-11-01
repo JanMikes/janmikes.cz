@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -72,7 +72,7 @@
 
     <h2>Remote Docker host</h2>
     <p>The <code>docker</code> command on your Mac is only a client. It talks to the Docker engine through an API, and that engine doesn&rsquo;t have to run on the same machine. You keep the local Docker binaries and point them at a remote engine, for example over SSH:</p>
-    <pre><code>$ export DOCKER_HOST=ssh://sammy@your_server_ip</code></pre>
+    <pre data-lang="Shell"><code class="language-console"><span class="gp">$ </span><span class="nb">export</span> <span class="nv">DOCKER_HOST</span><span class="o">=</span>ssh://sammy@your_server_ip</code></pre>
     <p>From then on every <code>docker</code> command runs against that engine. The remote host can be a VPS somewhere, or a local virtual machine on the Mac itself. I chose the local VM.</p>
     <p>The key difference is where the files live. In the VM setup, the project source is synced from the Mac into the Ubuntu VM, and the containers mount it from the VM&rsquo;s own disk. Reads are local Linux file system reads again.</p>
     <figure>

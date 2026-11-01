@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -65,36 +65,36 @@
 
     <h2>A value object for everything</h2>
     <p>A value object is a small immutable object defined by its value, like an e-mail address or a price. I took that idea a bit too far. Creating a person looked like this:</p>
-    <pre><code>$person = new Person(
-    new Email('info@odbav.to'),
-    new Name(
-        new FirstName('John'),
-        new LastName('Doe')
-    ),
-    new Phone(null, '603123123'),
-    new Address(
-        new Street('Slezska 123'),
-        new City('Prague'),
-        new PostalCode('11000'),
-        new Country(CountryCode::CZ())
-    ),
-    new Company(
-        new CompanyName('odbav.to'),
-        new CompanyId('28994124'),
-        new CompanyVatId(null)
-    )
-);</code></pre>
+    <pre data-lang="PHP"><code class="language-php"><span class="nv">$person</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">(</span>
+    <span class="k">new</span> <span class="nx">Email</span><span class="p">(</span><span class="s1">'info@odbav.to'</span><span class="p">),</span>
+    <span class="k">new</span> <span class="nx">Name</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nx">FirstName</span><span class="p">(</span><span class="s1">'John'</span><span class="p">),</span>
+        <span class="k">new</span> <span class="nx">LastName</span><span class="p">(</span><span class="s1">'Doe'</span><span class="p">)</span>
+    <span class="p">),</span>
+    <span class="k">new</span> <span class="nx">Phone</span><span class="p">(</span><span class="k">null</span><span class="p">,</span> <span class="s1">'603123123'</span><span class="p">),</span>
+    <span class="k">new</span> <span class="nx">Address</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nx">Street</span><span class="p">(</span><span class="s1">'Slezska 123'</span><span class="p">),</span>
+        <span class="k">new</span> <span class="nx">City</span><span class="p">(</span><span class="s1">'Prague'</span><span class="p">),</span>
+        <span class="k">new</span> <span class="nx">PostalCode</span><span class="p">(</span><span class="s1">'11000'</span><span class="p">),</span>
+        <span class="k">new</span> <span class="nx">Country</span><span class="p">(</span><span class="nx">CountryCode</span><span class="o">::</span><span class="na">CZ</span><span class="p">())</span>
+    <span class="p">),</span>
+    <span class="k">new</span> <span class="nx">Company</span><span class="p">(</span>
+        <span class="k">new</span> <span class="nx">CompanyName</span><span class="p">(</span><span class="s1">'odbav.to'</span><span class="p">),</span>
+        <span class="k">new</span> <span class="nx">CompanyId</span><span class="p">(</span><span class="s1">'28994124'</span><span class="p">),</span>
+        <span class="k">new</span> <span class="nx">CompanyVatId</span><span class="p">(</span><span class="k">null</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">);</span></code></pre>
     <p>The don&rsquo;ts: classes like <code>class FirstName extends SimpleString {}</code>, which are empty. They add no rules, only one more object. The dos: value objects that actually guard something, like a latitude that must be a number between &minus;90 and 90:</p>
-    <pre><code>class Latitude extends Floating
-{
-    protected function validate(?float $value): ?float
-    {
-        Assertion::numeric($value);
-        Assertion::range($value, -90, 90);
+    <pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">Latitude</span> <span class="k">extends</span> <span class="nx">Floating</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">validate</span><span class="p">(</span><span class="o">?</span><span class="nx">float</span> <span class="nv">$value</span><span class="p">)</span><span class="o">:</span> <span class="o">?</span><span class="nx">float</span>
+    <span class="p">{</span>
+        <span class="nx">Assertion</span><span class="o">::</span><span class="na">numeric</span><span class="p">(</span><span class="nv">$value</span><span class="p">);</span>
+        <span class="nx">Assertion</span><span class="o">::</span><span class="na">range</span><span class="p">(</span><span class="nv">$value</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">);</span>
 
-        return $value;
-    }
-}</code></pre>
+        <span class="k">return</span> <span class="nv">$value</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p><code>Longitude</code> is the same with &minus;180 and 180.</p>
     <p>All those objects have a cost, because Doctrine has to build every one of them when it loads data:</p>
     <figure>
@@ -104,10 +104,10 @@
 
     <h2>Own value objects for things that already exist</h2>
     <p>We had our own <code>Money</code> value object made of a <code>Price</code> and a <code>Currency</code>, next to the existing <code>\Money\Money</code> from the moneyphp library, with factory methods to convert between them:</p>
-    <pre><code>public static function fromMoney(\Money\Money $money): self
-{
-    return static::fromNative($money-&gt;getAmount(), $money-&gt;getCurrency()-&gt;getCode());
-}</code></pre>
+    <pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">fromMoney</span><span class="p">(</span><span class="nx">\Money\Money</span> <span class="nv">$money</span><span class="p">)</span><span class="o">:</span> <span class="nx">self</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="k">static</span><span class="o">::</span><span class="na">fromNative</span><span class="p">(</span><span class="nv">$money</span><span class="o">-&gt;</span><span class="na">getAmount</span><span class="p">(),</span> <span class="nv">$money</span><span class="o">-&gt;</span><span class="na">getCurrency</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getCode</span><span class="p">());</span>
+<span class="p">}</span></code></pre>
 
     <h2>Binary UUIDs</h2>
     <p>The identifiers were UUIDs from ramsey/uuid, wrapped in our own <code>UuidIdentifier</code> and stored as binary. A Blackfire comparison on this slide shows how much time went into it: after the change, tens of thousands fewer calls to UUID encoding and decoding functions, &minus;29% wall time, &minus;22% I/O and &minus;29% CPU, for 8.38% more memory.</p>
@@ -120,12 +120,12 @@
 
     <h2>All logic in entities</h2>
     <p>Putting behaviour into entities is the DDD way. Putting <i>all</i> of it there is not. This counts orders with a given status by loading all the orders and filtering them in PHP:</p>
-    <pre><code>public function ordersWithStatusCount(OrderStatus $status): int
-{
-    return $this-&gt;orders-&gt;filter(function(Order $order) use ($status) {
-        return $order-&gt;paymentStatus()-&gt;equals($status);
-    })-&gt;count();
-}</code></pre>
+    <pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">function</span> <span class="nf">ordersWithStatusCount</span><span class="p">(</span><span class="nx">OrderStatus</span> <span class="nv">$status</span><span class="p">)</span><span class="o">:</span> <span class="nx">int</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">orders</span><span class="o">-&gt;</span><span class="na">filter</span><span class="p">(</span><span class="k">function</span><span class="p">(</span><span class="nx">Order</span> <span class="nv">$order</span><span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$status</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nv">$order</span><span class="o">-&gt;</span><span class="na">paymentStatus</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">equals</span><span class="p">(</span><span class="nv">$status</span><span class="p">);</span>
+    <span class="p">})</span><span class="o">-&gt;</span><span class="na">count</span><span class="p">();</span>
+<span class="p">}</span></code></pre>
     <p>And <code>paymentStatus()</code> itself, marked <code>@TODO remove</code>, computes the status on the fly from the cancellation date, the payment, its status and the payment method. In the ticket export, one method, <code>getInputValues</code>, took 20.9 seconds, 72.6% of the request. Another profile shows a request taking 14.8 seconds and 266 MB of memory.</p>
 
     <h2>XML mapping?</h2>
@@ -133,12 +133,12 @@
 
     <h2>An exception for every exception</h2>
     <p>Every domain rule had its own exception class: <code>EventNotReadyException</code>, <code>NoAvailableTicketsOfVariant</code>, <code>TicketVariantCancelledException</code>, <code>DiscountCodeCancelledException</code>, <code>DiscountDateNotValidException</code> and more. Then a wall of <code>catch</code> blocks translated each of them into an <code>OrderCannotBeCreatedException</code> with a message, and the API layer turned that into an error response:</p>
-    <pre><code>if ($e instanceof ApplicationException) {
-    return $this-&gt;createErrorResponse([
-        'title' =&gt; $e-&gt;title(),
-        'detail' =&gt; $e-&gt;detail(),
-    ], $e-&gt;additionalResponses());
-}</code></pre>
+    <pre data-lang="PHP"><code class="language-php"><span class="k">if</span> <span class="p">(</span><span class="nv">$e</span> <span class="nx">instanceof</span> <span class="nx">ApplicationException</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createErrorResponse</span><span class="p">([</span>
+        <span class="s1">'title'</span> <span class="o">=&gt;</span> <span class="nv">$e</span><span class="o">-&gt;</span><span class="na">title</span><span class="p">(),</span>
+        <span class="s1">'detail'</span> <span class="o">=&gt;</span> <span class="nv">$e</span><span class="o">-&gt;</span><span class="na">detail</span><span class="p">(),</span>
+    <span class="p">],</span> <span class="nv">$e</span><span class="o">-&gt;</span><span class="na">additionalResponses</span><span class="p">());</span>
+<span class="p">}</span></code></pre>
 
     <h2>Aggregate roots?</h2>
     <p>&ldquo;What is that?&rdquo; was the whole slide. For context: an aggregate root is the one entity through which you change a group of related objects, which keeps their rules consistent.</p>

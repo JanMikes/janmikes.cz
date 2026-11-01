@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -65,49 +65,49 @@
 
     <h2>The naive version</h2>
     <p>The first version does everything inside the test: drop the schema, create it, run migrations, load fixtures, then test.</p>
-<pre><code>class MyServiceTest extends TestCase
-{
-    public function testSomething(): void
-    {
-        passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:drop', __DIR__));
-        passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:create', __DIR__));
-        passthru(sprintf('php "%s/../bin/console" --env=test migrations:migrate', __DIR__));
-        passthru(sprintf('php "%s/../bin/console" --env=test doctrine:fixtures:load', __DIR__));
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">MyServiceTest</span> <span class="k">extends</span> <span class="nx">TestCase</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">testSomething</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test orm:schema-tool:drop'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test orm:schema-tool:create'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test migrations:migrate'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test doctrine:fixtures:load'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
 
-        // We need container to work with the application ...
-        $container = Bootstrap::getTestsContainer();
+        <span class="c1">// We need container to work with the application ...</span>
+        <span class="nv">$container</span> <span class="o">=</span> <span class="nx">Bootstrap</span><span class="o">::</span><span class="na">getTestsContainer</span><span class="p">();</span>
 
-        // ... the service we are testing ...
-        $service = $container-&gt;getByType(MyService::class);
+        <span class="c1">// ... the service we are testing ...</span>
+        <span class="nv">$service</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">getByType</span><span class="p">(</span><span class="nx">MyService</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
 
-        // ... check state of the app before ...
-        $this-&gt;assertCount(0, $service-&gt;countSomething());
+        <span class="c1">// ... check state of the app before ...</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertCount</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nv">$service</span><span class="o">-&gt;</span><span class="na">countSomething</span><span class="p">());</span>
 
-        $service-&gt;doSomething();
+        <span class="nv">$service</span><span class="o">-&gt;</span><span class="na">doSomething</span><span class="p">();</span>
 
-        // ... make sure the app changed into expected state ...
-        $this-&gt;assertCount(1, $service-&gt;countSomething());
-    }
-}</code></pre>
+        <span class="c1">// ... make sure the app changed into expected state ...</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertCount</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nv">$service</span><span class="o">-&gt;</span><span class="na">countSomething</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>The container comes from the application&rsquo;s <code>Bootstrap</code>, with one extra config file for tests and a static variable, so it&rsquo;s built only once per run:</p>
-<pre><code>private static null|Container $testsContainer = null;
+<pre data-lang="PHP"><code class="language-php"><span class="k">private</span> <span class="k">static</span> <span class="k">null</span><span class="o">|</span><span class="nx">Container</span> <span class="nv">$testsContainer</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
 
-public static function getTestsContainer(): Container
-{
-    // Local caching
-    if (self::$testsContainer === null) {
-        $_ENV['APP_ENV'] = 'test';
+<span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">getTestsContainer</span><span class="p">()</span><span class="o">:</span> <span class="nx">Container</span>
+<span class="p">{</span>
+    <span class="c1">// Local caching</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">self</span><span class="o">::</span><span class="nv">$testsContainer</span> <span class="o">===</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$_ENV</span><span class="p">[</span><span class="s1">'APP_ENV'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'test'</span><span class="p">;</span>
 
-        $configurator = self::boot();
+        <span class="nv">$configurator</span> <span class="o">=</span> <span class="nx">self</span><span class="o">::</span><span class="na">boot</span><span class="p">();</span>
 
-        // Customize the app for tests
-        $configurator-&gt;addConfig(__DIR__ . '/../config/tests.neon');
+        <span class="c1">// Customize the app for tests</span>
+        <span class="nv">$configurator</span><span class="o">-&gt;</span><span class="na">addConfig</span><span class="p">(</span><span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../config/tests.neon'</span><span class="p">);</span>
 
-        self::$testsContainer = $configurator-&gt;createContainer();
-    }
+        <span class="nx">self</span><span class="o">::</span><span class="nv">$testsContainer</span> <span class="o">=</span> <span class="nv">$configurator</span><span class="o">-&gt;</span><span class="na">createContainer</span><span class="p">();</span>
+    <span class="p">}</span>
 
-    return self::$testsContainer;
-}</code></pre>
+    <span class="k">return</span> <span class="nx">self</span><span class="o">::</span><span class="nv">$testsContainer</span><span class="p">;</span>
+<span class="p">}</span></code></pre>
     <p>It works. Tada! But it rebuilds the whole database for every single test, and that gets slow very quickly.</p>
 
     <h2>What we really want</h2>
@@ -122,149 +122,149 @@ public static function getTestsContainer(): Container
 
     <h2>Step 0: create the extension</h2>
     <p>An extension implements one interface:</p>
-<pre><code>namespace PHPUnit\Runner\Extension;
+<pre data-lang="PHP"><code class="language-php"><span class="k">namespace</span> <span class="nx">PHPUnit\Runner\Extension</span><span class="p">;</span>
 
-use PHPUnit\TextUI\Configuration\Configuration;
+<span class="k">use</span> <span class="nx">PHPUnit\TextUI\Configuration\Configuration</span><span class="p">;</span>
 
-interface Extension
-{
-    public function bootstrap(Configuration $configuration, Facade $facade, ParameterCollection $parameters): void;
-}</code></pre>
+<span class="k">interface</span> <span class="nx">Extension</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">bootstrap</span><span class="p">(</span><span class="nx">Configuration</span> <span class="nv">$configuration</span><span class="p">,</span> <span class="nx">Facade</span> <span class="nv">$facade</span><span class="p">,</span> <span class="nx">ParameterCollection</span> <span class="nv">$parameters</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+<span class="p">}</span></code></pre>
     <p>and gets registered in <code>phpunit.xml</code>:</p>
-<pre><code>&lt;extensions&gt;
-    &lt;bootstrap class="Omnicado\Tests\PHPUnit\TestingDatabaseExtension" /&gt;
-&lt;/extensions&gt;</code></pre>
+<pre data-lang="XML"><code class="language-xml"><span class="nt">&lt;extensions&gt;</span>
+    <span class="nt">&lt;bootstrap</span> <span class="na">class=</span><span class="s">"Omnicado\Tests\PHPUnit\TestingDatabaseExtension"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/extensions&gt;</span></code></pre>
     <p>Inside <code>bootstrap()</code> you register subscribers on the <code>$facade</code>. Each one reacts to one event.</p>
 
     <h2>Step 1: prepare the database only once</h2>
-<pre><code>$facade-&gt;registerSubscriber(new class () implements TestRunnerStartedSubscriber {
-    public function notify(TestRunnerStartedEvent $event): void
-    {
-        passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:create', __DIR__));
-        passthru(sprintf('php "%s/../bin/console" --env=test migrations:migrate', __DIR__));
-        passthru(sprintf('php "%s/../bin/console" --env=test doctrine:fixtures:load', __DIR__));
-    }
-});</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$facade</span><span class="o">-&gt;</span><span class="na">registerSubscriber</span><span class="p">(</span><span class="k">new</span> <span class="k">class</span> <span class="p">()</span> <span class="k">implements</span> <span class="nx">TestRunnerStartedSubscriber</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">notify</span><span class="p">(</span><span class="nx">TestRunnerStartedEvent</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test orm:schema-tool:create'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test migrations:migrate'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+        <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test doctrine:fixtures:load'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">});</span></code></pre>
 
     <h2>Step 2: start a transaction before each test</h2>
-<pre><code>$facade-&gt;registerSubscriber(new class () implements TestStartedSubscriber {
-    public function notify(TestStartedEvent $event): void
-    {
-        Bootstrap::getTestsContainer()
-            -&gt;getByType(EntityManagerInterface::class)
-            -&gt;beginTransaction();
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$facade</span><span class="o">-&gt;</span><span class="na">registerSubscriber</span><span class="p">(</span><span class="k">new</span> <span class="k">class</span> <span class="p">()</span> <span class="k">implements</span> <span class="nx">TestStartedSubscriber</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">notify</span><span class="p">(</span><span class="nx">TestStartedEvent</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nx">Bootstrap</span><span class="o">::</span><span class="na">getTestsContainer</span><span class="p">()</span>
+            <span class="o">-&gt;</span><span class="na">getByType</span><span class="p">(</span><span class="nx">EntityManagerInterface</span><span class="o">::</span><span class="na">class</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">beginTransaction</span><span class="p">();</span>
 
-        TestingDatabaseExtension::$transactionStarted = true;
-    }
-});</code></pre>
+        <span class="nx">TestingDatabaseExtension</span><span class="o">::</span><span class="nv">$transactionStarted</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">});</span></code></pre>
 
     <h2>Step 3: roll back after each test</h2>
     <p>A test can end in more ways than one. It can finish, be skipped, or error out, so we roll back on all three events:</p>
-<pre><code>$facade-&gt;registerSubscriber(new class () implements SkippedSubscriber {
-    public function notify(Skipped $event): void
-    {
-        TestingDatabaseExtension::rollBack();
-    }
-});
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$facade</span><span class="o">-&gt;</span><span class="na">registerSubscriber</span><span class="p">(</span><span class="k">new</span> <span class="k">class</span> <span class="p">()</span> <span class="k">implements</span> <span class="nx">SkippedSubscriber</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">notify</span><span class="p">(</span><span class="nx">Skipped</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nx">TestingDatabaseExtension</span><span class="o">::</span><span class="na">rollBack</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">});</span>
 
-$facade-&gt;registerSubscriber(new class () implements TestFinishedSubscriber {
-    public function notify(TestFinishedEvent $event): void
-    {
-        TestingDatabaseExtension::rollBack();
-    }
-});
+<span class="nv">$facade</span><span class="o">-&gt;</span><span class="na">registerSubscriber</span><span class="p">(</span><span class="k">new</span> <span class="k">class</span> <span class="p">()</span> <span class="k">implements</span> <span class="nx">TestFinishedSubscriber</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">notify</span><span class="p">(</span><span class="nx">TestFinishedEvent</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nx">TestingDatabaseExtension</span><span class="o">::</span><span class="na">rollBack</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">});</span>
 
-$facade-&gt;registerSubscriber(new class () implements ErroredSubscriber {
-    public function notify(Errored $event): void
-    {
-        TestingDatabaseExtension::rollBack();
-    }
-});</code></pre>
+<span class="nv">$facade</span><span class="o">-&gt;</span><span class="na">registerSubscriber</span><span class="p">(</span><span class="k">new</span> <span class="k">class</span> <span class="p">()</span> <span class="k">implements</span> <span class="nx">ErroredSubscriber</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">notify</span><span class="p">(</span><span class="nx">Errored</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nx">TestingDatabaseExtension</span><span class="o">::</span><span class="na">rollBack</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">});</span></code></pre>
     <p>The flag makes the rollback safe to call more than once:</p>
-<pre><code>public static function rollBack(): void
-{
-    if (!self::$transactionStarted) {
-        return;
-    }
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">rollBack</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">self</span><span class="o">::</span><span class="nv">$transactionStarted</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    Bootstrap::getTestsContainer()
-        -&gt;getByType(EntityManagerInterface::class)
-        -&gt;rollback();
+    <span class="nx">Bootstrap</span><span class="o">::</span><span class="na">getTestsContainer</span><span class="p">()</span>
+        <span class="o">-&gt;</span><span class="na">getByType</span><span class="p">(</span><span class="nx">EntityManagerInterface</span><span class="o">::</span><span class="na">class</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">rollback</span><span class="p">();</span>
 
-    self::$transactionStarted = false;
-}</code></pre>
+    <span class="nx">self</span><span class="o">::</span><span class="nv">$transactionStarted</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+<span class="p">}</span></code></pre>
     <p>Now the test itself is clean. No setup, no cleanup, only the behaviour:</p>
-<pre><code>class MarketplaceStockUpdateLogRepositoryTest extends TestCase
-{
-    public function testGetMostRecentStockQuantities(): void
-    {
-        $container = Bootstrap::getTestsContainer();
-        $repository = $container-&gt;getByType(MarketplaceStockUpdateLogRepository::class);
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">MarketplaceStockUpdateLogRepositoryTest</span> <span class="k">extends</span> <span class="nx">TestCase</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">testGetMostRecentStockQuantities</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$container</span> <span class="o">=</span> <span class="nx">Bootstrap</span><span class="o">::</span><span class="na">getTestsContainer</span><span class="p">();</span>
+        <span class="nv">$repository</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">getByType</span><span class="p">(</span><span class="nx">MarketplaceStockUpdateLogRepository</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
 
-        $this-&gt;assertCount(0, $repository-&gt;getMostRecentStockQuantities());
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertCount</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nv">$repository</span><span class="o">-&gt;</span><span class="na">getMostRecentStockQuantities</span><span class="p">());</span>
 
-        $entity = new MarketplaceStockUpdateLog($repository-&gt;nextId(), 1, 1);
-        $repository-&gt;save($entity);
+        <span class="nv">$entity</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MarketplaceStockUpdateLog</span><span class="p">(</span><span class="nv">$repository</span><span class="o">-&gt;</span><span class="na">nextId</span><span class="p">(),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+        <span class="nv">$repository</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">(</span><span class="nv">$entity</span><span class="p">);</span>
 
-        $this-&gt;assertCount(1, $repository-&gt;getMostRecentStockQuantities());
-    }
-}</code></pre>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertCount</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nv">$repository</span><span class="o">-&gt;</span><span class="na">getMostRecentStockQuantities</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
 
     <h2>Step 4 of 3: &ldquo;cache&rdquo; the database</h2>
     <p>One more thought. If the structure hasn&rsquo;t changed, and the data hasn&rsquo;t changed, and every test rolls back its changes, why create a fresh database on every run?</p>
     <p>The structure comes from migrations and the data from fixtures. So I hash those two directories and store the hash in a file. The database gets rebuilt only when the hash differs. It&rsquo;s also skipped completely when only unit tests run, because they don&rsquo;t need a database at all.</p>
-<pre><code>$facade-&gt;registerSubscriber(new class () implements TestRunnerStartedSubscriber {
-    public function notify(TestRunnerStartedEvent $event): void
-    {
-        $cacheFilePath = __DIR__ . '/../.database.cache';
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$facade</span><span class="o">-&gt;</span><span class="na">registerSubscriber</span><span class="p">(</span><span class="k">new</span> <span class="k">class</span> <span class="p">()</span> <span class="k">implements</span> <span class="nx">TestRunnerStartedSubscriber</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">notify</span><span class="p">(</span><span class="nx">TestRunnerStartedEvent</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$cacheFilePath</span> <span class="o">=</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../.database.cache'</span><span class="p">;</span>
 
-        $currentDatabaseHash = TestingDatabase::calculateDirectoriesHash(
-            __DIR__ . '/../../migrations',
-            __DIR__ . '/../DataFixtures',
-        );
+        <span class="nv">$currentDatabaseHash</span> <span class="o">=</span> <span class="nx">TestingDatabase</span><span class="o">::</span><span class="na">calculateDirectoriesHash</span><span class="p">(</span>
+            <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../../migrations'</span><span class="p">,</span>
+            <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../DataFixtures'</span><span class="p">,</span>
+        <span class="p">);</span>
 
-        if (
-            TestingDatabaseExtension::isRunningUnitTestOnly() === false
-            &amp;&amp; TestingDatabase::isCacheUpToDate($cacheFilePath, $currentDatabaseHash) === false
-        ) {
-            passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:create', __DIR__));
-            passthru(sprintf('php "%s/../bin/console" --env=test migrations:migrate', __DIR__));
-            passthru(sprintf('php "%s/../bin/console" --env=test doctrine:fixtures:load', __DIR__));
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nx">TestingDatabaseExtension</span><span class="o">::</span><span class="na">isRunningUnitTestOnly</span><span class="p">()</span> <span class="o">===</span> <span class="k">false</span>
+            <span class="o">&amp;&amp;</span> <span class="nx">TestingDatabase</span><span class="o">::</span><span class="na">isCacheUpToDate</span><span class="p">(</span><span class="nv">$cacheFilePath</span><span class="p">,</span> <span class="nv">$currentDatabaseHash</span><span class="p">)</span> <span class="o">===</span> <span class="k">false</span>
+        <span class="p">)</span> <span class="p">{</span>
+            <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test orm:schema-tool:create'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+            <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test migrations:migrate'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
+            <span class="nb">passthru</span><span class="p">(</span><span class="nb">sprintf</span><span class="p">(</span><span class="s1">'php "%s/../bin/console" --env=test doctrine:fixtures:load'</span><span class="p">,</span> <span class="no">__DIR__</span><span class="p">));</span>
 
-            file_put_contents($cacheFilePath, $currentDatabaseHash);
-        }
-    }
-});</code></pre>
+            <span class="nb">file_put_contents</span><span class="p">(</span><span class="nv">$cacheFilePath</span><span class="p">,</span> <span class="nv">$currentDatabaseHash</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span></code></pre>
     <p>The hash is just the MD5 of every PHP file in those directories:</p>
-<pre><code>public static function calculateDirectoriesHash(string ...$directories): string
-{
-    $finder = Finder::find('*.php')-&gt;in(...$directories);
-    $files = array_keys(iterator_to_array($finder-&gt;getIterator()));
-    $hash = '';
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">calculateDirectoriesHash</span><span class="p">(</span><span class="nx">string</span> <span class="o">...</span><span class="nv">$directories</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span>
+<span class="p">{</span>
+    <span class="nv">$finder</span> <span class="o">=</span> <span class="nx">Finder</span><span class="o">::</span><span class="na">find</span><span class="p">(</span><span class="s1">'*.php'</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">in</span><span class="p">(</span><span class="o">...</span><span class="nv">$directories</span><span class="p">);</span>
+    <span class="nv">$files</span> <span class="o">=</span> <span class="nb">array_keys</span><span class="p">(</span><span class="nb">iterator_to_array</span><span class="p">(</span><span class="nv">$finder</span><span class="o">-&gt;</span><span class="na">getIterator</span><span class="p">()));</span>
+    <span class="nv">$hash</span> <span class="o">=</span> <span class="s1">''</span><span class="p">;</span>
 
-    foreach ($files as $file) {
-        $hash .= md5_file($file);
-    }
+    <span class="k">foreach</span> <span class="p">(</span><span class="nv">$files</span> <span class="k">as</span> <span class="nv">$file</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$hash</span> <span class="o">.=</span> <span class="nb">md5_file</span><span class="p">(</span><span class="nv">$file</span><span class="p">);</span>
+    <span class="p">}</span>
 
-    return $hash;
-}</code></pre>
+    <span class="k">return</span> <span class="nv">$hash</span><span class="p">;</span>
+<span class="p">}</span></code></pre>
     <p>The check compares the stored hash with the current one, and also looks at the age of the cache file against a validity window:</p>
-<pre><code>public static function isCacheUpToDate(string $cacheFilePath, string $currentDatabaseHash): bool
-{
-    if (!file_exists($cacheFilePath)) {
-        return false;
-    }
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">isCacheUpToDate</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$cacheFilePath</span><span class="p">,</span> <span class="nx">string</span> <span class="nv">$currentDatabaseHash</span><span class="p">)</span><span class="o">:</span> <span class="nx">bool</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">file_exists</span><span class="p">(</span><span class="nv">$cacheFilePath</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    $cachedDatabaseHash = file_get_contents($cacheFilePath);
-    $lastModificationTimestamp = filemtime($cacheFilePath);
-    $cacheValidUntil = time() + self::CACHE_VALID_FOR_SECONDS;
+    <span class="nv">$cachedDatabaseHash</span> <span class="o">=</span> <span class="nb">file_get_contents</span><span class="p">(</span><span class="nv">$cacheFilePath</span><span class="p">);</span>
+    <span class="nv">$lastModificationTimestamp</span> <span class="o">=</span> <span class="nb">filemtime</span><span class="p">(</span><span class="nv">$cacheFilePath</span><span class="p">);</span>
+    <span class="nv">$cacheValidUntil</span> <span class="o">=</span> <span class="nb">time</span><span class="p">()</span> <span class="o">+</span> <span class="nx">self</span><span class="o">::</span><span class="na">CACHE_VALID_FOR_SECONDS</span><span class="p">;</span>
 
-    if ($cacheValidUntil &lt; $lastModificationTimestamp) {
-        return false;
-    }
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$cacheValidUntil</span> <span class="o">&lt;</span> <span class="nv">$lastModificationTimestamp</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">false</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    return $currentDatabaseHash === $cachedDatabaseHash;
-}</code></pre>
+    <span class="k">return</span> <span class="nv">$currentDatabaseHash</span> <span class="o">===</span> <span class="nv">$cachedDatabaseHash</span><span class="p">;</span>
+<span class="p">}</span></code></pre>
     <p>The result: the database is built once, and only again when migrations or fixtures change. Every test starts from the same clean state, and tests stay independent of each other. The full working example is on GitHub.</p>
 
     <details class="deck">

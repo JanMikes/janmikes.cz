@@ -289,6 +289,24 @@ p.prose{margin:0 0 1.5rem}
 }
 .article code{font:400 .875em var(--mono)}
 .article pre code{font-size:inherit}
+/* syntax highlighting: tokens pre-rendered by Pygments, Darcula-ish palette */
+:root{--hl-kw:#a8480f; --hl-str:#3b7420; --hl-num:#1d5ca8; --hl-fn:#7d5a00; --hl-var:#6a44b5; --hl-type:#0d6f6a; --hl-com:#7c8089; --hl-add:#e3f3dc; --hl-del:#fbe3e3}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--hl-kw:#e39a5f; --hl-str:#a5c97f; --hl-num:#7aaee0; --hl-fn:#f0c674; --hl-var:#b8a1e6; --hl-type:#6fc3c0; --hl-com:#6f747d; --hl-add:#1c2a1a; --hl-del:#301c1e}
+}
+:root[data-theme="dark"]{--hl-kw:#e39a5f; --hl-str:#a5c97f; --hl-num:#7aaee0; --hl-fn:#f0c674; --hl-var:#b8a1e6; --hl-type:#6fc3c0; --hl-com:#6f747d; --hl-add:#1c2a1a; --hl-del:#301c1e}
+.article pre[data-lang]::before{content:attr(data-lang); display:block; margin:-.35rem 0 .6rem; color:var(--muted); font-size:.6875rem; letter-spacing:.08em; text-transform:uppercase}
+pre .k,pre .kd,pre .kn,pre .kr,pre .kc,pre .kp,pre .ow,pre .cp,pre .nt,pre .nd{color:var(--hl-kw)}
+pre .s,pre .s1,pre .s2,pre .sb,pre .sc,pre .sh,pre .sx,pre .sr,pre .ss,pre .dl,pre .l{color:var(--hl-str)}
+pre .se,pre .si,pre .m,pre .mi,pre .mf,pre .mh,pre .mo,pre .il{color:var(--hl-num)}
+pre .nf,pre .fm{color:var(--hl-fn)}
+pre .nv,pre .vi,pre .vc,pre .vg,pre .na{color:var(--hl-var)}
+pre .nc,pre .nn,pre .kt,pre .ne,pre .nb,pre .bp{color:var(--hl-type)}
+pre .c,pre .c1,pre .cm,pre .ch,pre .cs,pre .sd,pre .gp,pre .go,pre .gh,pre .gu{color:var(--hl-com)}
+pre .c,pre .c1,pre .cm,pre .ch,pre .cs,pre .sd{font-style:italic}
+pre .gi{display:inline-block; min-width:100%; background:var(--hl-add)}
+pre .gd{display:inline-block; min-width:100%; background:var(--hl-del)}
+@media print{pre [class]{color:inherit !important; background:none !important}}
 .article blockquote{margin:1.75rem 0; padding:0 0 0 1.25rem; border-left:2px solid var(--ink); font:500 1.25rem/1.4 var(--sans); letter-spacing:-.015em}
 .article .links{display:flex; flex-wrap:wrap; gap:.5rem 1.5rem; margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--rule)}
 .article .note{margin:1.75rem 0; padding:1rem 1.25rem; background:var(--tint); border-left:2px solid var(--accent); border-radius:0 4px 4px 0; font-size:.9375rem}

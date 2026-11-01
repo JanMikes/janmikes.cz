@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -56,69 +56,69 @@
 
     <h2>What we test</h2>
     <p>Our API endpoints are Nette presenters. Each one is thin: it takes the request, hands it to a use case, and returns a response.</p>
-<pre><code>final class BillingInfoDetailPresenter extends UserAwarePresenter implements IPresenter
-{
-    /** @var BillingInfoDetailUseCase */
-    private $useCase;
+<pre data-lang="PHP"><code class="language-php"><span class="k">final</span> <span class="k">class</span> <span class="nc">BillingInfoDetailPresenter</span> <span class="k">extends</span> <span class="nx">UserAwarePresenter</span> <span class="k">implements</span> <span class="nx">IPresenter</span>
+<span class="p">{</span>
+    <span class="sd">/** @var BillingInfoDetailUseCase */</span>
+    <span class="k">private</span> <span class="nv">$useCase</span><span class="p">;</span>
 
-    public function __construct(BillingInfoDetailUseCase $useCase)
-    {
-        $this-&gt;useCase = $useCase;
-    }
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span><span class="nx">BillingInfoDetailUseCase</span> <span class="nv">$useCase</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">useCase</span> <span class="o">=</span> <span class="nv">$useCase</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    public function run(Request $appRequest): IResponse
-    {
-        $response = $this-&gt;useCase-&gt;handle(
-            new BillingInfoDetailRequest($this-&gt;userId)
-        );
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">run</span><span class="p">(</span><span class="nx">Request</span> <span class="nv">$appRequest</span><span class="p">)</span><span class="o">:</span> <span class="nx">IResponse</span>
+    <span class="p">{</span>
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">useCase</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span>
+            <span class="k">new</span> <span class="nx">BillingInfoDetailRequest</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">userId</span><span class="p">)</span>
+        <span class="p">);</span>
 
-        return new OKResponse($response);
-    }
-}</code></pre>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">OKResponse</span><span class="p">(</span><span class="nv">$response</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>So we test the whole thing from the outside: send an HTTP request, check the HTTP response.</p>
 
     <h2>How we used to test</h2>
     <p>The first version was one test class per presenter. Make a request, assert the status code:</p>
-<pre><code>class BillingInfoDetailPresenterTest extends TestCase
-{
-    use DatabaseSetup;
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">BillingInfoDetailPresenterTest</span> <span class="k">extends</span> <span class="nx">TestCase</span>
+<span class="p">{</span>
+    <span class="k">use</span> <span class="nx">DatabaseSetup</span><span class="p">;</span>
 
-    /** @test */
-    public function responseShouldBeValid(): void
-    {
-        $httpClient = $this-&gt;createHttpClient();
-        $httpClient-&gt;request(IRequest::GET, RouterFactory::BILLING_ROUTE);
+    <span class="sd">/** @test */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">responseShouldBeValid</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$httpClient</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createHttpClient</span><span class="p">();</span>
+        <span class="nv">$httpClient</span><span class="o">-&gt;</span><span class="na">request</span><span class="p">(</span><span class="nx">IRequest</span><span class="o">::</span><span class="na">GET</span><span class="p">,</span> <span class="nx">RouterFactory</span><span class="o">::</span><span class="na">BILLING_ROUTE</span><span class="p">);</span>
 
-        $response = $httpClient-&gt;getResponse();
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$httpClient</span><span class="o">-&gt;</span><span class="na">getResponse</span><span class="p">();</span>
 
-        $this-&gt;assertSame(IResponse::S200_OK, $response-&gt;getStatus());
-    }
-}</code></pre>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertSame</span><span class="p">(</span><span class="nx">IResponse</span><span class="o">::</span><span class="na">S200_OK</span><span class="p">,</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getStatus</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>It works, but you write the same class over and over, and a 200 status says very little about what came back.</p>
 
     <h2>How we test now</h2>
     <p>Now a single test goes through a data provider. Each case is a name, a URL, a JSON file with the request body, a JSON file with the expected response, and the values to put into the URL:</p>
-<pre><code>public function getPresenters(): array
-{
-    return [
-        'Digital Queue - Pair ticket with phone' =&gt; [
-            '/digital-queues/tickets/&lt;ticketId&gt;/pair-with-phone',
-            __DIR__ . '/PostRequestData/digital-queue/pair-ticket-with-phone/request.json',
-            __DIR__ . '/PostRequestData/digital-queue/pair-ticket-with-phone/response.json',
-            ['ticketId' =&gt; TicketFixture::getTicketId()],
-        ],
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">function</span> <span class="nf">getPresenters</span><span class="p">()</span><span class="o">:</span> <span class="k">array</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="s1">'Digital Queue - Pair ticket with phone'</span> <span class="o">=&gt;</span> <span class="p">[</span>
+            <span class="s1">'/digital-queues/tickets/&lt;ticketId&gt;/pair-with-phone'</span><span class="p">,</span>
+            <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/PostRequestData/digital-queue/pair-ticket-with-phone/request.json'</span><span class="p">,</span>
+            <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/PostRequestData/digital-queue/pair-ticket-with-phone/response.json'</span><span class="p">,</span>
+            <span class="p">[</span><span class="s1">'ticketId'</span> <span class="o">=&gt;</span> <span class="nx">TicketFixture</span><span class="o">::</span><span class="na">getTicketId</span><span class="p">()],</span>
+        <span class="p">],</span>
 
-        'Digital Queue - Queue reservation - Reserve' =&gt; [
-            '/digital-queues/tickets/&lt;ticketId&gt;/queues/&lt;queueId&gt;/reservation',
-            __DIR__ . '/PostRequestData/digital-queue/queue-reservation/reserve/request.json',
-            __DIR__ . '/PostRequestData/digital-queue/queue-reservation/reserve/response.json',
-            [
-                'ticketId' =&gt; TicketFixture::getTicketId(),
-                'queueId' =&gt; EventQueueFixture::QUEUE_ID,
-            ],
-        ],
-    ];
-}</code></pre>
+        <span class="s1">'Digital Queue - Queue reservation - Reserve'</span> <span class="o">=&gt;</span> <span class="p">[</span>
+            <span class="s1">'/digital-queues/tickets/&lt;ticketId&gt;/queues/&lt;queueId&gt;/reservation'</span><span class="p">,</span>
+            <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/PostRequestData/digital-queue/queue-reservation/reserve/request.json'</span><span class="p">,</span>
+            <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/PostRequestData/digital-queue/queue-reservation/reserve/response.json'</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s1">'ticketId'</span> <span class="o">=&gt;</span> <span class="nx">TicketFixture</span><span class="o">::</span><span class="na">getTicketId</span><span class="p">(),</span>
+                <span class="s1">'queueId'</span> <span class="o">=&gt;</span> <span class="nx">EventQueueFixture</span><span class="o">::</span><span class="na">QUEUE_ID</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">],</span>
+    <span class="p">];</span>
+<span class="p">}</span></code></pre>
     <p>The test sends the request through an in-process HTTP client and compares the JSON it gets back with the expected file. Adding a test for a new endpoint means adding two JSON files and one array entry. The examples in the <a href="https://github.com/JanMikes/hubbr-2018">talk repository</a> show the rest: the test client is built on <a href="https://github.com/VaclavSir/NBrowserKit">NBrowserKit</a>, the clock is mocked so responses with dates stay stable, and every run gets a fresh database with its schema created from the Doctrine entities and data loaded from fixtures.</p>
 
     <h2>The workflow</h2>

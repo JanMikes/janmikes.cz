@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -75,25 +75,25 @@ images    ─┘   (OCR if needed)          ~1000 tokens</pre>
 
     <h2>Hybrid search</h2>
     <p>Retrieval is a plain pgvector query on cosine distance, with a 0.7 threshold that filters out weak matches:</p>
-<pre><code>SELECT c.content, c.source_url, (e.vector &lt;=&gt; :vector) AS distance
-FROM ai_embeddings e
-JOIN ai_chunks c ON c.id = e.chunk_id
-WHERE (e.vector &lt;=&gt; :vector) &lt; 0.7
-ORDER BY distance
-LIMIT :limit</code></pre>
+<pre data-lang="SQL"><code class="language-sql"><span class="k">SELECT</span> <span class="k">c</span><span class="p">.</span><span class="n">content</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="n">source_url</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">vector</span> <span class="o">&lt;=&gt;</span> <span class="p">:</span><span class="n">vector</span><span class="p">)</span> <span class="k">AS</span> <span class="n">distance</span>
+<span class="k">FROM</span> <span class="n">ai_embeddings</span> <span class="n">e</span>
+<span class="k">JOIN</span> <span class="n">ai_chunks</span> <span class="k">c</span> <span class="k">ON</span> <span class="k">c</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">e</span><span class="p">.</span><span class="n">chunk_id</span>
+<span class="k">WHERE</span> <span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">vector</span> <span class="o">&lt;=&gt;</span> <span class="p">:</span><span class="n">vector</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">.</span><span class="mi">7</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">distance</span>
+<span class="k">LIMIT</span> <span class="p">:</span><span class="k">limit</span></code></pre>
     <p>Pure vector search misses exact keywords, and keyword search misses meaning. So every question is searched twice: once as typed, and once after an LLM normalises it. The two result lists are merged with reciprocal rank fusion, which combines them by rank position rather than raw score:</p>
-<pre><code>public function dualQueryHybridSearch(string $query): array
-{
-    // 1. Search with the original query
-    $resultsOriginal = $this->repo->findSimilar($this->embed($query));
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">function</span> <span class="nf">dualQueryHybridSearch</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$query</span><span class="p">)</span><span class="o">:</span> <span class="k">array</span>
+<span class="p">{</span>
+    <span class="c1">// 1. Search with the original query</span>
+    <span class="nv">$resultsOriginal</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">repo</span><span class="o">-&gt;</span><span class="na">findSimilar</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">embed</span><span class="p">(</span><span class="nv">$query</span><span class="p">));</span>
 
-    // 2. Search with the LLM-normalised query
-    $normalized = $this->normalizer->normalize($query);
-    $resultsNorm = $this->repo->findSimilar($this->embed($normalized));
+    <span class="c1">// 2. Search with the LLM-normalised query</span>
+    <span class="nv">$normalized</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">normalizer</span><span class="o">-&gt;</span><span class="na">normalize</span><span class="p">(</span><span class="nv">$query</span><span class="p">);</span>
+    <span class="nv">$resultsNorm</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">repo</span><span class="o">-&gt;</span><span class="na">findSimilar</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">embed</span><span class="p">(</span><span class="nv">$normalized</span><span class="p">));</span>
 
-    // 3. Merge with RRF (score = 1/(k + rank), k=60)
-    return $this->mergeWithRRF($resultsOriginal, $resultsNorm);
-}</code></pre>
+    <span class="c1">// 3. Merge with RRF (score = 1/(k + rank), k=60)</span>
+    <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">mergeWithRRF</span><span class="p">(</span><span class="nv">$resultsOriginal</span><span class="p">,</span> <span class="nv">$resultsNorm</span><span class="p">);</span>
+<span class="p">}</span></code></pre>
     <p>Czech gets extra care on top: stemming, stop words and diacritics.</p>
 
     <h2>OCR for scanned documents</h2>
@@ -101,14 +101,14 @@ LIMIT :limit</code></pre>
 
     <h2>Context and streaming</h2>
     <p>The matched chunks are packed into the prompt as numbered sources, up to a 2,000-token budget, so the answer can cite where it came from. The response streams back token by token with plain server-sent events: a Symfony <code>StreamedResponse</code> that echoes each chunk and flushes. No Mercure needed.</p>
-<pre><code>$response = new StreamedResponse();
-$response->headers->set('Content-Type', 'text/event-stream');
-$response->setCallback(function () {
-    foreach ($this->ai->stream() as $chunk) {
-        echo "data: {$chunk}\n\n";
-        flush();
-    }
-});</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$response</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">StreamedResponse</span><span class="p">();</span>
+<span class="nv">$response</span><span class="o">-&gt;</span><span class="na">headers</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'text/event-stream'</span><span class="p">);</span>
+<span class="nv">$response</span><span class="o">-&gt;</span><span class="na">setCallback</span><span class="p">(</span><span class="k">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">ai</span><span class="o">-&gt;</span><span class="na">stream</span><span class="p">()</span> <span class="k">as</span> <span class="nv">$chunk</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">echo</span> <span class="s2">"data: </span><span class="si">{</span><span class="nv">$chunk</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">;</span>
+        <span class="nb">flush</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">});</span></code></pre>
 
     <h2>Lessons learned</h2>
     <ul>

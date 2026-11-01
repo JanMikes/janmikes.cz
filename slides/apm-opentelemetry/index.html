@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -78,27 +78,27 @@
       <figcaption>One trace, many spans. Each bar is a span, nested under the span that called it.</figcaption>
     </figure>
     <p>A span is just data. Here&rsquo;s an example span as JSON:</p>
-<pre><code>{
-  "trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
-  "parent_id": "",
-  "span_id": "086e83747d0e381e",
-  "name": "/v1/sys/health",
-  "start_time": "2021-10-22 16:04:01.209458162 +0000 UTC",
-  "end_time": "2021-10-22 16:04:01.209514132 +0000 UTC",
-  "status_code": "STATUS_CODE_OK",
-  "status_message": "",
-  "attributes": {
-    "http.method": "GET",
-    "http.target": "/v1/sys/health",
-    "http.scheme": "http",
-    "http.host": "10.177.2.152:26040"
-  },
-  "events": {
-    "name": "",
-    "message": "OK",
-    "timestamp": "2021-10-22 16:04:01.209512872 +0000 UTC"
-  }
-}</code></pre>
+<pre data-lang="JSON"><code class="language-json"><span class="p">{</span>
+  <span class="nt">"trace_id"</span><span class="p">:</span> <span class="s2">"7bba9f33312b3dbb8b2c2c62bb7abe2d"</span><span class="p">,</span>
+  <span class="nt">"parent_id"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+  <span class="nt">"span_id"</span><span class="p">:</span> <span class="s2">"086e83747d0e381e"</span><span class="p">,</span>
+  <span class="nt">"name"</span><span class="p">:</span> <span class="s2">"/v1/sys/health"</span><span class="p">,</span>
+  <span class="nt">"start_time"</span><span class="p">:</span> <span class="s2">"2021-10-22 16:04:01.209458162 +0000 UTC"</span><span class="p">,</span>
+  <span class="nt">"end_time"</span><span class="p">:</span> <span class="s2">"2021-10-22 16:04:01.209514132 +0000 UTC"</span><span class="p">,</span>
+  <span class="nt">"status_code"</span><span class="p">:</span> <span class="s2">"STATUS_CODE_OK"</span><span class="p">,</span>
+  <span class="nt">"status_message"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+  <span class="nt">"attributes"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"http.method"</span><span class="p">:</span> <span class="s2">"GET"</span><span class="p">,</span>
+    <span class="nt">"http.target"</span><span class="p">:</span> <span class="s2">"/v1/sys/health"</span><span class="p">,</span>
+    <span class="nt">"http.scheme"</span><span class="p">:</span> <span class="s2">"http"</span><span class="p">,</span>
+    <span class="nt">"http.host"</span><span class="p">:</span> <span class="s2">"10.177.2.152:26040"</span>
+  <span class="p">},</span>
+  <span class="nt">"events"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"name"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="nt">"message"</span><span class="p">:</span> <span class="s2">"OK"</span><span class="p">,</span>
+    <span class="nt">"timestamp"</span><span class="p">:</span> <span class="s2">"2021-10-22 16:04:01.209512872 +0000 UTC"</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre>
 
     <h2>No silver bullet</h2>
     <p>There are many APM tools: Datadog, New Relic, SolarWinds, AppDynamics, Blackfire, Dynatrace, Sentry, Elastic APM. Choosing one used to mean committing to it:</p>
@@ -133,60 +133,60 @@
 
     <h2>Instrumenting a PHP app</h2>
     <p>Instrumentation differs per language. There&rsquo;s automatic instrumentation, and there&rsquo;s manual. Manually, you create a span around the code you care about:</p>
-<pre><code>class HelloController
-{
-    private OpenTelemetry\SDK\Trace\Tracer $tracer;
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">HelloController</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="nx">OpenTelemetry\SDK\Trace\Tracer</span> <span class="nv">$tracer</span><span class="p">;</span>
 
-    /**
-     * @Route("/hello", name="hello")
-     */
-    public function index(): Response
-    {
-        $span = $this-&gt;tracer-&gt;spanBuilder(__METHOD__)-&gt;startSpan();
-        /* Do some stuff */
-        $span-&gt;end();
+    <span class="sd">/**</span>
+<span class="sd">     * @Route("/hello", name="hello")</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">index</span><span class="p">()</span><span class="o">:</span> <span class="nx">Response</span>
+    <span class="p">{</span>
+        <span class="nv">$span</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">tracer</span><span class="o">-&gt;</span><span class="na">spanBuilder</span><span class="p">(</span><span class="no">__METHOD__</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">startSpan</span><span class="p">();</span>
+        <span class="cm">/* Do some stuff */</span>
+        <span class="nv">$span</span><span class="o">-&gt;</span><span class="na">end</span><span class="p">();</span>
 
-        return new Response('Hello')
-    }
-}</code></pre>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">Response</span><span class="p">(</span><span class="s1">'Hello'</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>For a Symfony app you want one root span per request. A kernel event subscriber starts it on the request and ends it on terminate:</p>
-<pre><code>class TracingKernelSubscriber implements EventSubscriberInterface
-{
-    private Tracer $tracer;
-    private SpanInterface|null $mainSpan = null;
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">TracingKernelSubscriber</span> <span class="k">implements</span> <span class="nx">EventSubscriberInterface</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="nx">Tracer</span> <span class="nv">$tracer</span><span class="p">;</span>
+    <span class="k">private</span> <span class="nx">SpanInterface</span><span class="o">|</span><span class="k">null</span> <span class="nv">$mainSpan</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
 
-    public function onRequestEvent(RequestEvent $event)
-    {
-        $this-&gt;mainSpan = $this-&gt;tracer-&gt;spanBuilder('main')-&gt;startSpan();
-        $this-&gt;mainSpan-&gt;activate();
-    }
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">onRequestEvent</span><span class="p">(</span><span class="nx">RequestEvent</span> <span class="nv">$event</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">mainSpan</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">tracer</span><span class="o">-&gt;</span><span class="na">spanBuilder</span><span class="p">(</span><span class="s1">'main'</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">startSpan</span><span class="p">();</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">mainSpan</span><span class="o">-&gt;</span><span class="na">activate</span><span class="p">();</span>
+    <span class="p">}</span>
 
-    public function onTerminateEvent(TerminateEvent $event): void
-    {
-        $this-&gt;mainSpan-&gt;end();
-    }
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">onTerminateEvent</span><span class="p">(</span><span class="nx">TerminateEvent</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">mainSpan</span><span class="o">-&gt;</span><span class="na">end</span><span class="p">();</span>
+    <span class="p">}</span>
 
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            KernelEvents::REQUEST =&gt; 'onRequestEvent',
-            KernelEvents::TERMINATE =&gt; 'onTerminateEvent',
-        ];
-    }
-}</code></pre>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">getSubscribedEvents</span><span class="p">()</span><span class="o">:</span> <span class="k">array</span>
+    <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="nx">KernelEvents</span><span class="o">::</span><span class="na">REQUEST</span> <span class="o">=&gt;</span> <span class="s1">'onRequestEvent'</span><span class="p">,</span>
+            <span class="nx">KernelEvents</span><span class="o">::</span><span class="na">TERMINATE</span> <span class="o">=&gt;</span> <span class="s1">'onTerminateEvent'</span><span class="p">,</span>
+        <span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>Where the data goes is just configuration. The same spans can go to several backends at once:</p>
-<pre><code>trace:
-  exporters:
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">trace</span><span class="p">:</span>
+  <span class="nt">exporters</span><span class="p">:</span>
 
-    exporter1: zipkin+https://zipkinhost:1234
+    <span class="nt">exporter1</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">zipkin+https://zipkinhost:1234</span>
 
-    exporter2: jaeger+https://foo:bar@jaegerhost:1234
+    <span class="nt">exporter2</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jaeger+https://foo:bar@jaegerhost:1234</span>
 
-    exporter3:
-      type: newrelic
-      url: http://newrelichost:1234
-      options:
-        license_key: abcde</code></pre>
+    <span class="nt">exporter3</span><span class="p">:</span>
+      <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">newrelic</span>
+      <span class="nt">url</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http://newrelichost:1234</span>
+      <span class="nt">options</span><span class="p">:</span>
+        <span class="nt">license_key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">abcde</span></code></pre>
     <p>The talk ended with a live demo, which isn&rsquo;t in the slides. The code for it is on GitHub in <a href="https://github.com/JanMikes/opentelemetry-apm-php-demo">opentelemetry-apm-php-demo</a>, and the demo itself is in the meetup stream linked below.</p>
 
     <details class="deck">

@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -86,61 +86,61 @@
     <h2>A simple use case: user registration</h2>
     <p>To show the difference, I used the most boring example possible. Registering a user means: check the e-mail isn&rsquo;t taken, save the user to the database, send a welcome e-mail.</p>
     <p>The &ldquo;get your hands dirty&rdquo; way is to put all of it in the controller:</p>
-<pre><code>final class RegisterUserController extends AbstractController
-{
-    public function __construct(
-        private readonly Database $database,
-        private readonly Mailer $mailer,
-    ) {}
+<pre data-lang="PHP"><code class="language-php"><span class="k">final</span> <span class="k">class</span> <span class="nc">RegisterUserController</span> <span class="k">extends</span> <span class="nx">AbstractController</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">Database</span> <span class="nv">$database</span><span class="p">,</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">Mailer</span> <span class="nv">$mailer</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{}</span>
 
-    #[Route(path: '/register-user', name: 'register', methods: ['POST'])]
-    public function __invoke(Request $request): Response
-    {
-        $email = $request-&gt;attributes-&gt;get('email');
+    <span class="p">#[</span><span class="nd">Route</span><span class="p">(</span><span class="nx">path</span><span class="o">:</span> <span class="s1">'/register-user'</span><span class="p">,</span> <span class="nx">name</span><span class="o">:</span> <span class="s1">'register'</span><span class="p">,</span> <span class="nx">methods</span><span class="o">:</span> <span class="p">[</span><span class="s1">'POST'</span><span class="p">])]</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nd">Response</span>
+    <span class="p">{</span>
+        <span class="nv">$email</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">attributes</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'email'</span><span class="p">);</span>
 
-        if ($this-&gt;database-&gt;find('users', ['email' =&gt; $email]) !== null) {
-            return $this-&gt;render('...');
-        }
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">database</span><span class="o">-&gt;</span><span class="na">find</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="nv">$email</span><span class="p">])</span> <span class="o">!==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'...'</span><span class="p">);</span>
+        <span class="p">}</span>
 
-        $plainTextPassword = $request-&gt;attributes-&gt;get('password');
-        $hashedPassword = md5($plainTextPassword);
+        <span class="nv">$plainTextPassword</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">attributes</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'password'</span><span class="p">);</span>
+        <span class="nv">$hashedPassword</span> <span class="o">=</span> <span class="nb">md5</span><span class="p">(</span><span class="nv">$plainTextPassword</span><span class="p">);</span>
 
-        $this-&gt;database-&gt;insert('users', [
-            'email' =&gt; $email,
-            'password' =&gt; $hashedPassword,
-        ]);
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">database</span><span class="o">-&gt;</span><span class="na">insert</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="nv">$email</span><span class="p">,</span>
+            <span class="s1">'password'</span> <span class="o">=&gt;</span> <span class="nv">$hashedPassword</span><span class="p">,</span>
+        <span class="p">]);</span>
 
-        $this-&gt;mailer-&gt;send($email, new Message('...'));
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">mailer</span><span class="o">-&gt;</span><span class="na">send</span><span class="p">(</span><span class="nv">$email</span><span class="p">,</span> <span class="k">new</span> <span class="nx">Message</span><span class="p">(</span><span class="s1">'...'</span><span class="p">));</span>
 
-        return $this-&gt;render('...');
-    }
-}</code></pre>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'...'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>Then a new requirement arrives: we also need to register users by hand from the console. Now there&rsquo;s a console command that copies the same validation, database queries and e-mail sending. Two entry points, two copies of the business logic.</p>
     <p>So what is a controller actually responsible for? Taking information from the HTTP request, passing it to the domain, and returning a response (JSON, HTML, &hellip;). A console command does the same with its input and output. Neither should hold the logic itself. Both are just entry points into the domain.</p>
     <p>With a command bus the controller shrinks to this:</p>
-<pre><code>final class RegisterUserController extends AbstractController
-{
-    public function __construct(
-        private readonly CommandBus $commandBus,
-    ) {}
+<pre data-lang="PHP"><code class="language-php"><span class="k">final</span> <span class="k">class</span> <span class="nc">RegisterUserController</span> <span class="k">extends</span> <span class="nx">AbstractController</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">CommandBus</span> <span class="nv">$commandBus</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{}</span>
 
-    #[Route(path: '/register-user', name: 'register', methods: ['POST'])]
-    public function __invoke(Request $request): Response
-    {
-        $email = $request-&gt;attributes-&gt;get('email');
-        $plainTextPassword = $request-&gt;attributes-&gt;get('password');
+    <span class="p">#[</span><span class="nd">Route</span><span class="p">(</span><span class="nx">path</span><span class="o">:</span> <span class="s1">'/register-user'</span><span class="p">,</span> <span class="nx">name</span><span class="o">:</span> <span class="s1">'register'</span><span class="p">,</span> <span class="nx">methods</span><span class="o">:</span> <span class="p">[</span><span class="s1">'POST'</span><span class="p">])]</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nd">Response</span>
+    <span class="p">{</span>
+        <span class="nv">$email</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">attributes</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'email'</span><span class="p">);</span>
+        <span class="nv">$plainTextPassword</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">attributes</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'password'</span><span class="p">);</span>
 
-        try {
-            $this-&gt;commandBus-&gt;dispatch(
-                new RegisterUser($email, $plainTextPassword),
-            );
-        } catch (UserWithEmailAlreadyRegistered) {
-            $this-&gt;render('...');
-        }
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">commandBus</span><span class="o">-&gt;</span><span class="na">dispatch</span><span class="p">(</span>
+                <span class="k">new</span> <span class="nx">RegisterUser</span><span class="p">(</span><span class="nv">$email</span><span class="p">,</span> <span class="nv">$plainTextPassword</span><span class="p">),</span>
+            <span class="p">);</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">UserWithEmailAlreadyRegistered</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'...'</span><span class="p">);</span>
+        <span class="p">}</span>
 
-        return $this-&gt;render('...');
-    }
-}</code></pre>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'...'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>The console command looks the same: read the arguments, dispatch <code>RegisterUser</code>, catch the exception, write a success or error message.</p>
 
     <h2>Building blocks and layers</h2>
@@ -167,85 +167,85 @@
 
     <h2>The write model</h2>
     <p>The aggregate root is a plain PHP class. No annotations, no framework:</p>
-<pre><code>class User
-{
-    public function __construct(
-        public readonly UserId $userId,
-        public readonly string $username,
-        public string $hashedPassword,
-    ) {}
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">User</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">public</span> <span class="k">readonly</span> <span class="nx">UserId</span> <span class="nv">$userId</span><span class="p">,</span>
+        <span class="k">public</span> <span class="k">readonly</span> <span class="nx">string</span> <span class="nv">$username</span><span class="p">,</span>
+        <span class="k">public</span> <span class="nx">string</span> <span class="nv">$hashedPassword</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{}</span>
 
-    public function changePassword(string $hashedPassword): void
-    {
-        $this-&gt;hashedPassword = $hashedPassword;
-    }
-}</code></pre>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">changePassword</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$hashedPassword</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">hashedPassword</span> <span class="o">=</span> <span class="nv">$hashedPassword</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>The command is a DTO, <code>RegisterUser</code>, with a username and a plain-text password. The use case is its handler:</p>
-<pre><code>final class RegisterUserHandler implements CommandHandlerInterface
-{
-    public function __construct(
-        private readonly UsersCollection $usersCollection,
-        private readonly HashPlainTextPassword $hashPlainTextPassword,
-    ) {}
+<pre data-lang="PHP"><code class="language-php"><span class="k">final</span> <span class="k">class</span> <span class="nc">RegisterUserHandler</span> <span class="k">implements</span> <span class="nx">CommandHandlerInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">UsersCollection</span> <span class="nv">$usersCollection</span><span class="p">,</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">HashPlainTextPassword</span> <span class="nv">$hashPlainTextPassword</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{}</span>
 
-    public function __invoke(RegisterUser $command): void
-    {
-        $userId = $this-&gt;usersCollection-&gt;nextIdentity();
-        $hashedPassword = $this-&gt;hashPlainTextPassword-&gt;hash($command-&gt;plainTextPassword);
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">RegisterUser</span> <span class="nv">$command</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$userId</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">usersCollection</span><span class="o">-&gt;</span><span class="na">nextIdentity</span><span class="p">();</span>
+        <span class="nv">$hashedPassword</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">hashPlainTextPassword</span><span class="o">-&gt;</span><span class="na">hash</span><span class="p">(</span><span class="nv">$command</span><span class="o">-&gt;</span><span class="na">plainTextPassword</span><span class="p">);</span>
 
-        if ($this-&gt;usersCollection-&gt;usernameExists($command-&gt;username)) {
-            throw new UserWithEmailAlreadyExists();
-        }
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">usersCollection</span><span class="o">-&gt;</span><span class="na">usernameExists</span><span class="p">(</span><span class="nv">$command</span><span class="o">-&gt;</span><span class="na">username</span><span class="p">))</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nx">UserWithEmailAlreadyExists</span><span class="p">();</span>
+        <span class="p">}</span>
 
-        $user = new User($userId, $command-&gt;username, $hashedPassword);
+        <span class="nv">$user</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">User</span><span class="p">(</span><span class="nv">$userId</span><span class="p">,</span> <span class="nv">$command</span><span class="o">-&gt;</span><span class="na">username</span><span class="p">,</span> <span class="nv">$hashedPassword</span><span class="p">);</span>
 
-        $this-&gt;usersCollection-&gt;save($user);
-    }
-}</code></pre>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">usersCollection</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">(</span><span class="nv">$user</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>Look at what the handler imports: only classes from <code>Peon\Domain\User</code> and the project&rsquo;s own <code>CommandHandlerInterface</code>. Nothing from Symfony or Doctrine. The repository is an interface in the domain:</p>
-<pre><code>interface UsersCollection
-{
-    public function nextIdentity(): UserId;
+<pre data-lang="PHP"><code class="language-php"><span class="k">interface</span> <span class="nx">UsersCollection</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">nextIdentity</span><span class="p">()</span><span class="o">:</span> <span class="nx">UserId</span><span class="p">;</span>
 
-    public function usernameExists(string $username): bool;
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">usernameExists</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$username</span><span class="p">)</span><span class="o">:</span> <span class="nx">bool</span><span class="p">;</span>
 
-    /**
-     * @throws UserNotFound
-     */
-    public function get(UserId $userId): User;
+    <span class="sd">/**</span>
+<span class="sd">     * @throws UserNotFound</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">get</span><span class="p">(</span><span class="nx">UserId</span> <span class="nv">$userId</span><span class="p">)</span><span class="o">:</span> <span class="nx">User</span><span class="p">;</span>
 
-    public function save(User $user): void;
-}</code></pre>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">save</span><span class="p">(</span><span class="nx">User</span> <span class="nv">$user</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+<span class="p">}</span></code></pre>
     <p>Doctrine lives in infrastructure. The entity is mapped in XML, so the domain class stays clean, and <code>DoctrineUsersCollection</code> implements the interface with the entity manager: <code>persist</code> and <code>flush</code> on save, a UUID v4 for the next identity, and <code>find</code> or a <code>UserNotFound</code> exception on get.</p>
 
     <h2>The read model</h2>
     <p>Reading is where CQRS pays off. The dashboard controller doesn&rsquo;t touch entities at all. It asks small query interfaces for exactly what it needs:</p>
-<pre><code>$accessibleProjectIdentifiers = $this-&gt;getProjectIdentifiers-&gt;ownedByUser($userId);
-$jobs = $this-&gt;provideReadJobs-&gt;provide($accessibleProjectIdentifiers, 10);
-$projects = $this-&gt;provideReadProjects-&gt;provide($accessibleProjectIdentifiers);</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$accessibleProjectIdentifiers</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getProjectIdentifiers</span><span class="o">-&gt;</span><span class="na">ownedByUser</span><span class="p">(</span><span class="nv">$userId</span><span class="p">);</span>
+<span class="nv">$jobs</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">provideReadJobs</span><span class="o">-&gt;</span><span class="na">provide</span><span class="p">(</span><span class="nv">$accessibleProjectIdentifiers</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+<span class="nv">$projects</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">provideReadProjects</span><span class="o">-&gt;</span><span class="na">provide</span><span class="p">(</span><span class="nv">$accessibleProjectIdentifiers</span><span class="p">);</span></code></pre>
     <p>Each query is an interface, for example <code>ProvideReadJobs::provide(array $projectIdentifiers, int $maxJobsLimit): array</code>, which returns an array of <code>ReadJob</code> objects. The Doctrine implementation uses plain SQL through DBAL. For jobs that&rsquo;s a big query that joins jobs, projects, tasks and processes and sums up execution time. As one slide put it, this is where the heavy SQL goes. The rows are then hydrated straight into read objects:</p>
-<pre><code>$resultSet = $this-&gt;connection-&gt;executeQuery($sql, [
-    'projectIdentifiers' =&gt; $projectIdentifiers,
-    'maxJobs' =&gt; $maxJobsLimit,
-], [
-    'projectIdentifiers' =&gt; Connection::PARAM_STR_ARRAY,
-    'maxJobs' =&gt; 'integer',
-]);
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$resultSet</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">connection</span><span class="o">-&gt;</span><span class="na">executeQuery</span><span class="p">(</span><span class="nv">$sql</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s1">'projectIdentifiers'</span> <span class="o">=&gt;</span> <span class="nv">$projectIdentifiers</span><span class="p">,</span>
+    <span class="s1">'maxJobs'</span> <span class="o">=&gt;</span> <span class="nv">$maxJobsLimit</span><span class="p">,</span>
+<span class="p">],</span> <span class="p">[</span>
+    <span class="s1">'projectIdentifiers'</span> <span class="o">=&gt;</span> <span class="nx">Connection</span><span class="o">::</span><span class="na">PARAM_STR_ARRAY</span><span class="p">,</span>
+    <span class="s1">'maxJobs'</span> <span class="o">=&gt;</span> <span class="s1">'integer'</span><span class="p">,</span>
+<span class="p">]);</span>
 
-return $this-&gt;hydrator-&gt;hydrateArrays(
-    $resultSet-&gt;fetchAllAssociative(),
-    ReadJob::class,
-);</code></pre>
+<span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">hydrator</span><span class="o">-&gt;</span><span class="na">hydrateArrays</span><span class="p">(</span>
+    <span class="nv">$resultSet</span><span class="o">-&gt;</span><span class="na">fetchAllAssociative</span><span class="p">(),</span>
+    <span class="nx">ReadJob</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+<span class="p">);</span></code></pre>
     <p>The read side can be optimised freely, one query per screen, without bending the write model around it. Access control is a query too: <code>GetProjectIdentifiers::ownedByUser()</code> returns the projects a user may see.</p>
 
     <h2>Testing it</h2>
     <p>Every piece has the same pattern: an interface, an implementation, a test. The controller test checks the page redirects to login when you aren&rsquo;t signed in, and that a logged-in user sees two projects and five jobs from the data fixtures. The query test boots the kernel, gets <code>ProvideReadJobs</code> from the container and checks it against known fixture data:</p>
-<pre><code>$readJobs = $provideReadJobs-&gt;provide([
-    new ProjectId(DataFixtures::USER_1_PROJECT_1_ID),
-    new ProjectId(DataFixtures::USER_1_PROJECT_2_ID),
-], 10);
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$readJobs</span> <span class="o">=</span> <span class="nv">$provideReadJobs</span><span class="o">-&gt;</span><span class="na">provide</span><span class="p">([</span>
+    <span class="k">new</span> <span class="nx">ProjectId</span><span class="p">(</span><span class="nx">DataFixtures</span><span class="o">::</span><span class="na">USER_1_PROJECT_1_ID</span><span class="p">),</span>
+    <span class="k">new</span> <span class="nx">ProjectId</span><span class="p">(</span><span class="nx">DataFixtures</span><span class="o">::</span><span class="na">USER_1_PROJECT_2_ID</span><span class="p">),</span>
+<span class="p">],</span> <span class="mi">10</span><span class="p">);</span>
 
-self::assertCount(5, $readJobs);</code></pre>
+<span class="nx">self</span><span class="o">::</span><span class="na">assertCount</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="nv">$readJobs</span><span class="p">);</span></code></pre>
 
     <h2>Further reading</h2>
     <p>I closed with a book recommendation: <a href="https://matthiasnoback.nl/book/advanced-web-application-architecture/">Advanced Web Application Architecture</a> by Matthias Noback. It covers this way of building apps in much more depth.</p>

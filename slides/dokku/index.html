@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -63,25 +63,25 @@
       <li>Support for buildpacks, so many apps deploy without writing a Dockerfile</li>
     </ul>
     <p>Deploying from CI is just another <code>git push</code>. This is the GitLab CI config I used, one job for production from <code>master</code> and one for staging:</p>
-<pre><code>deploy:production:
-    image: ilyasemenov/gitlab-ci-git-push
-    stage: deploy
-    environment:
-        name: production
-        url: https://easy.entry.do/
-    script:
-        - git-push dokku@apps.entry.do:dq
-    only:
-        - master
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">deploy:production</span><span class="p">:</span>
+    <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ilyasemenov/gitlab-ci-git-push</span>
+    <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
+    <span class="nt">environment</span><span class="p">:</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">production</span>
+        <span class="nt">url</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">https://easy.entry.do/</span>
+    <span class="nt">script</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">git-push dokku@apps.entry.do:dq</span>
+    <span class="nt">only</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">master</span>
 
-deploy:staging:
-    image: ilyasemenov/gitlab-ci-git-push
-    stage: deploy
-    environment:
-        name: staging
-        url: https://easy.entrydo-dev.com/
-    script:
-        - git-push dokku@apps.entry.do:dq-dev</code></pre>
+<span class="nt">deploy:staging</span><span class="p">:</span>
+    <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ilyasemenov/gitlab-ci-git-push</span>
+    <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
+    <span class="nt">environment</span><span class="p">:</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">staging</span>
+        <span class="nt">url</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">https://easy.entrydo-dev.com/</span>
+    <span class="nt">script</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">git-push dokku@apps.entry.do:dq-dev</span></code></pre>
     <p>The part after the colon, <code>dq</code> or <code>dq-dev</code>, is the name of the Dokku app. Two apps on the same server, two environments.</p>
 
     <h2>What it&rsquo;s perfect for</h2>

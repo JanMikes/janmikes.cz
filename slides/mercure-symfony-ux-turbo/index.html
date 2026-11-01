@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -79,21 +79,21 @@
       <figcaption>The app server POSTs to the hub. The hub fans updates out to every subscriber over SSE.</figcaption>
     </figure>
     <p>Publishing is a single request:</p>
-<pre><code>curl \
-  -d 'topic=my-topic' \
-  -d 'data="Some data"' \
-  -H 'Authorization: Bearer &lt;TOKEN&gt;' \
-  -X POST \
+<pre data-lang="Shell"><code class="language-bash">curl <span class="se">\</span>
+  -d <span class="s1">'topic=my-topic'</span> <span class="se">\</span>
+  -d <span class="s1">'data="Some data"'</span> <span class="se">\</span>
+  -H <span class="s1">'Authorization: Bearer &lt;TOKEN&gt;'</span> <span class="se">\</span>
+  -X POST <span class="se">\</span>
   https://localhost/.well-known/mercure</code></pre>
     <p>Topics should be URIs. They can use templates like <code>news/{id}</code> and the <code>*</code> wildcard, and you can subscribe to several at once: <code>https://localhost/.well-known/mercure?topic=X&amp;topic=Y</code>. In the browser it&rsquo;s the native <code>EventSource</code>:</p>
-<pre><code>const url = new URL('https://localhost/.well-known/mercure');
-url.searchParams.append('topic', 'topic-a');
-url.searchParams.append('topic', 'projects/{id}');
+<pre data-lang="JavaScript"><code class="language-javascript"><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">URL</span><span class="p">(</span><span class="s1">'https://localhost/.well-known/mercure'</span><span class="p">);</span>
+<span class="nx">url</span><span class="p">.</span><span class="nx">searchParams</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="s1">'topic'</span><span class="p">,</span> <span class="s1">'topic-a'</span><span class="p">);</span>
+<span class="nx">url</span><span class="p">.</span><span class="nx">searchParams</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="s1">'topic'</span><span class="p">,</span> <span class="s1">'projects/{id}'</span><span class="p">);</span>
 
-const eventSource = new EventSource(url);
+<span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">url</span><span class="p">);</span>
 
-// The callback will be called every time an update is published
-eventSource.onmessage = e =&gt; console.log(e);</code></pre>
+<span class="c1">// The callback will be called every time an update is published</span>
+<span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">e</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span></code></pre>
 
     <h2>When it&rsquo;s worth it</h2>
     <p>Not every application benefits from Mercure. It&rsquo;s about user experience: giving the user feedback. Good fits are live availability (e-commerce, booking.com), chat, asynchronous jobs and real-time collaboration.</p>
@@ -109,20 +109,20 @@ eventSource.onmessage = e =&gt; console.log(e);</code></pre>
     <h2>The use case in Peon</h2>
     <p><a href="https://github.com/peon-dev/peon">Peon</a> runs tasks on your repositories. The domain use case: the user tells Peon to run a task, which creates a pending job. A worker in the background picks the job up and starts working on it. Then the job finishes.</p>
     <p>Whenever the status changes, the domain dispatches an event:</p>
-<pre><code>final class JobStatusChanged
-{
-    public function __construct(
-        public readonly JobId $jobId,
-        public readonly ProjectId $projectId,
-    ) {}
-}
+<pre data-lang="PHP"><code class="language-php"><span class="k">final</span> <span class="k">class</span> <span class="nc">JobStatusChanged</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">public</span> <span class="k">readonly</span> <span class="nx">JobId</span> <span class="nv">$jobId</span><span class="p">,</span>
+        <span class="k">public</span> <span class="k">readonly</span> <span class="nx">ProjectId</span> <span class="nv">$projectId</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{}</span>
+<span class="p">}</span>
 
-$this-&gt;eventBus-&gt;dispatch(
-    new JobStatusChanged(
-        $job-&gt;jobId,
-        $job-&gt;projectId,
-    ),
-);</code></pre>
+<span class="nv">$this</span><span class="o">-&gt;</span><span class="na">eventBus</span><span class="o">-&gt;</span><span class="na">dispatch</span><span class="p">(</span>
+    <span class="k">new</span> <span class="nx">JobStatusChanged</span><span class="p">(</span>
+        <span class="nv">$job</span><span class="o">-&gt;</span><span class="na">jobId</span><span class="p">,</span>
+        <span class="nv">$job</span><span class="o">-&gt;</span><span class="na">projectId</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">);</span></code></pre>
     <p>The page itself is ordinary: <code>ProjectOverviewController</code> loads the read jobs for the project and renders <code>project_overview.html.twig</code>, a table that shows &ldquo;Pending&rdquo; or &ldquo;In progress&rdquo; for each job.</p>
     <p>That&rsquo;s the standard, poor user experience. You open the page, the job says &ldquo;In progress&rdquo;, and it keeps saying so until you refresh. The new requirement: as a user, I want to see status updates in real time.</p>
 
@@ -139,48 +139,48 @@ $this-&gt;eventBus-&gt;dispatch(
       <li>The <b>controller</b> template that includes the fragments</li>
     </ul>
     <p>First, the page subscribes to a topic from Twig:</p>
-<pre><code>&lt;div {{ turbo_stream_listen('project-' ~ activeProject.projectId ~ '-overview') }}&gt;&lt;/div&gt;</code></pre>
+<pre data-lang="Twig"><code class="language-html-twig"><span class="p">&lt;</span><span class="nt">div</span> <span class="cp">{{</span> <span class="nv">turbo_stream_listen</span><span class="o">(</span><span class="s1">'project-'</span> <span class="o">~</span> <span class="nv">activeProject.projectId</span> <span class="o">~</span> <span class="s1">'-overview'</span><span class="o">)</span> <span class="cp">}}</span><span class="p">&gt;&lt;/</span><span class="nt">div</span><span class="p">&gt;</span></code></pre>
     <p>Then the row of the table moves into its own fragment, <code>_recent_job.html.twig</code>, with a stable id, and the controller template just includes it in the loop:</p>
-<pre><code>&lt;tbody id="recent-jobs"&gt;
-    {% for job in jobs %}
-        {{ include('project_overview/_recent_job.html.twig') }}
-    {% endfor %}
-&lt;/tbody&gt;
+<pre data-lang="Twig"><code class="language-html-twig"><span class="p">&lt;</span><span class="nt">tbody</span> <span class="na">id</span><span class="o">=</span><span class="s">"recent-jobs"</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">for</span> <span class="nv">job</span> <span class="k">in</span> <span class="nv">jobs</span> <span class="cp">%}</span>
+        <span class="cp">{{</span> <span class="nv">include</span><span class="o">(</span><span class="s1">'project_overview/_recent_job.html.twig'</span><span class="o">)</span> <span class="cp">}}</span>
+    <span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
+<span class="p">&lt;/</span><span class="nt">tbody</span><span class="p">&gt;</span>
 
-&lt;span id="recent-job-{{ job.jobId }}"&gt;
-    {% if job.pending %}
-        &lt;span class="status-pending"&gt;Pending&lt;/span&gt;
-    {% endif %}
-    {# .. more template code .. #}
-&lt;/span&gt;</code></pre>
+<span class="p">&lt;</span><span class="nt">span</span> <span class="na">id</span><span class="o">=</span><span class="s">"recent-job-</span><span class="cp">{{</span> <span class="nv">job.jobId</span> <span class="cp">}}</span><span class="s">"</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">if</span> <span class="nv">job.pending</span> <span class="cp">%}</span>
+        <span class="p">&lt;</span><span class="nt">span</span> <span class="na">class</span><span class="o">=</span><span class="s">"status-pending"</span><span class="p">&gt;</span>Pending<span class="p">&lt;/</span><span class="nt">span</span><span class="p">&gt;</span>
+    <span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+    <span class="c">{# .. more template code .. #}</span>
+<span class="p">&lt;/</span><span class="nt">span</span><span class="p">&gt;</span></code></pre>
     <p>The stream template wraps the same fragment in a <a href="https://turbo.hotwired.dev/handbook/streams">Turbo Stream</a> that replaces the element with that id:</p>
-<pre><code>&lt;turbo-stream action="replace" target="recent-job-{{ job.jobId }}"&gt;
-    &lt;template&gt;
-        {{ include('project_overview/_recent_job.html.twig') }}
-    &lt;/template&gt;
-&lt;/turbo-stream&gt;</code></pre>
+<pre data-lang="Twig"><code class="language-html-twig"><span class="p">&lt;</span><span class="nt">turbo-stream</span> <span class="na">action</span><span class="o">=</span><span class="s">"replace"</span> <span class="na">target</span><span class="o">=</span><span class="s">"recent-job-</span><span class="cp">{{</span> <span class="nv">job.jobId</span> <span class="cp">}}</span><span class="s">"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">template</span><span class="p">&gt;</span>
+        <span class="cp">{{</span> <span class="nv">include</span><span class="o">(</span><span class="s1">'project_overview/_recent_job.html.twig'</span><span class="o">)</span> <span class="cp">}}</span>
+    <span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">turbo-stream</span><span class="p">&gt;</span></code></pre>
     <p>And the event subscriber renders the final HTML, just like a controller would, and publishes it to the hub:</p>
-<pre><code>final class PublishMercureUpdateWhenJobStatusChanged implements EventHandlerInterface
-{
-    public function __construct(
-        private HubInterface $hub,
-        private Environment $twig,
-        private ProvideReadJobById $provideReadJobById,
-    ) {}
+<pre data-lang="PHP"><code class="language-php"><span class="k">final</span> <span class="k">class</span> <span class="nc">PublishMercureUpdateWhenJobStatusChanged</span> <span class="k">implements</span> <span class="nx">EventHandlerInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="nx">HubInterface</span> <span class="nv">$hub</span><span class="p">,</span>
+        <span class="k">private</span> <span class="nx">Environment</span> <span class="nv">$twig</span><span class="p">,</span>
+        <span class="k">private</span> <span class="nx">ProvideReadJobById</span> <span class="nv">$provideReadJobById</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{}</span>
 
-    public function __invoke(JobStatusChanged $event): void {
-        $topic = 'project-' . $event-&gt;projectId-&gt;id . '-overview';
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">JobStatusChanged</span> <span class="nv">$event</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+        <span class="nv">$topic</span> <span class="o">=</span> <span class="s1">'project-'</span> <span class="o">.</span> <span class="nv">$event</span><span class="o">-&gt;</span><span class="na">projectId</span><span class="o">-&gt;</span><span class="na">id</span> <span class="o">.</span> <span class="s1">'-overview'</span><span class="p">;</span>
 
-        // Render the final HTML, just like you would in controller:
-        $data = $this-&gt;twig-&gt;render('job_status_changed.stream.html.twig', [
-            'job' =&gt; $this-&gt;provideReadJobById-&gt;provide($event-&gt;jobId),
-        ]);
+        <span class="c1">// Render the final HTML, just like you would in controller:</span>
+        <span class="nv">$data</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">twig</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'job_status_changed.stream.html.twig'</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">'job'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">provideReadJobById</span><span class="o">-&gt;</span><span class="na">provide</span><span class="p">(</span><span class="nv">$event</span><span class="o">-&gt;</span><span class="na">jobId</span><span class="p">),</span>
+        <span class="p">]);</span>
 
-        $this-&gt;hub-&gt;publish(
-            new Update($topic, $data)
-        );
-    }
-}</code></pre>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">hub</span><span class="o">-&gt;</span><span class="na">publish</span><span class="p">(</span>
+            <span class="k">new</span> <span class="nx">Update</span><span class="p">(</span><span class="nv">$topic</span><span class="p">,</span> <span class="nv">$data</span><span class="p">)</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>That&rsquo;s it. The browser keeps one EventSource connection open, the stream arrives, Turbo swaps the row, and the status changes from &ldquo;Pending&rdquo; to &ldquo;In progress&rdquo; to &ldquo;Succeeded&rdquo; on its own. In the browser&rsquo;s network tab you can see the single <code>eventsource</code> request, and the Mercure debug UI on <code>/.well-known/mercure/ui/</code> shows the published Turbo Stream HTML.</p>
 
     <h2>Final thoughts</h2>

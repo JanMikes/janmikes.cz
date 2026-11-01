@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -56,21 +56,21 @@
       <figcaption>The GitLab docs: the parent pipeline shows its child pipelines in a &ldquo;Downstream&rdquo; column.</figcaption>
     </figure>
     <p>A child pipeline is just a job with the <code>trigger</code> keyword. The simplest version points at another YAML file in the repository:</p>
-    <pre><code>microservice_a:
-  trigger:
-    include: path/to/microservice_a.yml</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">microservice_a</span><span class="p">:</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">path/to/microservice_a.yml</span></code></pre>
     <p>The <code>include</code> can be a list, and it can mix local files with GitLab&rsquo;s built-in templates:</p>
-    <pre><code>microservice_a:
-  trigger:
-    include:
-      - local: path/to/microservice_a.yml
-      - template: Security/SAST.gitlab-ci.yml</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">microservice_a</span><span class="p">:</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">local</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">path/to/microservice_a.yml</span>
+      <span class="p p-Indicator">-</span> <span class="nt">template</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Security/SAST.gitlab-ci.yml</span></code></pre>
     <p>Or it can take the child configuration from a different project, for example a shared pipeline library:</p>
-    <pre><code>microservice_a:
-  trigger:
-    include:
-      - project: 'my-group/my-pipeline-library'
-        file: 'path/to/ci-config.yml'</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">microservice_a</span><span class="p">:</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">project</span><span class="p">:</span> <span class="s">'my-group/my-pipeline-library'</span>
+        <span class="nt">file</span><span class="p">:</span> <span class="s">'path/to/ci-config.yml'</span></code></pre>
 
     <h2>Why bother?</h2>
     <p>Everything this technique does could be done before, with some hacking. It just solves these problems better:</p>
@@ -83,19 +83,19 @@
 
     <h2>Dynamic child pipelines</h2>
     <p>Normally your YAML has to exist when the pipeline starts; GitLab takes it and runs it. A dynamic child pipeline goes one step further: one job runs your own script to generate the YAML, saves it as an artifact, and the next job triggers a child pipeline from that artifact. When the pipeline starts, nobody knows yet which jobs will run.</p>
-    <pre><code>generate-config:
-  stage: build
-  script: generate-ci-config &gt; generated-config.yml
-  artifacts:
-    paths:
-      - generated-config.yml
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">generate-config</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">build</span>
+  <span class="nt">script</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">generate-ci-config &gt; generated-config.yml</span>
+  <span class="nt">artifacts</span><span class="p">:</span>
+    <span class="nt">paths</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">generated-config.yml</span>
 
-child-pipeline:
-  stage: test
-  trigger:
-    include:
-      - artifact: generated-config.yml
-        job: generate-config</code></pre>
+<span class="nt">child-pipeline</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">test</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">artifact</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">generated-config.yml</span>
+        <span class="nt">job</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">generate-config</span></code></pre>
     <p>The generator can be anything. I used PHP, because it was php.live. That&rsquo;s the whole magic; the rest is up to your imagination.</p>
     <figure>
       <img src="/assets/talks/gitlab-ci-parent-child-pipelines/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitLab pipeline mini graph: two green successful stages, then three orange warning icons for downstream pipelines and a grey bubble with a tooltip saying +42 more downstream pipelines.">
@@ -112,55 +112,55 @@ child-pipeline:
     <p><b>1. The classic pipeline.</b> Three stages, build, test and deploy. A <code>composer</code> build job (faked with <code>echo</code> so the demo runs fast), then <code>package-a-tests</code>, <code>package-b-tests</code>, <code>package-c-tests</code>, then three deploy jobs. Job names must be unique across the whole pipeline, hence the prefixes. And the stages block: if the tests for C take 20 minutes and A is tested in one, A waits 19 minutes before it can deploy.</p>
 
     <p><b>2. Parent-child.</b> The build job stays shared in the parent; artifacts from it still reach the children. Each package gets its own <code>.gitlab-ci.yml</code> with plain job names, <code>tests</code> and <code>deploy</code>, no prefixes. I copy-pasted them on purpose; <code>include</code> would remove the duplication. The parent only triggers:</p>
-    <pre><code>package-a:
-  stage: triggers
-  trigger:
-    include: "packages/A/.gitlab-ci.yml"</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">package-a</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">triggers</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span> <span class="s">"packages/A/.gitlab-ci.yml"</span></code></pre>
     <p>In the UI the children show up as downstream pipelines you can click into, and back. The UX still isn&rsquo;t ideal and GitLab has plenty of issues about it (I sent them feedback too), but it&rsquo;s far better than when the feature appeared; back then it was a massacre. On a rerun you could see the point: one package was already deploying while another was still running its tests.</p>
 
     <p><b>3 and 4. When a child fails.</b> I added <code>exit 1</code> to the tests of package C. By default the parent doesn&rsquo;t care how its children end: C failed and the parent pipeline was green. Sometimes that&rsquo;s what you want. We don&rsquo;t. We want nothing to deploy until everything, integration, functional and end-to-end tests, is green. One keyword in the parent fixes it:</p>
-    <pre><code>package-c:
-  stage: triggers
-  trigger:
-    include: "packages/C/.gitlab-ci.yml"
-    strategy: depend</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">package-c</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">triggers</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span> <span class="s">"packages/C/.gitlab-ci.yml"</span>
+    <span class="nt">strategy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">depend</span></code></pre>
     <p>With <code>strategy: depend</code> the trigger job mirrors the child&rsquo;s status, and the parent turned red.</p>
 
     <p><b>5. Generating the pipeline.</b> The three trigger jobs are copy-paste that differs only in the package name, and GitLab couldn&rsquo;t use variables in job names. So a PHP script generates them. A job runs it, prints the result with <code>cat</code> to check it, and passes the file on as an artifact; a second job triggers it. The script, which took me &ldquo;a whole afternoon&rdquo;:</p>
-    <pre><code>$packages = ['A', 'B', 'C'];
-$ciFileContent = '';
+    <pre data-lang="PHP"><code class="language-php"><span class="nv">$packages</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'A'</span><span class="p">,</span> <span class="s1">'B'</span><span class="p">,</span> <span class="s1">'C'</span><span class="p">];</span>
+<span class="nv">$ciFileContent</span> <span class="o">=</span> <span class="s1">''</span><span class="p">;</span>
 
-foreach ($packages as $package) {
-    $ciFileContent .= &lt;&lt;&lt;FILE_CONTENT
-package-$package:
-  trigger:
-    include: "packages/$package/.gitlab-ci.yml"
-    strategy: depend
-FILE_CONTENT . "\n\n";
-}
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$packages</span> <span class="k">as</span> <span class="nv">$package</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$ciFileContent</span> <span class="o">.=</span> <span class="o">&lt;&lt;&lt;</span><span class="nx">FILE_CONTENT</span>
+<span class="nx">package</span><span class="o">-</span><span class="nv">$package</span><span class="o">:</span>
+  <span class="nx">trigger</span><span class="o">:</span>
+    <span class="k">include</span><span class="o">:</span> <span class="s2">"packages/</span><span class="si">$package</span><span class="s2">/.gitlab-ci.yml"</span>
+    <span class="nx">strategy</span><span class="o">:</span> <span class="nx">depend</span>
+<span class="nx">FILE_CONTENT</span> <span class="o">.</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">;</span>
+<span class="p">}</span>
 
-file_put_contents(__DIR__ . '/generated-gitlab-ci.yml', $ciFileContent);</code></pre>
+<span class="nb">file_put_contents</span><span class="p">(</span><span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/generated-gitlab-ci.yml'</span><span class="p">,</span> <span class="nv">$ciFileContent</span><span class="p">);</span></code></pre>
     <p>The result was the same pipeline as before, only no longer written by hand.</p>
 
     <p><b>6 and 7. Merge request pipelines.</b> Then a short detour that makes all of this powerful (<a href="https://www.youtube.com/watch?v=XqS6YkCBOuI&amp;t=1220s">20:20 in the video</a>). By default a pipeline only knows about the last commit. For a merge request you want to decide based on every file the whole branch changed, and that&rsquo;s what merge request pipelines are for. I took the condition from GitLab&rsquo;s official merge request pipelines template rather than writing it myself, and added a rule to each trigger:</p>
-    <pre><code>  rules:
-    - if: $CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      changes:
-        - packages/C/**/*</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml">  <span class="nt">rules</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">if</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">$CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH</span>
+      <span class="nt">changes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">packages/C/**/*</span></code></pre>
     <p>Why test A if nothing in A changed? In a merge request that touched only package C, only C&rsquo;s child pipeline ran. Then the same thing generated: the PHP script got an <code>if</code> per package and writes the <code>rules</code> block itself. The generator job also only runs when something under <code>packages/</code> changed.</p>
 
     <p><b>The ultimate version: a dependency map.</b> This is how we use it in practice, for microservices (<a href="https://www.youtube.com/watch?v=XqS6YkCBOuI&amp;t=1526s">25:26 in the video</a>). A depends on B and C. In the previous demo I changed C and only C ran. But what if that change broke A, and I have no idea?</p>
     <p>You need a map of dependencies between your packages or services. How you get it, and in which language, doesn&rsquo;t matter. My approach, which I called stupid but which works great, is about 80 lines of PHP: read all PSR-4 roots from <code>composer.json</code>, go through every package directory, read every PHP file in it, and check whether it mentions a namespace from another package&rsquo;s root. If it does, this package depends on that one. Every package also depends on itself. The generated YAML then lists all those paths under <code>changes</code>:</p>
-    <pre><code>packages-A:
-  trigger:
-    include: packages/A/.gitlab-ci.yml
-    strategy: depend
-  rules:
-    - if: $CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      changes:
-        - packages/A/**/*
-        - packages/B/**/*
-        - packages/C/**/*</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="nt">packages-A</span><span class="p">:</span>
+  <span class="nt">trigger</span><span class="p">:</span>
+    <span class="nt">include</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">packages/A/.gitlab-ci.yml</span>
+    <span class="nt">strategy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">depend</span>
+  <span class="nt">rules</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">if</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">$CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH</span>
+      <span class="nt">changes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">packages/A/**/*</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">packages/B/**/*</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">packages/C/**/*</span></code></pre>
     <p>B and C list only themselves. Proof instead of promises: a merge request adding a &ldquo;much wow, useful comment&rdquo; to A ran only A, since nothing depends on A. The same comment in C ran C and A, because A depends on C.</p>
 
     <h2>Questions</h2>

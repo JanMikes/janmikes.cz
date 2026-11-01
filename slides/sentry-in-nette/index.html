@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -68,107 +68,107 @@
 
     <h2>The quickstart</h2>
     <p>The minimum is one call in <code>Bootstrap::boot()</code>, next to <code>enableTracy()</code>:</p>
-<pre><code>$configurator->enableTracy(__DIR__ . '/../log');
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$configurator</span><span class="o">-&gt;</span><span class="na">enableTracy</span><span class="p">(</span><span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../log'</span><span class="p">);</span>
 
-\Sentry\init(['dsn' => 'https://xyz@sentry.io/1480147']);</code></pre>
+<span class="nx">\Sentry\init</span><span class="p">([</span><span class="s1">'dsn'</span> <span class="o">=&gt;</span> <span class="s1">'https://xyz@sentry.io/1480147'</span><span class="p">]);</span></code></pre>
     <p>Throw an exception in a presenter and it shows up in Sentry with the browser, PHP version, URL and the exact line. Done? Not quite. Wrap that exception in try/catch and log it the usual Nette way, and nothing arrives:</p>
-<pre><code>try {
-    throw new \Exception('This is demo!');
-} catch (\Exception $e) {
-    Debugger::log($e, Debugger::CRITICAL);
-}</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="k">try</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nx">\Exception</span><span class="p">(</span><span class="s1">'This is demo!'</span><span class="p">);</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">\Exception</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">Debugger</span><span class="o">::</span><span class="na">log</span><span class="p">(</span><span class="nv">$e</span><span class="p">,</span> <span class="nx">Debugger</span><span class="o">::</span><span class="na">CRITICAL</span><span class="p">);</span>
+<span class="p">}</span></code></pre>
 
     <h2>Three ways an error reaches Tracy</h2>
     <p>Tracy is Nette&rsquo;s debugger and logger. To catch everything, I had to find every path an error takes in a Nette app. There are three.</p>
     <p><b>Option 1: logging directly.</b> You call <code>Debugger::log()</code> yourself, as above.</p>
     <p><b>Option 2: an uncaught exception.</b> The app starts with:</p>
-<pre><code>App\Bootstrap::boot()
-    ->createContainer()
-    ->getByType(Nette\Application\Application::class)
-    ->run();</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="nx">App\Bootstrap</span><span class="o">::</span><span class="na">boot</span><span class="p">()</span>
+    <span class="o">-&gt;</span><span class="na">createContainer</span><span class="p">()</span>
+    <span class="o">-&gt;</span><span class="na">getByType</span><span class="p">(</span><span class="nx">Nette\Application\Application</span><span class="o">::</span><span class="na">class</span><span class="p">)</span>
+    <span class="o">-&gt;</span><span class="na">run</span><span class="p">();</span></code></pre>
     <p><code>Application::run()</code> wraps the whole request in try/catch. When something throws, and <code>catchExceptions</code> is on with an error presenter set, it calls <code>processException()</code>. That forwards to the <code>ErrorPresenter</code>, which logs the exception with <code>$this->logger->log($exception, ILogger::EXCEPTION)</code>.</p>
     <p><b>Option 3: an uncaught uncaught exception.</b> If there&rsquo;s no error presenter, or exceptions aren&rsquo;t caught, <code>run()</code> rethrows. Then Tracy steps in. <code>Debugger::enable()</code>, called by <code>enableTracy()</code>, registers its own <code>set_exception_handler</code>, and in production mode that handler calls <code>self::log($exception, self::EXCEPTION)</code>.</p>
     <p>All three end in the same place. <code>Debugger::log()</code> is just:</p>
-<pre><code>public static function log($message, string $priority = ILogger::INFO)
-{
-    return self::getLogger()->log($message, $priority);
-}</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">log</span><span class="p">(</span><span class="nv">$message</span><span class="p">,</span> <span class="nx">string</span> <span class="nv">$priority</span> <span class="o">=</span> <span class="nx">ILogger</span><span class="o">::</span><span class="na">INFO</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="nx">self</span><span class="o">::</span><span class="na">getLogger</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">log</span><span class="p">(</span><span class="nv">$message</span><span class="p">,</span> <span class="nv">$priority</span><span class="p">);</span>
+<span class="p">}</span></code></pre>
     <p>So the answer is to replace Tracy&rsquo;s logger. <code>Debugger::setLogger()</code> exists, but where do you call it, and early enough?</p>
 
     <h2>Let the container do it</h2>
     <p>Nette&rsquo;s Tracy DI extension already handles this. If the <code>tracy.logger</code> service isn&rsquo;t the default <code>Debugger::getLogger()</code>, it adds a <code>Tracy\Debugger::setLogger(...)</code> call to the container&rsquo;s initialization:</p>
-<pre><code>$logger = $builder->getDefinition($this->prefix('logger'));
-if ($logger->getFactory()->getEntity() !== [Tracy\Debugger::class, 'getLogger']) {
-    $initialize->addBody($builder->formatPhp('Tracy\Debugger::setLogger(?);', [$logger]));
-}</code></pre>
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$logger</span> <span class="o">=</span> <span class="nv">$builder</span><span class="o">-&gt;</span><span class="na">getDefinition</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">prefix</span><span class="p">(</span><span class="s1">'logger'</span><span class="p">));</span>
+<span class="k">if</span> <span class="p">(</span><span class="nv">$logger</span><span class="o">-&gt;</span><span class="na">getFactory</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getEntity</span><span class="p">()</span> <span class="o">!==</span> <span class="p">[</span><span class="nx">Tracy\Debugger</span><span class="o">::</span><span class="na">class</span><span class="p">,</span> <span class="s1">'getLogger'</span><span class="p">])</span> <span class="p">{</span>
+    <span class="nv">$initialize</span><span class="o">-&gt;</span><span class="na">addBody</span><span class="p">(</span><span class="nv">$builder</span><span class="o">-&gt;</span><span class="na">formatPhp</span><span class="p">(</span><span class="s1">'Tracy\Debugger::setLogger(?);'</span><span class="p">,</span> <span class="p">[</span><span class="nv">$logger</span><span class="p">]));</span>
+<span class="p">}</span></code></pre>
     <p>So all you do is register your own logger under that name. I checked the generated container to be sure, and the <code>setLogger()</code> call was there. Mystery solved.</p>
 
     <h2>The decorated logger</h2>
     <p>The logger decorates Tracy&rsquo;s default one: it keeps the original file logging and also sends to Sentry. The config holds the Sentry options, with the DSN left empty so each environment sets it in <code>local.neon</code>:</p>
-<pre><code>parameters:
-    sentry:
-        dsn: '' # Change this in your local.neon
-        in_app_exclude:
-            - %appDir%/../vendor/
-            - %appDir%/../temp/
-        project_root: %appDir%/../
-        send_default_pii: true
+<pre data-lang="NEON"><code class="language-yaml"><span class="nt">parameters</span><span class="p">:</span>
+    <span class="nt">sentry</span><span class="p">:</span>
+        <span class="nt">dsn</span><span class="p">:</span> <span class="s">''</span> <span class="c1"># Change this in your local.neon</span>
+        <span class="nt">in_app_exclude</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="err">%</span><span class="l l-Scalar l-Scalar-Plain">appDir%/../vendor/</span>
+            <span class="p p-Indicator">-</span> <span class="err">%</span><span class="l l-Scalar l-Scalar-Plain">appDir%/../temp/</span>
+        <span class="nt">project_root</span><span class="p">:</span> <span class="err">%</span><span class="l l-Scalar l-Scalar-Plain">appDir%/../</span>
+        <span class="nt">send_default_pii</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
 
-services:
-    tracy.logger: App\Logging\SentryDecoratedTracyLogger(%sentry%)</code></pre>
+<span class="nt">services</span><span class="p">:</span>
+    <span class="nt">tracy.logger</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">App\Logging\SentryDecoratedTracyLogger(%sentry%)</span></code></pre>
     <p>And the class:</p>
-<pre><code>public function __construct(array $sentryOptions)
-{
-    $this->parentLogger = Debugger::getLogger();
+<pre data-lang="PHP"><code class="language-php"><span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span><span class="k">array</span> <span class="nv">$sentryOptions</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">parentLogger</span> <span class="o">=</span> <span class="nx">Debugger</span><span class="o">::</span><span class="na">getLogger</span><span class="p">();</span>
 
-    \Sentry\init($sentryOptions);
-}
+    <span class="nx">\Sentry\init</span><span class="p">(</span><span class="nv">$sentryOptions</span><span class="p">);</span>
+<span class="p">}</span>
 
-public function log($value, $priority = self::INFO): void
-{
-    // Logging to default Tracy logger
-    $this->parentLogger->log($value, $priority);
-    $this->logToSentry($value, $priority);
-}
+<span class="k">public</span> <span class="k">function</span> <span class="nf">log</span><span class="p">(</span><span class="nv">$value</span><span class="p">,</span> <span class="nv">$priority</span> <span class="o">=</span> <span class="nx">self</span><span class="o">::</span><span class="na">INFO</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+<span class="p">{</span>
+    <span class="c1">// Logging to default Tracy logger</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">parentLogger</span><span class="o">-&gt;</span><span class="na">log</span><span class="p">(</span><span class="nv">$value</span><span class="p">,</span> <span class="nv">$priority</span><span class="p">);</span>
+    <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">logToSentry</span><span class="p">(</span><span class="nv">$value</span><span class="p">,</span> <span class="nv">$priority</span><span class="p">);</span>
+<span class="p">}</span>
 
-private function logToSentry($value, $priority): void
-{
-    $severity = $this->getSeverityFromPriority($priority);
+<span class="k">private</span> <span class="k">function</span> <span class="nf">logToSentry</span><span class="p">(</span><span class="nv">$value</span><span class="p">,</span> <span class="nv">$priority</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+<span class="p">{</span>
+    <span class="nv">$severity</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getSeverityFromPriority</span><span class="p">(</span><span class="nv">$priority</span><span class="p">);</span>
 
-    if (!$severity) {
-        return;
-    }
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$severity</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    $payload = [
-        'message' => $value,
-        'level' => $severity,
-    ];
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">'message'</span> <span class="o">=&gt;</span> <span class="nv">$value</span><span class="p">,</span>
+        <span class="s1">'level'</span> <span class="o">=&gt;</span> <span class="nv">$severity</span><span class="p">,</span>
+    <span class="p">];</span>
 
-    if ($value instanceof \Throwable) {
-        $payload['exception'] = $value;
-        $payload['message'] = $value->getMessage();
-    }
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$value</span> <span class="nx">instanceof</span> <span class="nx">\Throwable</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$payload</span><span class="p">[</span><span class="s1">'exception'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$value</span><span class="p">;</span>
+        <span class="nv">$payload</span><span class="p">[</span><span class="s1">'message'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$value</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">();</span>
+    <span class="p">}</span>
 
-    captureEvent($payload);
-}
+    <span class="nx">captureEvent</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+<span class="p">}</span>
 
-private function getSeverityFromPriority(string $priority): ?Severity
-{
-    switch ($priority) {
-        case ILogger::WARNING:
-            return Severity::warning();
+<span class="k">private</span> <span class="k">function</span> <span class="nf">getSeverityFromPriority</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$priority</span><span class="p">)</span><span class="o">:</span> <span class="o">?</span><span class="nx">Severity</span>
+<span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="nv">$priority</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="nx">ILogger</span><span class="o">::</span><span class="na">WARNING</span><span class="o">:</span>
+            <span class="k">return</span> <span class="nx">Severity</span><span class="o">::</span><span class="na">warning</span><span class="p">();</span>
 
-        case ILogger::ERROR:
-            return Severity::error();
+        <span class="k">case</span> <span class="nx">ILogger</span><span class="o">::</span><span class="na">ERROR</span><span class="o">:</span>
+            <span class="k">return</span> <span class="nx">Severity</span><span class="o">::</span><span class="na">error</span><span class="p">();</span>
 
-        case ILogger::EXCEPTION:
-        case ILogger::CRITICAL:
-            return Severity::fatal();
+        <span class="k">case</span> <span class="nx">ILogger</span><span class="o">::</span><span class="na">EXCEPTION</span><span class="o">:</span>
+        <span class="k">case</span> <span class="nx">ILogger</span><span class="o">::</span><span class="na">CRITICAL</span><span class="o">:</span>
+            <span class="k">return</span> <span class="nx">Severity</span><span class="o">::</span><span class="na">fatal</span><span class="p">();</span>
 
-        default:
-            return null;
-    }
-}</code></pre>
+        <span class="k">default</span><span class="o">:</span>
+            <span class="k">return</span> <span class="k">null</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>Info and debug messages stay in the log files. Warnings, errors, exceptions and critical errors go to Sentry too. With this in place, the caught exception from the beginning shows up in Sentry with its stack trace.</p>
 
     <h2>In production</h2>

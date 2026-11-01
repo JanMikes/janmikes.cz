@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -71,92 +71,92 @@
 
     <h2>Step 1: the tool</h2>
     <p>For the demo I wrote a very important linter: &ldquo;Don&rsquo;t do drugs&rdquo;. It finds every PHP file in the current directory and fails if it finds a forbidden word, suggesting a better one. It uses the Nette Finder:</p>
-    <pre><code>&lt;?php
+    <pre data-lang="PHP"><code class="language-php"><span class="cp">&lt;?php</span>
 
-require_once __DIR__ . '/../vendor/autoload.php';
+<span class="k">require_once</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../vendor/autoload.php'</span><span class="p">;</span>
 
-$cwd = getcwd();
+<span class="nv">$cwd</span> <span class="o">=</span> <span class="nb">getcwd</span><span class="p">();</span>
 
-if ($cwd === false) {
-    throw new \RuntimeException('Something horribly went wrong!');
-}
+<span class="k">if</span> <span class="p">(</span><span class="nv">$cwd</span> <span class="o">===</span> <span class="k">false</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nx">\RuntimeException</span><span class="p">(</span><span class="s1">'Something horribly went wrong!'</span><span class="p">);</span>
+<span class="p">}</span>
 
-$finder = \Nette\Utils\Finder::findFiles('*.php')-&gt;from($cwd);
+<span class="nv">$finder</span> <span class="o">=</span> <span class="nx">\Nette\Utils\Finder</span><span class="o">::</span><span class="na">findFiles</span><span class="p">(</span><span class="s1">'*.php'</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">from</span><span class="p">(</span><span class="nv">$cwd</span><span class="p">);</span>
 
-$words = [
-    'drugs' =&gt; 'Nette'
-];
+<span class="nv">$words</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">'drugs'</span> <span class="o">=&gt;</span> <span class="s1">'Nette'</span>
+<span class="p">];</span>
 
-$foundSomethingBad = false;
+<span class="nv">$foundSomethingBad</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
 
-foreach ($finder-&gt;getIterator() as $file) {
-    foreach (file($file) as $lineNumber =&gt; $lineContent) {
-        foreach ($words as $forbiddenWord =&gt; $correctWord) {
-            if (strpos($lineContent, $forbiddenWord) !== false) {
-                $foundSomethingBad = true;
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$finder</span><span class="o">-&gt;</span><span class="na">getIterator</span><span class="p">()</span> <span class="k">as</span> <span class="nv">$file</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="nb">file</span><span class="p">(</span><span class="nv">$file</span><span class="p">)</span> <span class="k">as</span> <span class="nv">$lineNumber</span> <span class="o">=&gt;</span> <span class="nv">$lineContent</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="nv">$words</span> <span class="k">as</span> <span class="nv">$forbiddenWord</span> <span class="o">=&gt;</span> <span class="nv">$correctWord</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">strpos</span><span class="p">(</span><span class="nv">$lineContent</span><span class="p">,</span> <span class="nv">$forbiddenWord</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nv">$foundSomethingBad</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>
 
-                echo sprintf(
-                    "Forbidden word '%s' detected (%s:%d):\n- %s\n+ %s\n\n",
-                    $forbiddenWord,
-                    (string) $file,
-                    (int) $lineNumber +1,
-                    trim($lineContent),
-                    str_replace($forbiddenWord, $correctWord, trim($lineContent))
-                );
-            }
-        }
-    }
-}
+                <span class="k">echo</span> <span class="nb">sprintf</span><span class="p">(</span>
+                    <span class="s2">"Forbidden word '%s' detected (%s:%d):</span><span class="se">\n</span><span class="s2">- %s</span><span class="se">\n</span><span class="s2">+ %s</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="nv">$forbiddenWord</span><span class="p">,</span>
+                    <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$file</span><span class="p">,</span>
+                    <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="nv">$lineNumber</span> <span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="nb">trim</span><span class="p">(</span><span class="nv">$lineContent</span><span class="p">),</span>
+                    <span class="nb">str_replace</span><span class="p">(</span><span class="nv">$forbiddenWord</span><span class="p">,</span> <span class="nv">$correctWord</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="nv">$lineContent</span><span class="p">))</span>
+                <span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 
-if ($foundSomethingBad) {
-    exit(1);
-}
+<span class="k">if</span> <span class="p">(</span><span class="nv">$foundSomethingBad</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
 
-exit(0);</code></pre>
+<span class="k">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span></code></pre>
     <p>The exit code is what matters: non-zero fails the CI step. Run against a sample project, it does its job:</p>
-    <pre><code>$ php ../posobota-se02e05-my-tool/src/tool.php
-Forbidden word 'drugs' detected (/Users/janmikes/Sites/posobota-se02e05-my-project/src/index.php:3):
-- echo 'I like drugs.';
-+ echo 'I like Nette.';</code></pre>
+    <pre data-lang="Shell"><code class="language-console"><span class="gp">$ </span>php ../posobota-se02e05-my-tool/src/tool.php
+<span class="go">Forbidden word 'drugs' detected (/Users/janmikes/Sites/posobota-se02e05-my-project/src/index.php:3):</span>
+<span class="go">- echo 'I like drugs.';</span>
+<span class="go">+ echo 'I like Nette.';</span></code></pre>
 
     <h2>Step 2: the Dockerfile</h2>
     <p>The example from the GitHub docs is a tiny Alpine image that copies an <code>entrypoint.sh</code> and runs it. For a PHP tool, the official Composer image already has PHP and Composer in it:</p>
-    <pre><code>FROM composer:2
+    <pre data-lang="Dockerfile"><code class="language-docker"><span class="k">FROM</span> <span class="s">composer:2</span>
 
-WORKDIR /dont-do-drugs
+<span class="k">WORKDIR</span> <span class="s">/dont-do-drugs</span>
 
-COPY . .
-RUN composer install
+<span class="k">COPY</span> . .
+<span class="k">RUN</span> composer install
 
-ENTRYPOINT ["php", "/dont-do-drugs/src/tool.php"]</code></pre>
+<span class="k">ENTRYPOINT</span> <span class="p">[</span><span class="s2">"php"</span><span class="p">,</span> <span class="s2">"/dont-do-drugs/src/tool.php"</span><span class="p">]</span></code></pre>
     <p>Before going anywhere near GitHub, build the image and run it locally against the project, with the project mounted as a volume and set as the working directory. That&rsquo;s exactly what GitHub will do later:</p>
-    <pre><code>$ docker build -t drugs .
-$ docker run --rm -v "${PWD}:/www" -w /www drugs
-Forbidden word 'drugs' detected (/www/src/index.php:3):
-- echo 'I like drugs.';
-+ echo 'I like Nette.';</code></pre>
+    <pre data-lang="Shell"><code class="language-console"><span class="gp">$ </span>docker build -t drugs .
+<span class="gp">$ </span>docker run --rm -v <span class="s2">"</span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span><span class="s2">:/www"</span> -w /www drugs
+<span class="go">Forbidden word 'drugs' detected (/www/src/index.php:3):</span>
+<span class="go">- echo 'I like drugs.';</span>
+<span class="go">+ echo 'I like Nette.';</span></code></pre>
 
     <h2>Step 3: the action metadata</h2>
     <p>An <code>action.yml</code> in the root of the tool&rsquo;s repository tells GitHub what the action is and how to run it. It can declare inputs and outputs, as in the docs&rsquo; &ldquo;Hello World&rdquo; example, but the minimum for a Docker action is short:</p>
-    <pre><code># action.yml
-name: "Don't do drugs"
-description: "Sample of Github action that runs \"Don't do drugs\" tool"
-runs:
-  using: 'docker'
-  image: 'Dockerfile'</code></pre>
+    <pre data-lang="YAML"><code class="language-yaml"><span class="c1"># action.yml</span>
+<span class="nt">name</span><span class="p">:</span> <span class="s">"Don't</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">drugs"</span>
+<span class="nt">description</span><span class="p">:</span> <span class="s">"Sample</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">Github</span><span class="nv"> </span><span class="s">action</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">runs</span><span class="nv"> </span><span class="s">\"Don't</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">drugs\"</span><span class="nv"> </span><span class="s">tool"</span>
+<span class="nt">runs</span><span class="p">:</span>
+  <span class="nt">using</span><span class="p">:</span> <span class="s">'docker'</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="s">'Dockerfile'</span></code></pre>
 
     <h2>Use it in a project</h2>
     <p>Now any repository can use the action by referencing the tool&rsquo;s repository and a branch or tag:</p>
-    <pre><code># .github/workflows/main.yml
-on: [push]
+    <pre data-lang="YAML"><code class="language-yaml"><span class="c1"># .github/workflows/main.yml</span>
+<span class="nt">on</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">push</span><span class="p p-Indicator">]</span>
 
-jobs:
-  dont_do_drugs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+<span class="nt">jobs</span><span class="p">:</span>
+  <span class="nt">dont_do_drugs</span><span class="p">:</span>
+    <span class="nt">runs-on</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+    <span class="nt">steps</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">uses</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
 
-      - uses: janmikes/posobota-se02e05-my-tool@master</code></pre>
+      <span class="p p-Indicator">-</span> <span class="nt">uses</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">janmikes/posobota-se02e05-my-tool@master</span></code></pre>
     <p>On push, GitHub builds the image from the tool&rsquo;s repository, checks out the project and runs the container. The sample project contains the forbidden word, so the job fails, as it should:</p>
     <figure>
       <img src="/assets/talks/docker-github-action/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitHub Actions log of the failed step Run janmikes/posobota-se02e05-my-tool@master: a long docker run command with many GITHUB_ environment variables and volume mounts, followed by the output Forbidden word 'drugs' detected (/github/workspace/src/index.php:3) with the suggested fix echo 'I like Nette.'.">

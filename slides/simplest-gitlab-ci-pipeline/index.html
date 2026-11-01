@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -54,9 +54,9 @@
 
     <h2>Three lines</h2>
     <p>Here is the simplest GitLab CI pipeline ever:</p>
-<pre><code>greeting:
-  script:
-    - echo "Hello PHPPrague 2018!"</code></pre>
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">greeting</span><span class="p">:</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">echo "Hello PHPPrague 2018!"</span></code></pre>
     <p>Commit this as <code>.gitlab-ci.yml</code> in the root of a GitLab repository and you have CI. <code>greeting</code> is the name of a job, <code>script</code> is the list of shell commands it runs. That&rsquo;s it.</p>
     <p>The result: one job from <code>master</code>, finished in 49 seconds, queued for one second. The pipeline shows a single green <code>greeting</code> job in the default Test stage. The job log (slightly shortened) tells the whole story:</p>
 <pre><code>Running with gitlab-runner 11.0.0-rc1 (6dcccded)
@@ -85,25 +85,25 @@ Job succeeded</code></pre>
 
     <h2>A multi-stage pipeline</h2>
     <p>Real projects need more than one job, and some jobs have to wait for others. That&rsquo;s what stages are for. The common three are build, test and deploy. A stage can hold several jobs, and those run in parallel; they don&rsquo;t wait for each other. When all jobs in a stage pass, the pipeline moves to the next stage. If even a single job fails, it stops there. A typical PHP setup:</p>
-<pre><code>stages:
-  - build
-  - test
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">stages</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">build</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">test</span>
 
-composer:
-  stage: build
-  image: composer:1.3.2
-  script:
-    - composer install
-  artifacts:
-    paths:
-      - vendor/
-    expire_in: 24h
+<span class="nt">composer</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">build</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">composer:1.3.2</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">composer install</span>
+  <span class="nt">artifacts</span><span class="p">:</span>
+    <span class="nt">paths</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">vendor/</span>
+    <span class="nt">expire_in</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">24h</span>
 
-phpstan:
-  stage: test
-  image: php:7.1
-  script:
-    - composer phpstan</code></pre>
+<span class="nt">phpstan</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">test</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">php:7.1</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">composer phpstan</span></code></pre>
     <p>The <code>composer</code> job installs dependencies in the official Composer image and saves <code>vendor/</code> as an artifact for 24 hours. The <code>phpstan</code> job runs in a plain PHP image, gets <code>vendor/</code> passed in, and runs static analysis. Each job picks the image that fits it. PHPStan had its own talk earlier that day, so this was the natural example. Again: easy.</p>
 
     <h2>Where it can go</h2>
@@ -116,14 +116,14 @@ phpstan:
     <h2>The demo</h2>
     <p>Then the live demo (<a href="https://www.youtube.com/watch?v=HG0HgeUDbR8&amp;t=394s">6:34 in the video</a>): from an empty repository on GitLab.com to a green pipeline in a few minutes. After a short fight with not being signed in, I created two files.</p>
     <p>The first one, <code>test.php</code>, does nothing except end with an exit code. That is how tests work in CI: the runner checks whether the program&rsquo;s exit code is zero or not. The second one was the CI config:</p>
-<pre><code>test:
-  script:
-    - php test.php</code></pre>
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">test</span><span class="p">:</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">php test.php</span></code></pre>
     <p>I already knew what would happen, but I wanted to show it. The pipeline started on its own, and we waited for GitLab to pull the default Ruby image. Then it failed: <code>php: command not found</code>. There is no PHP in a Ruby image. You never want to see that red cross, but the fix is one line, telling the runner which image to use:</p>
-<pre><code>test:
-  image: php:7.1
-  script:
-    - php test.php</code></pre>
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">test</span><span class="p">:</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">php:7.1</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">php test.php</span></code></pre>
     <p>The pipeline ran again and failed again. This time not because of the setup: the script itself returned a non-zero exit code. That&rsquo;s the normal developer loop: look at what failed, debug, fix, and get the green check. After a fix to <code>test.php</code> and a wait for the slow conference Wi-Fi, the job succeeded.</p>
     <p>That&rsquo;s the whole magic. You can write your tests in PHPUnit, Nette Tester or any testing framework you like; in the background CI only looks at the return code.</p>
     <p>The last step was a quick multi-stage version. Once you have more than one stage, you have to list them under <code>stages:</code>. I added a first stage with a few jobs and moved the PHP test to a <code>test</code> stage after it. In the pipeline view you could watch the first-stage jobs run in parallel while the test job waited for all of them to succeed.</p>

@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -62,26 +62,26 @@
       <li>Configure the deploy in <code>.gitlab-ci.yml</code>.</li>
     </ol>
     <p>The app itself is as small as it gets:</p>
-<pre><code>&lt;?php
+<pre data-lang="PHP"><code class="language-php"><span class="cp">&lt;?php</span>
 
-echo 'Hello everyone at LMC!';
-echo '&lt;br&gt;';
-echo 'Grab a beer and enjoy the moment!';
+<span class="k">echo</span> <span class="s1">'Hello everyone at LMC!'</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s1">'&lt;br&gt;'</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s1">'Grab a beer and enjoy the moment!'</span><span class="p">;</span>
 
-exit(0);</code></pre>
+<span class="k">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span></code></pre>
 
     <h2>Step 1: a project, and why not the CLI</h2>
     <p>First a new project in the Google Cloud console. Mine was called <code>lmc-gae-autodeploy-demo</code>. Remember that the project ID can&rsquo;t be changed later.</p>
     <p>The &ldquo;proper&rdquo; way to set up App Engine is the command line: <code>gcloud init</code>. On my laptop that ended in a long Python traceback. The Cloud SDK was built on Python 2.7, and the local install failed to load its <code>sqlite3</code> extension. <code>gcloud app deploy</code> failed with the same error. Nope.</p>
     <p>So I went through the web console instead. The App Engine section has an &ldquo;Your first app with PHP&rdquo; wizard: pick a region (I used <code>us-central</code>), then follow a quickstart that runs in the browser. It&rsquo;s actually good.</p>
     <p>To make the app ready for App Engine you add one file, <code>app.yaml</code>, to the root of the repository:</p>
-<pre><code>runtime: php55
-api_version: 1
-threadsafe: true
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">runtime</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">php55</span>
+<span class="nt">api_version</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">threadsafe</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
 
-handlers:
-  - url: /.*
-    script: public/index.php</code></pre>
+<span class="nt">handlers</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">url</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/.*</span>
+    <span class="nt">script</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">public/index.php</span></code></pre>
     <p>It says which runtime to use and sends every URL to <code>public/index.php</code>. That&rsquo;s the whole config.</p>
     <p>The broken local SDK turned out to be a good argument for the rest of the talk: if deploying depends on a working setup on someone&rsquo;s laptop, it will break. Let the CI do it.</p>
 
@@ -107,36 +107,36 @@ handlers:
 
     <h2>Step 5: <code>.gitlab-ci.yml</code></h2>
     <p>The first version installs the Google Cloud SDK into a <code>python:2.7</code> image, writes the key from the variable into a temporary file, logs in with it and deploys:</p>
-<pre><code>image: python:2.7
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">python:2.7</span>
 
-before_script:
-  - echo "deb http://packages.cloud.google.com/apt cloud-sdk-jessie main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list
-  - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-  - apt-get update &amp;&amp; apt-get install google-cloud-sdk
+<span class="nt">before_script</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">echo "deb http://packages.cloud.google.com/apt cloud-sdk-jessie main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">apt-get update &amp;&amp; apt-get install google-cloud-sdk</span>
 
-after_script:
-  - rm /tmp/$CI_PIPELINE_ID.json
+<span class="nt">after_script</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">rm /tmp/$CI_PIPELINE_ID.json</span>
 
-deploy:
-  stage: deploy
-  script:
-    - echo $GOOGLECLOUDACCOUNT &gt; /tmp/$CI_PIPELINE_ID.json
-    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
-    - gcloud --quiet --project $GOOGLECLOUDPROJECT app deploy</code></pre>
+<span class="nt">deploy</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">echo $GOOGLECLOUDACCOUNT &gt; /tmp/$CI_PIPELINE_ID.json</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">gcloud --quiet --project $GOOGLECLOUDPROJECT app deploy</span></code></pre>
     <p>The key file is named after the pipeline ID, and <code>after_script</code> deletes it when the job ends. <code>--quiet</code> stops gcloud from asking questions nobody will answer in CI.</p>
     <p>Installing the SDK on every run is slow, so the second version uses a prepared Docker image with <a href="https://github.com/travis-ci/dpl">dpl</a>, a deploy tool from Travis CI that knows how to deploy to App Engine:</p>
-<pre><code>image: registry.gitlab.com/entrydo/docker/dpl:latest
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry.gitlab.com/entrydo/docker/dpl:latest</span>
 
-stages:
-  - deploy
+<span class="nt">stages</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
 
-production:
-  stage: deploy
-  script:
-    - echo $GOOGLECLOUDACCOUNT &gt; /tmp/$CI_PIPELINE_ID.json
-    - dpl --provider=gae --keyfile=/tmp/$CI_PIPELINE_ID.json
-  after_script:
-    - rm /tmp/$CI_PIPELINE_ID.json</code></pre>
+<span class="nt">production</span><span class="p">:</span>
+  <span class="nt">stage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
+  <span class="nt">script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">echo $GOOGLECLOUDACCOUNT &gt; /tmp/$CI_PIPELINE_ID.json</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">dpl --provider=gae --keyfile=/tmp/$CI_PIPELINE_ID.json</span>
+  <span class="nt">after_script</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">rm /tmp/$CI_PIPELINE_ID.json</span></code></pre>
 
     <h2>The result</h2>
     <figure>

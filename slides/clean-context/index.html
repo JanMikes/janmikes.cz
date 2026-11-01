@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -82,9 +82,9 @@ PROGRESS.md ── commit ── push</pre>
 
     <h2>Launching it</h2>
     <p>Three things keep a multi-day run alive: <code>tmux</code> so a dropped terminal or SSH session doesn&rsquo;t kill it, <code>caffeinate</code> so the Mac doesn&rsquo;t sleep, and bypass mode so it never stops to ask.</p>
-<pre>tmux new -s claude
+<pre data-lang="Shell"><code class="language-bash">tmux new -s claude
 caffeinate -dimsu
-claude --permission-mode bypassPermissions</pre>
+claude --permission-mode bypassPermissions</code></pre>
     <p>Bypass mode means the agents can run anything: installs, Docker, pushes. Run it on a dedicated VM or user account, not on the laptop with your production keys.</p>
 
     <h2>What goes wrong</h2>

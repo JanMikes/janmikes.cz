@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -49,7 +49,7 @@
 
     <h2>The boring loop</h2>
     <p>You push, CI fails on the coding standard, you run the fixer, you push again:</p>
-<pre><code>vendor/bin/ecs check src app tests --fix</code></pre>
+<pre data-lang="Shell"><code class="language-bash">vendor/bin/ecs check src app tests --fix</code></pre>
     <p>The slide shows that line written over and over on a school chalkboard, which is how it feels. Commit and push, error, fix, commit and push. The fix is a single command that a machine can run perfectly well, so why should a person do it?</p>
     <p>My demo bot did exactly that. After a push it ran the fixers, for example replacing a fully qualified class name with the short imported one, and opened a pull request with the changes against <code>master</code>, with an overly devoted title along the lines of &ldquo;Applied coding standards fixes for my dear master&rdquo;.</p>
     <p>Note that the bot doesn&rsquo;t commit and push to your branch. It sends a pull request instead, and you decide whether to merge it.</p>

@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -52,35 +52,35 @@
     <h2>Why?</h2>
     <p>Because it&rsquo;s cool. Because we could. And the real motivation? Frustration.</p>
     <p>The app was the backend of Entrydo, an API used by our web and mobile apps. It was a four-year-old Nette application, but when you looked at what made it a Nette app, there wasn&rsquo;t that much left. A lot of it was Symfony already, wrapped in Nette DI extensions:</p>
-<pre><code>extensions:
-    console: Kdyby\Console\DI\ConsoleExtension
-    doctrineEvents: Kdyby\Events\DI\EventsExtension
-    annotations: Kdyby\Annotations\DI\AnnotationsExtension
-    doctrine: Kdyby\Doctrine\DI\OrmExtension
-    migrations: Nettrine\Migrations\DI\MigrationsExtension
-    monolog: Kdyby\Monolog\DI\MonologExtension
-    rabbitmq: Kdyby\RabbitMq\DI\RabbitMqExtension
-    translation: Kdyby\Translation\DI\TranslationExtension
-    translatable: Zenify\DoctrineBehaviors\DI\TranslatableExtension
-    events: Contributte\EventDispatcher\DI\EventDispatcherExtension
-    env: wodCZ\NetteDotenv\DotEnvExtension</code></pre>
+<pre data-lang="NEON"><code class="language-yaml"><span class="nt">extensions</span><span class="p">:</span>
+    <span class="nt">console</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\Console\DI\ConsoleExtension</span>
+    <span class="nt">doctrineEvents</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\Events\DI\EventsExtension</span>
+    <span class="nt">annotations</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\Annotations\DI\AnnotationsExtension</span>
+    <span class="nt">doctrine</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\Doctrine\DI\OrmExtension</span>
+    <span class="nt">migrations</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Nettrine\Migrations\DI\MigrationsExtension</span>
+    <span class="nt">monolog</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\Monolog\DI\MonologExtension</span>
+    <span class="nt">rabbitmq</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\RabbitMq\DI\RabbitMqExtension</span>
+    <span class="nt">translation</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Kdyby\Translation\DI\TranslationExtension</span>
+    <span class="nt">translatable</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Zenify\DoctrineBehaviors\DI\TranslatableExtension</span>
+    <span class="nt">events</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Contributte\EventDispatcher\DI\EventDispatcherExtension</span>
+    <span class="nt">env</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">wodCZ\NetteDotenv\DotEnvExtension</span></code></pre>
     <p>Console, events, Doctrine, Monolog, translations: all Symfony components or Doctrine underneath, with a Nette bridge on top. The actual Nette part was <code>nette/di</code>, <code>neon</code>, <code>bootstrap</code>, <code>application</code>, <code>component-model</code>, <code>http</code>, <code>utils</code> and <code>finder</code>, all at 2.4. So it was more like there was some Nette in our Symfony app.</p>
 
     <h2>How the hell did we do that?</h2>
     <p>The joke answer: a year earlier there was already a commit called &ldquo;Now we are running on symfony&rdquo;. It added a single catch-all route and this controller:</p>
-<pre><code>class NetteController
-{
-    public function __invoke()
-    {
-        $legacyFile = __DIR__ . '/../../nette/www/index.php';
+<pre data-lang="PHP"><code class="language-php"><span class="k">class</span> <span class="nc">NetteController</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="nv">$legacyFile</span> <span class="o">=</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../../nette/www/index.php'</span><span class="p">;</span>
 
-        ob_start();
-        include($legacyFile);
-        $content = ob_get_clean();
+        <span class="nb">ob_start</span><span class="p">();</span>
+        <span class="k">include</span><span class="p">(</span><span class="nv">$legacyFile</span><span class="p">);</span>
+        <span class="nv">$content</span> <span class="o">=</span> <span class="nb">ob_get_clean</span><span class="p">();</span>
 
-        return new Response($content);
-    }
-}</code></pre>
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">Response</span><span class="p">(</span><span class="nv">$content</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>Technically, Symfony. Not what I mean.</p>
 
     <h2>How we really did it</h2>
@@ -100,17 +100,17 @@
 
     <h2>What Rector changed</h2>
     <p>A few samples of what the rules did across the codebase. Presenters stopped creating Nette response objects and got a response factory injected instead:</p>
-<pre><code>- public function __construct(CancelEventUseCase $useCase, RequestBodyHelper $requestBodyHelper)
-+ public function __construct(CancelEventUseCase $useCase, RequestBodyHelper $requestBodyHelper, \Entrydo\App\Responses\ResponseFactory $responseFactory)
+<pre data-lang="Diff"><code class="language-diff"><span class="gd">- public function __construct(CancelEventUseCase $useCase, RequestBodyHelper $requestBodyHelper)</span>
+<span class="gi">+ public function __construct(CancelEventUseCase $useCase, RequestBodyHelper $requestBodyHelper, \Entrydo\App\Responses\ResponseFactory $responseFactory)</span>
 
-- return new OKResponse($response);
-+ return $this-&gt;responseFactory-&gt;createJsonResponse($response);</code></pre>
+<span class="gd">- return new OKResponse($response);</span>
+<span class="gi">+ return $this-&gt;responseFactory-&gt;createJsonResponse($response);</span></code></pre>
     <p>Event subscribers moved from our own request event to Symfony&rsquo;s kernel events:</p>
-<pre><code>- return [RequestEvent::NAME =&gt; 'updateNewRelicTransactionName'];
-+ return [\Symfony\Component\HttpKernel\KernelEvents::REQUEST =&gt; 'updateNewRelicTransactionName'];
+<pre data-lang="Diff"><code class="language-diff"><span class="gd">- return [RequestEvent::NAME =&gt; 'updateNewRelicTransactionName'];</span>
+<span class="gi">+ return [\Symfony\Component\HttpKernel\KernelEvents::REQUEST =&gt; 'updateNewRelicTransactionName'];</span>
 
-- public function updateNewRelicTransactionName(RequestEvent $event): void
-+ public function updateNewRelicTransactionName(GetResponseEvent $event): void</code></pre>
+<span class="gd">- public function updateNewRelicTransactionName(RequestEvent $event): void</span>
+<span class="gi">+ public function updateNewRelicTransactionName(GetResponseEvent $event): void</span></code></pre>
     <p>The New Relic transaction name, which used to be the Nette presenter name, became the HTTP method plus the path. And a plain <code>string $requestId</code> passed through the constructor became an injected <code>RequestIdProvider</code> service.</p>
     <p>Out of the work came new open-source pieces: a NEON to YAML converter for the configs, many new Rector rules, and a whole Nette-to-Symfony set in Rector.</p>
 

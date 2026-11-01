@@ -32,7 +32,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/site.css?v=10">
+<link rel="stylesheet" href="/assets/site.css?v=11">
 </head>
 <body>
 
@@ -63,12 +63,12 @@
 
     <h2>Step one: RobotLoader to Composer classmap</h2>
     <p>The path had two stages: RobotLoader, then Composer classmap, then Composer PSR-4. The classmap is the easy first step. Composer scans the listed directories once and writes a lookup table of every class:</p>
-<pre><code>"autoload": {
-    "classmap": ["app", "libs", "src"]
-},
-"autoload-dev": {
-    "classmap": ["tests", "tests_db", "tests_selenium"]
-}</code></pre>
+<pre data-lang="JSON"><code class="language-json"><span class="nt">"autoload"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"classmap"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"app"</span><span class="p">,</span> <span class="s2">"libs"</span><span class="p">,</span> <span class="s2">"src"</span><span class="p">]</span>
+<span class="p">},</span>
+<span class="nt">"autoload-dev"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"classmap"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"tests"</span><span class="p">,</span> <span class="s2">"tests_db"</span><span class="p">,</span> <span class="s2">"tests_selenium"</span><span class="p">]</span>
+<span class="p">}</span></code></pre>
     <p>Is there any real performance gain from leaving RobotLoader? People in the Nette community said they never noticed a difference. Our monitoring did show one.</p>
     <figure>
       <img src="/assets/talks/psr-4-migration-with-rector/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Monitoring chart for 24 April 2019 with average response time (green), average CPU (red) and requests per second (grey). A blue box marks the deploy in the early afternoon, after which both the response time line and the CPU line step down to a lower level and stay there while traffic keeps growing.">
@@ -78,20 +78,20 @@
 
     <h2>Step two: classmap to PSR-4</h2>
     <p>The target configuration is short:</p>
-<pre><code>"autoload": {
-    "psr-4": {
-        "App\\": "app",
-        "Glami\\": "src"
-    },
-    "classmap": ["libs"]
-},
-"autoload-dev": {
-    "psr-4": {
-        "Tests\\": "tests",
-        "TestsDB\\": "tests_db",
-        "TestsSelenium\\": "tests_selenium"
-    }
-}</code></pre>
+<pre data-lang="JSON"><code class="language-json"><span class="nt">"autoload"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"psr-4"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">"App\\"</span><span class="p">:</span> <span class="s2">"app"</span><span class="p">,</span>
+        <span class="nt">"Glami\\"</span><span class="p">:</span> <span class="s2">"src"</span>
+    <span class="p">},</span>
+    <span class="nt">"classmap"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"libs"</span><span class="p">]</span>
+<span class="p">},</span>
+<span class="nt">"autoload-dev"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"psr-4"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">"Tests\\"</span><span class="p">:</span> <span class="s2">"tests"</span><span class="p">,</span>
+        <span class="nt">"TestsDB\\"</span><span class="p">:</span> <span class="s2">"tests_db"</span><span class="p">,</span>
+        <span class="nt">"TestsSelenium\\"</span><span class="p">:</span> <span class="s2">"tests_selenium"</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre>
     <p>The naive plan is three bullets: rename class and namespace, replace all usages, profit. Too naive, you are.</p>
 
     <h2>The requirements</h2>
@@ -117,59 +117,59 @@
     <h2>The tools</h2>
     <p><a href="https://getrector.com">Rector</a> does instant upgrades and refactoring of PHP code. It parses the code into an abstract syntax tree, so a rename is a real rename, not a string replace. Around the same time we used it to migrate a whole application from Nette to Symfony, which I talked about <a href="/slides/nette-to-symfony-like-ninjas/">in a separate talk</a>.</p>
     <p>Around Rector I wrote a few small scripts. The first renames files to match the class inside:</p>
-<pre><code>$files = Finder::findFiles('*.php')-&gt;from(__DIR__ . '/../src');
-$renames = [];
+<pre data-lang="PHP"><code class="language-php"><span class="nv">$files</span> <span class="o">=</span> <span class="nx">Finder</span><span class="o">::</span><span class="na">findFiles</span><span class="p">(</span><span class="s1">'*.php'</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">from</span><span class="p">(</span><span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../src'</span><span class="p">);</span>
+<span class="nv">$renames</span> <span class="o">=</span> <span class="p">[];</span>
 
-foreach ($files as $file) {
-    $filePath = $file-&gt;getPathname();
-    $content = NetteFileSystem::read($filePath);
-    $match = Strings::match($content, '/^\w*\s*(class|interface|trait) *(\w*)/m');
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$files</span> <span class="k">as</span> <span class="nv">$file</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$filePath</span> <span class="o">=</span> <span class="nv">$file</span><span class="o">-&gt;</span><span class="na">getPathname</span><span class="p">();</span>
+    <span class="nv">$content</span> <span class="o">=</span> <span class="nx">NetteFileSystem</span><span class="o">::</span><span class="na">read</span><span class="p">(</span><span class="nv">$filePath</span><span class="p">);</span>
+    <span class="nv">$match</span> <span class="o">=</span> <span class="nx">Strings</span><span class="o">::</span><span class="na">match</span><span class="p">(</span><span class="nv">$content</span><span class="p">,</span> <span class="s1">'/^\w*\s*(class|interface|trait) *(\w*)/m'</span><span class="p">);</span>
 
-    // File does not contain class
-    if ($match === null) {
-        continue;
-    }
+    <span class="c1">// File does not contain class</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$match</span> <span class="o">===</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    $fileName = $file-&gt;getFilename();
-    $className = $match[2];
-    $correctFileName = $className . '.php';
+    <span class="nv">$fileName</span> <span class="o">=</span> <span class="nv">$file</span><span class="o">-&gt;</span><span class="na">getFilename</span><span class="p">();</span>
+    <span class="nv">$className</span> <span class="o">=</span> <span class="nv">$match</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+    <span class="nv">$correctFileName</span> <span class="o">=</span> <span class="nv">$className</span> <span class="o">.</span> <span class="s1">'.php'</span><span class="p">;</span>
 
-    // File is already same as class name
-    if ($fileName === $correctFileName) {
-        continue;
-    }
+    <span class="c1">// File is already same as class name</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$fileName</span> <span class="o">===</span> <span class="nv">$correctFileName</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    $renames[$fileName] = $correctFileName;
-    $newFilePath = str_replace($fileName, $correctFileName, $filePath);
-    NetteFileSystem::rename($filePath, $newFilePath);
-}
+    <span class="nv">$renames</span><span class="p">[</span><span class="nv">$fileName</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$correctFileName</span><span class="p">;</span>
+    <span class="nv">$newFilePath</span> <span class="o">=</span> <span class="nb">str_replace</span><span class="p">(</span><span class="nv">$fileName</span><span class="p">,</span> <span class="nv">$correctFileName</span><span class="p">,</span> <span class="nv">$filePath</span><span class="p">);</span>
+    <span class="nx">NetteFileSystem</span><span class="o">::</span><span class="na">rename</span><span class="p">(</span><span class="nv">$filePath</span><span class="p">,</span> <span class="nv">$newFilePath</span><span class="p">);</span>
+<span class="p">}</span>
 
-echo Json::encode($renames, Json::PRETTY);</code></pre>
+<span class="k">echo</span> <span class="nx">Json</span><span class="o">::</span><span class="na">encode</span><span class="p">(</span><span class="nv">$renames</span><span class="p">,</span> <span class="nx">Json</span><span class="o">::</span><span class="na">PRETTY</span><span class="p">);</span></code></pre>
     <p>The second one finds files with multiple classes. It uses RobotLoader itself, because RobotLoader already knows which class lives in which file, and runs Rector in Docker on each of those files to split them, followed by <code>composer dump-autoload</code>.</p>
     <p>Then the Rector config, generated from the old-to-new map:</p>
-<pre><code>Rector\Rector\Class_\RenameClassRector:
-    Glami\libs\Statistics\NormalDistribution: Glami\Statistics\NormalDistribution
-    Glami\libs\PHPStan\PHPStan: Glami\PHPStan\PHPStan
-    Glami\libs\PageTimeApc: Glami\PageTimeApc
-    Glami\libs\Tools\Date\Range: Glami\Tools\Date\Range
-    Glami\libs\Cache\Apc: Glami\Cache\Apc
-    # ...</code></pre>
+<pre data-lang="YAML"><code class="language-yaml"><span class="nt">Rector\Rector\Class_\RenameClassRector</span><span class="p">:</span>
+    <span class="nt">Glami\libs\Statistics\NormalDistribution</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Glami\Statistics\NormalDistribution</span>
+    <span class="nt">Glami\libs\PHPStan\PHPStan</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Glami\PHPStan\PHPStan</span>
+    <span class="nt">Glami\libs\PageTimeApc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Glami\PageTimeApc</span>
+    <span class="nt">Glami\libs\Tools\Date\Range</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Glami\Tools\Date\Range</span>
+    <span class="nt">Glami\libs\Cache\Apc</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Glami\Cache\Apc</span>
+    <span class="c1"># ...</span></code></pre>
     <p>And the last script searches the whole project, outside <code>vendor</code> and a few other directories, for any old class name that still appears as a string. Those are the places Rector can&rsquo;t see: config files, templates, strings.</p>
 
     <h2>90% of the time: edge cases</h2>
     <p>The renames were the easy part. Most of the time went into things like these:</p>
-<pre><code>- /** @var  */
-+ /** @var */
+<pre data-lang="Diff"><code class="language-diff"><span class="gd">- /** @var  */</span>
+<span class="gi">+ /** @var */</span>
   private $collation;
 
-- $mockSoapService = $this-&gt;getMockBuilder('\Klarka\GpWebPay\SoapService');
-+ $mockSoapService = $this-&gt;getMockBuilder(SoapService::class);
+<span class="gd">- $mockSoapService = $this-&gt;getMockBuilder('\Klarka\GpWebPay\SoapService');</span>
+<span class="gi">+ $mockSoapService = $this-&gt;getMockBuilder(SoapService::class);</span>
 
-- $this-&gt;expectException('MMDB_Exception');
-+ $this-&gt;expectException(\Klarka\MMDB\MMDB_Exception::class);
+<span class="gd">- $this-&gt;expectException('MMDB_Exception');</span>
+<span class="gi">+ $this-&gt;expectException(\Klarka\MMDB\MMDB_Exception::class);</span>
 
-- class DownloaderResult extends Klarka\HTTP\Downloader\Result {}
-+ class DownloaderResult extends \Klarka\HTTP\Downloader\Result {}</code></pre>
+<span class="gd">- class DownloaderResult extends Klarka\HTTP\Downloader\Result {}</span>
+<span class="gi">+ class DownloaderResult extends \Klarka\HTTP\Downloader\Result {}</span></code></pre>
     <p>Broken docblocks, class names hidden in strings, and relative names that only worked because of where the file used to live.</p>
 
     <h2>Code review?</h2>
