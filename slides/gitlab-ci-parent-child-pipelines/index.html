@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CI in a monorepo with GitLab parent-child pipelines · Jan Mikeš</title>
+<title>GitLab CI parent-child pipelines in a monorepo · Jan Mikeš</title>
 <meta name="description" content="GitLab parent-child and dynamic child pipelines in a monorepo: split a huge .gitlab-ci.yml, stop failing silently, and test only what a change affects.">
 <link rel="canonical" href="https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/">
 <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="janmikes.cz">
-<meta property="og:title" content="CI in a monorepo with GitLab parent-child pipelines">
+<meta property="og:title" content="GitLab CI parent-child pipelines in a monorepo">
 <meta property="og:description" content="Parent-child and dynamic child pipelines in a GitLab monorepo, with a live demo that runs only what a change affects.">
 <meta property="og:url" content="https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/">
 <meta property="og:image" content="https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg">
@@ -21,9 +21,10 @@
 <meta property="og:image:height" content="675">
 <meta property="og:locale" content="en_GB">
 <meta property="article:published_time" content="2021-10-01">
+<meta property="article:modified_time" content="2026-11-01">
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CI in a monorepo with GitLab parent-child pipelines">
+<meta name="twitter:title" content="GitLab CI parent-child pipelines in a monorepo">
 <meta name="twitter:description" content="Parent-child and dynamic child pipelines in a GitLab monorepo, with a live demo that runs only what a change affects.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg">
 
@@ -194,6 +195,13 @@ file_put_contents(__DIR__ . '/generated-gitlab-ci.yml', $ciFileContent);</code><
       </ol>
     </details>
 
+    <h2>Related talks</h2>
+    <ul>
+      <li><a href="/slides/simplest-gitlab-ci-pipeline/">The simplest GitLab CI pipeline ever</a> · 2018</li>
+      <li><a href="/slides/gitlab-ci-app-engine-autodeploy/">Auto-deploying to Google App Engine with GitLab CI</a> · 2018</li>
+      <li><a href="/slides/continuous-deployment/">Continuous Deployment is the best!</a> · 2022</li>
+    </ul>
+
     <p class="links">
       <a href="https://www.youtube.com/watch?v=XqS6YkCBOuI">Video</a>
       <a href="https://gitlab.com/janmikes/phplive-2021-parent-child-pipelines">Demo code on GitLab</a>
@@ -207,16 +215,155 @@ file_put_contents(__DIR__ . '/generated-gitlab-ci.yml', $ciFileContent);</code><
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "CI in a monorepo with GitLab parent-child pipelines",
-  "description": "GitLab parent-child and dynamic child pipelines in a monorepo: split a huge .gitlab-ci.yml, stop failing silently, and test only what a change affects.",
-  "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
-  "datePublished": "2021-10-01",
-  "dateModified": "2026-11-01",
-  "inLanguage": "en",
-  "image": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg",
-  "about": ["GitLab CI", "CI/CD", "Parent-child pipelines", "Dynamic child pipelines", "Monorepo"],
-  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
+      "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
+      "name": "GitLab CI parent-child pipelines in a monorepo · Jan Mikeš",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://janmikes.cz/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#breadcrumb"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#image"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Jan Mikeš",
+          "item": "https://janmikes.cz/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Talks",
+          "item": "https://janmikes.cz/slides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "CI in a monorepo with GitLab parent-child pipelines",
+          "item": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/"
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#image",
+      "url": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg",
+      "contentUrl": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg",
+      "width": 1200,
+      "height": 675,
+      "caption": "Title slide of “CI in a monorepo with GitLab parent-child pipelines”"
+    },
+    {
+      "@type": "Article",
+      "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#article",
+      "headline": "CI in a monorepo with GitLab parent-child pipelines",
+      "description": "GitLab parent-child and dynamic child pipelines in a monorepo: split a huge .gitlab-ci.yml, stop failing silently, and test only what a change affects.",
+      "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
+      "mainEntityOfPage": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/"
+      },
+      "datePublished": "2021-10-01",
+      "dateModified": "2026-11-01",
+      "inLanguage": "en",
+      "image": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#image"
+      },
+      "about": [
+        "GitLab CI",
+        "CI/CD",
+        "Parent-child pipelines",
+        "Dynamic child pipelines",
+        "Monorepo"
+      ],
+      "author": {
+        "@type": "Person",
+        "@id": "https://janmikes.cz/#person",
+        "name": "Jan Mikeš",
+        "url": "https://janmikes.cz/"
+      },
+      "publisher": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "isPartOf": {
+        "@type": "CollectionPage",
+        "@id": "https://janmikes.cz/slides/",
+        "url": "https://janmikes.cz/slides/",
+        "name": "Talks · Jan Mikeš"
+      },
+      "alternativeHeadline": "CI v monorepu pomocí Gitlab parent-child pipelines",
+      "video": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#video"
+      }
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#talk",
+      "name": "CI in a monorepo with GitLab parent-child pipelines",
+      "alternateName": "CI v monorepu pomocí Gitlab parent-child pipelines",
+      "startDate": "2021-10-01",
+      "inLanguage": "cs",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "Ostrava",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Ostrava",
+          "addressCountry": "CZ"
+        }
+      },
+      "superEvent": {
+        "@type": "Event",
+        "name": "php.live 2021",
+        "location": {
+          "@type": "Place",
+          "name": "Ostrava",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Ostrava",
+            "addressCountry": "CZ"
+          }
+        },
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode"
+      },
+      "performer": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "subjectOf": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#article"
+      },
+      "recordedIn": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#video"
+      }
+    },
+    {
+      "@type": "VideoObject",
+      "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#video",
+      "name": "Honza Mikeš - CI v monorepu pomocí Gitlab parent-child pipelines",
+      "description": "Recording of my talk “CI in a monorepo with GitLab parent-child pipelines” at php.live 2021, in Czech.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/XqS6YkCBOuI/hqdefault.jpg",
+      "uploadDate": "2021-10-19",
+      "duration": "PT35M49S",
+      "embedUrl": "https://www.youtube.com/embed/XqS6YkCBOuI",
+      "url": "https://www.youtube.com/watch?v=XqS6YkCBOuI",
+      "inLanguage": "cs",
+      "recordedAt": {
+        "@id": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/#talk"
+      }
+    }
+  ]
 }
 </script>
 </body>

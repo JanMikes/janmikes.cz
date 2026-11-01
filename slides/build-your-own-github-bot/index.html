@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Build your own GitHub bot that fixes code and opens pull requests · Jan Mikeš</title>
+<title>Build a GitHub bot that fixes code and opens PRs · Jan Mikeš</title>
 <meta name="description" content="How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.">
 <link rel="canonical" href="https://janmikes.cz/slides/build-your-own-github-bot/">
 <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="janmikes.cz">
-<meta property="og:title" content="Build your own GitHub bot">
+<meta property="og:title" content="Build a GitHub bot that fixes code and opens PRs">
 <meta property="og:description" content="A GitHub App that fixes your code on push and opens a pull request: webhooks, auth and the Git Data API.">
 <meta property="og:url" content="https://janmikes.cz/slides/build-your-own-github-bot/">
 <meta property="og:image" content="https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg">
@@ -21,9 +21,10 @@
 <meta property="og:image:height" content="675">
 <meta property="og:locale" content="en_GB">
 <meta property="article:published_time" content="2019-06-20">
+<meta property="article:modified_time" content="2026-11-01">
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Build your own GitHub bot">
+<meta name="twitter:title" content="Build a GitHub bot that fixes code and opens PRs">
 <meta name="twitter:description" content="A GitHub App that fixes your code on push and opens a pull request: webhooks, auth and the Git Data API.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg">
 
@@ -145,6 +146,13 @@
       </ol>
     </details>
 
+    <h2>Related talks</h2>
+    <ul>
+      <li><a href="/slides/docker-github-action/">Your own GitHub Action: a quick start</a> · 2020</li>
+      <li><a href="/slides/psr-4-migration-with-rector/">Migrating a legacy PHP project to PSR-4 with scripts and Rector</a> · 2019</li>
+      <li><a href="/slides/nette-to-symfony-like-ninjas/">How we migrated from Nette to Symfony like ninjas</a> · 2019</li>
+    </ul>
+
     <p class="links">
       <a href="https://www.facebook.com/pehapkari/videos/vl.1061677974028234/680638195708955/">Video (Facebook)</a>
       <a href="https://getrector.org">Rector</a>
@@ -158,15 +166,136 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Build your own GitHub bot that fixes code and opens pull requests",
-  "description": "How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.",
-  "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
-  "datePublished": "2019-06-20",
-  "inLanguage": "en",
-  "image": "https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg",
-  "about": ["GitHub Apps", "Bots", "Webhooks", "Git", "Rector", "PHP", "Coding standards"],
-  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://janmikes.cz/slides/build-your-own-github-bot/",
+      "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
+      "name": "Build a GitHub bot that fixes code and opens PRs · Jan Mikeš",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://janmikes.cz/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#breadcrumb"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#image"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Jan Mikeš",
+          "item": "https://janmikes.cz/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Talks",
+          "item": "https://janmikes.cz/slides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Build your own GitHub bot",
+          "item": "https://janmikes.cz/slides/build-your-own-github-bot/"
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#image",
+      "url": "https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg",
+      "contentUrl": "https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg",
+      "width": 1200,
+      "height": 675,
+      "caption": "Title slide of “Build your own GitHub bot”"
+    },
+    {
+      "@type": "Article",
+      "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#article",
+      "headline": "Build your own GitHub bot that fixes code and opens pull requests",
+      "description": "How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.",
+      "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
+      "mainEntityOfPage": {
+        "@id": "https://janmikes.cz/slides/build-your-own-github-bot/"
+      },
+      "datePublished": "2019-06-20",
+      "dateModified": "2026-11-01",
+      "inLanguage": "en",
+      "image": {
+        "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#image"
+      },
+      "about": [
+        "GitHub Apps",
+        "Bots",
+        "Webhooks",
+        "Git",
+        "Rector",
+        "PHP",
+        "Coding standards"
+      ],
+      "author": {
+        "@type": "Person",
+        "@id": "https://janmikes.cz/#person",
+        "name": "Jan Mikeš",
+        "url": "https://janmikes.cz/"
+      },
+      "publisher": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "isPartOf": {
+        "@type": "CollectionPage",
+        "@id": "https://janmikes.cz/slides/",
+        "url": "https://janmikes.cz/slides/",
+        "name": "Talks · Jan Mikeš"
+      },
+      "alternativeHeadline": "Jak si udělat vlastního GitHub otroka"
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#talk",
+      "name": "Build your own GitHub bot",
+      "alternateName": "Jak si udělat vlastního GitHub otroka",
+      "startDate": "2019-06-20",
+      "inLanguage": "cs",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "Prague",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Prague",
+          "addressCountry": "CZ"
+        }
+      },
+      "superEvent": {
+        "@type": "Event",
+        "name": "Péhápkaři Prague meetup #38",
+        "location": {
+          "@type": "Place",
+          "name": "Prague",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Prague",
+            "addressCountry": "CZ"
+          }
+        },
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode"
+      },
+      "performer": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "subjectOf": {
+        "@id": "https://janmikes.cz/slides/build-your-own-github-bot/#article"
+      }
+    }
+  ]
 }
 </script>
 </body>

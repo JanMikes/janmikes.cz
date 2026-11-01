@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Talks · Jan Mikeš</title>
+<title>Talks on PHP, Symfony, CI/CD and AI agents · Jan Mikeš</title>
 <meta name="description" content="26 talks by Jan Mikeš since 2017, with write-ups, slides and videos: Claude Code and AI agents, PHP and Symfony, architecture, CI/CD, testing and self-hosting.">
 <link rel="canonical" href="https://janmikes.cz/slides/">
 <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="janmikes.cz">
-<meta property="og:title" content="Talks · Jan Mikeš">
+<meta property="og:title" content="Talks on PHP, Symfony, CI/CD and AI agents · Jan Mikeš">
 <meta property="og:description" content="26 talks since 2017: AI agents, PHP and Symfony, architecture, CI/CD, testing and self-hosting. Write-ups, slides and videos.">
 <meta property="og:url" content="https://janmikes.cz/slides/">
 <meta property="og:image" content="https://janmikes.cz/assets/og-talks.jpg">
@@ -21,7 +21,7 @@
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Talks · Jan Mikeš">
+<meta name="twitter:title" content="Talks on PHP, Symfony, CI/CD and AI agents · Jan Mikeš">
 <meta name="twitter:description" content="26 talks since 2017: AI agents, PHP and Symfony, architecture, CI/CD, testing and self-hosting. Write-ups, slides and videos.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/og-talks.jpg">
 
@@ -41,7 +41,7 @@
 
   <header class="title">
     <h1>Talks</h1>
-    <p class="lede">I speak at meetups and conferences about the work I actually do: AI-assisted development, architecture, and code that got out of hand. The slides are always public.</p>
+    <p class="lede">I speak at meetups and conferences about the work I actually do: AI-assisted development, architecture, and code that got out of hand. The slides are always public. <span>Topics so far: Claude Code and AI agents, PHP with Symfony and Nette, DDD and CQRS, GitLab CI and continuous deployment, Docker, testing with PHPUnit, and performance. Most talks were given in Czech; the write-ups are in English.</span></p>
     <p class="actions">
       <a class="cta" href="mailto:j.mikes@me.com">Invite me to speak <span aria-hidden="true">→</span></a>
     </p>
@@ -419,600 +419,795 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "@id": "https://janmikes.cz/slides/",
-  "url": "https://janmikes.cz/slides/",
-  "name": "Talks · Jan Mikeš",
-  "author": {
-    "@id": "https://janmikes.cz/#person"
-  },
-  "about": {
-    "@id": "https://janmikes.cz/#person"
-  },
-  "hasPart": [
+  "@graph": [
     {
-      "@type": "PresentationDigitalDocument",
-      "name": "Clean context: running Claude Code for days",
-      "url": "https://techmeetup-43-1.janmikes.cz/",
-      "datePublished": "2026-09-09",
+      "@type": "CollectionPage",
+      "@id": "https://janmikes.cz/slides/",
+      "url": "https://janmikes.cz/slides/",
+      "name": "Talks on PHP, Symfony, CI/CD and AI agents · Jan Mikeš",
+      "description": "26 talks by Jan Mikeš since 2017, with write-ups, slides and videos: Claude Code and AI agents, PHP and Symfony, architecture, CI/CD, testing and self-hosting.",
       "inLanguage": "en",
-      "description": "How to run Claude Code for days without it remembering anything. Lightning talk at Tech Meetup #43.",
-      "about": [
-        "Claude Code",
-        "AI-assisted development"
-      ],
-      "image": "https://janmikes.cz/assets/talks/techmeetup-43-1.webp",
+      "isPartOf": {
+        "@id": "https://janmikes.cz/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://janmikes.cz/slides/#breadcrumb"
+      },
       "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
+        "@id": "https://janmikes.cz/#person"
+      },
+      "about": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "@id": "https://janmikes.cz/slides/#list",
+        "name": "Talks by Jan Mikeš",
+        "numberOfItems": 26,
+        "itemListOrder": "https://schema.org/ItemListOrderDescending",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "url": "https://janmikes.cz/slides/clean-context/",
+            "name": "Clean context: running Claude Code for days"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "url": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/",
+            "name": "A vývojáři nebudou mít co žrát"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "url": "https://janmikes.cz/slides/homemade-ai-chatbot/",
+            "name": "Homemade AI chatbot: Symfony, RAG & OCR"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "url": "https://janmikes.cz/slides/micro-saas/",
+            "name": "How to build a micro SaaS, brick by brick"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "url": "https://janmikes.cz/slides/php-web-servers/",
+            "name": "Modern PHP web servers"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "url": "https://janmikes.cz/slides/fast-database-tests-phpunit/",
+            "name": "Fast database tests with PHPUnit, Nette and Doctrine"
+          },
+          {
+            "@type": "ListItem",
+            "position": 7,
+            "url": "https://janmikes.cz/slides/continuous-deployment/",
+            "name": "Continuous Deployment is the best!"
+          },
+          {
+            "@type": "ListItem",
+            "position": 8,
+            "url": "https://janmikes.cz/slides/mercure-symfony-ux-turbo/",
+            "name": "Real-time updates with Mercure and Symfony UX Turbo"
+          },
+          {
+            "@type": "ListItem",
+            "position": 9,
+            "url": "https://janmikes.cz/slides/php-app-architecture-cqrs/",
+            "name": "PHP app architecture: Symfony + DDD + CQRS, no event sourcing needed"
+          },
+          {
+            "@type": "ListItem",
+            "position": 10,
+            "url": "https://janmikes.cz/slides/apm-opentelemetry/",
+            "name": "Application Performance Monitoring with OpenTelemetry"
+          },
+          {
+            "@type": "ListItem",
+            "position": 11,
+            "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
+            "name": "CI in a monorepo with GitLab parent-child pipelines"
+          },
+          {
+            "@type": "ListItem",
+            "position": 12,
+            "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
+            "name": "Ultra-fast Docker on a Mac with an Ubuntu VM"
+          },
+          {
+            "@type": "ListItem",
+            "position": 13,
+            "url": "https://janmikes.cz/slides/docker-github-action/",
+            "name": "Your own GitHub Action: a quick start"
+          },
+          {
+            "@type": "ListItem",
+            "position": 14,
+            "url": "https://janmikes.cz/slides/dokku/",
+            "name": "Save $$$ with Dokku"
+          },
+          {
+            "@type": "ListItem",
+            "position": 15,
+            "url": "https://janmikes.cz/slides/sentry-in-nette/",
+            "name": "Sentry 2.0 in Nette 3.0"
+          },
+          {
+            "@type": "ListItem",
+            "position": 16,
+            "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
+            "name": "Build your own GitHub bot"
+          },
+          {
+            "@type": "ListItem",
+            "position": 17,
+            "url": "https://janmikes.cz/slides/psr-4-migration-with-rector/",
+            "name": "Migrating a legacy PHP project to PSR-4 with scripts and Rector"
+          },
+          {
+            "@type": "ListItem",
+            "position": 18,
+            "url": "https://janmikes.cz/slides/nette-to-symfony-like-ninjas/",
+            "name": "How we migrated from Nette to Symfony like ninjas"
+          },
+          {
+            "@type": "ListItem",
+            "position": 19,
+            "url": "https://janmikes.cz/slides/tdd-rest-api-testing/",
+            "name": "How we write REST APIs with TDD"
+          },
+          {
+            "@type": "ListItem",
+            "position": 20,
+            "url": "https://janmikes.cz/slides/gitlab-ci-app-engine-autodeploy/",
+            "name": "Auto-deploying to Google App Engine with GitLab CI"
+          },
+          {
+            "@type": "ListItem",
+            "position": 21,
+            "url": "https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/",
+            "name": "The simplest GitLab CI pipeline ever"
+          },
+          {
+            "@type": "ListItem",
+            "position": 22,
+            "url": "https://janmikes.cz/slides/blackfire-profiling/",
+            "name": "Profiling and speeding up a PHP app with Blackfire.io"
+          },
+          {
+            "@type": "ListItem",
+            "position": 23,
+            "url": "https://janmikes.cz/slides/dont-be-afraid-to-move-on/",
+            "name": "Don’t be afraid to move on"
+          },
+          {
+            "@type": "ListItem",
+            "position": 24,
+            "url": "https://janmikes.cz/slides/i-tried-ddd/",
+            "name": "I tried DDD, and this is how it turned out"
+          },
+          {
+            "@type": "ListItem",
+            "position": 25,
+            "url": "https://janmikes.cz/slides/less-venting-more-happiness/",
+            "name": "Less venting, more happiness"
+          },
+          {
+            "@type": "ListItem",
+            "position": 26,
+            "url": "https://janmikes.cz/slides/logging-saved-us/",
+            "name": "How logging saved our butts"
+          }
+        ]
+      },
+      "hasPart": [
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Clean context: running Claude Code for days",
+          "url": "https://techmeetup-43-1.janmikes.cz/",
+          "datePublished": "2026-09-09",
+          "inLanguage": "en",
+          "description": "How to run Claude Code for days without it remembering anything. Lightning talk at Tech Meetup #43.",
+          "about": [
+            "Claude Code",
+            "AI-assisted development"
+          ],
+          "image": "https://janmikes.cz/assets/talks/techmeetup-43-1.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "A vývojáři nebudou mít co žrát",
+          "url": "https://techmeetup-43-2.janmikes.cz/",
+          "datePublished": "2026-09-09",
+          "inLanguage": "cs",
+          "description": "Devs will have nothing to eat: autonomous delivery agents, the end of engineering as we knew it, and who is left standing. Lightning talk at Tech Meetup #43, in Czech.",
+          "about": [
+            "AI agents",
+            "Software engineering"
+          ],
+          "image": "https://janmikes.cz/assets/talks/techmeetup-43-2.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Homemade AI chatbot: Symfony, RAG & OCR",
+          "url": "https://techmeetup-39.janmikes.cz/",
+          "datePublished": "2026-01-28",
+          "inLanguage": "en",
+          "description": "A self-hosted chatbot that understands a municipal website, using RAG and vector search instead of fine-tuning. Tech Meetup #39 at Impact Hub Ostrava.",
+          "about": [
+            "Symfony",
+            "Retrieval-augmented generation",
+            "OCR"
+          ],
+          "image": "https://janmikes.cz/assets/talks/techmeetup-39.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "How to build a micro SaaS, brick by brick",
+          "url": "https://janmikes.cz/slides/micro-saas/",
+          "datePublished": "2025-01-29",
+          "inLanguage": "cs",
+          "description": "What a micro SaaS is, why build one next to your day job, and how: validating the idea, proof of concept, prototype, MVP, ready-made building blocks and cheap tech.",
+          "about": [
+            "Micro SaaS",
+            "Bootstrapping",
+            "MVP",
+            "Side projects",
+            "Product validation",
+            "PHP"
+          ],
+          "image": "https://janmikes.cz/assets/talks/micro-saas.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Modern PHP web servers",
+          "url": "https://janmikes.cz/slides/php-web-servers/",
+          "datePublished": "2024-05-17",
+          "inLanguage": "cs",
+          "description": "A practical comparison of PHP web servers: how SAPI and PHP-FPM fit in, what Apache, Nginx, Caddy, NGINX Unit and FrankenPHP are good and bad at, benchmark numbers, and which one to pick.",
+          "about": [
+            "PHP",
+            "Web servers",
+            "FrankenPHP",
+            "Caddy",
+            "Nginx",
+            "PHP-FPM"
+          ],
+          "image": "https://janmikes.cz/assets/talks/php-web-servers.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Fast database tests with PHPUnit, Nette and Doctrine",
+          "url": "https://janmikes.cz/slides/fast-database-tests-phpunit/",
+          "datePublished": "2024-04-27",
+          "inLanguage": "cs",
+          "description": "How to test a Nette + Doctrine app against a real database in PHPUnit: build the schema once, wrap each test in a transaction, roll back, and cache the database.",
+          "about": [
+            "PHP",
+            "PHPUnit",
+            "Doctrine",
+            "Nette",
+            "Testing",
+            "Database"
+          ],
+          "image": "https://janmikes.cz/assets/talks/fast-database-tests-phpunit.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Continuous Deployment is the best!",
+          "url": "https://janmikes.cz/slides/continuous-deployment/",
+          "datePublished": "2022-11-26",
+          "inLanguage": "cs",
+          "description": "Why every push should go to production: continuous deployment vs delivery, what it does to a team, the common excuses against it, and the tooling that makes it safe.",
+          "about": [
+            "Continuous deployment",
+            "Continuous delivery",
+            "CI/CD",
+            "DevOps",
+            "Feature flags"
+          ],
+          "image": "https://janmikes.cz/assets/talks/continuous-deployment.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Real-time updates with Mercure and Symfony UX Turbo",
+          "url": "https://janmikes.cz/slides/mercure-symfony-ux-turbo/",
+          "datePublished": "2022-10-21",
+          "inLanguage": "cs",
+          "description": "How Mercure pushes real-time updates over server-sent events, and how I used it with Symfony UX Turbo in Peon to show live job status, without writing JavaScript.",
+          "about": [
+            "Mercure",
+            "Symfony",
+            "Symfony UX Turbo",
+            "Hotwire Turbo",
+            "Server-sent events",
+            "Real-time web"
+          ],
+          "image": "https://janmikes.cz/assets/talks/mercure-symfony-ux-turbo.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "PHP app architecture: Symfony + DDD + CQRS, no event sourcing needed",
+          "url": "https://janmikes.cz/slides/php-app-architecture-cqrs/",
+          "datePublished": "2022-09-08",
+          "inLanguage": "cs",
+          "description": "How I structure Symfony apps with DDD and CQRS: clear layers, a command bus, a write model on Doctrine ORM, a read model on plain SQL, and CI checks that keep it all in place.",
+          "about": [
+            "PHP",
+            "Symfony",
+            "CQRS",
+            "Domain-Driven Design",
+            "Software architecture",
+            "Symfony Messenger",
+            "Doctrine"
+          ],
+          "image": "https://janmikes.cz/assets/talks/php-app-architecture-cqrs.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Application Performance Monitoring with OpenTelemetry",
+          "url": "https://janmikes.cz/slides/apm-opentelemetry/",
+          "datePublished": "2022-06-08",
+          "inLanguage": "cs",
+          "description": "What observability and APM are, how traces and spans work, why OpenTelemetry exists, how its SDK, exporters and collector fit together, and how to instrument a PHP app.",
+          "about": [
+            "OpenTelemetry",
+            "Application Performance Monitoring",
+            "Observability",
+            "Distributed tracing",
+            "PHP",
+            "Symfony"
+          ],
+          "image": "https://janmikes.cz/assets/talks/apm-opentelemetry.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "CI in a monorepo with GitLab parent-child pipelines",
+          "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
+          "datePublished": "2021-10-01",
+          "inLanguage": "cs",
+          "description": "How GitLab parent-child and dynamic child pipelines split one huge .gitlab-ci.yml into smaller pipelines, why that helps, and how it fits a monorepo.",
+          "about": [
+            "GitLab CI",
+            "CI/CD",
+            "Parent-child pipelines",
+            "Dynamic child pipelines",
+            "Monorepo"
+          ],
+          "image": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Ultra-fast Docker on a Mac with an Ubuntu VM",
+          "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
+          "datePublished": "2021-03-27",
+          "inLanguage": "cs",
+          "description": "Why Docker Desktop for Mac was so slow with mounted files in 2021, the usual fixes, and how Docker in a local Ubuntu VM took a page from 160 s to 85 ms.",
+          "about": [
+            "Docker",
+            "Docker Desktop",
+            "macOS",
+            "Virtual machines",
+            "Ubuntu",
+            "Developer experience"
+          ],
+          "image": "https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Your own GitHub Action: a quick start",
+          "url": "https://janmikes.cz/slides/docker-github-action/",
+          "datePublished": "2020-11-28",
+          "inLanguage": "cs",
+          "description": "How a Docker container GitHub Action works and how to build one in three steps: a small PHP tool, a Dockerfile and action.yml, then use it in a workflow.",
+          "about": [
+            "GitHub Actions",
+            "Docker",
+            "CI/CD",
+            "PHP",
+            "Composer"
+          ],
+          "image": "https://janmikes.cz/assets/talks/docker-github-action.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Save $$$ with Dokku",
+          "url": "https://janmikes.cz/slides/dokku/",
+          "datePublished": "2020-03-23",
+          "inLanguage": "en",
+          "description": "What Dokku is, when a self-hosted mini PaaS is enough, and a real startup bill: $3,960 on managed hosting versus about $520 on one Dokku server.",
+          "about": [
+            "Dokku",
+            "PaaS",
+            "Docker",
+            "Self-hosting",
+            "GitLab CI",
+            "Hosting costs"
+          ],
+          "image": "https://janmikes.cz/assets/talks/dokku.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Sentry 2.0 in Nette 3.0",
+          "url": "https://janmikes.cz/slides/sentry-in-nette/",
+          "datePublished": "2019-08-08",
+          "inLanguage": "cs",
+          "description": "How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.",
+          "about": [
+            "Sentry",
+            "Nette",
+            "Tracy",
+            "PHP",
+            "Error tracking",
+            "Logging"
+          ],
+          "image": "https://janmikes.cz/assets/talks/sentry-in-nette.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Build your own GitHub bot",
+          "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
+          "datePublished": "2019-06-20",
+          "inLanguage": "cs",
+          "description": "How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.",
+          "about": [
+            "GitHub Apps",
+            "Bots",
+            "Webhooks",
+            "Git",
+            "Rector",
+            "PHP",
+            "Coding standards"
+          ],
+          "image": "https://janmikes.cz/assets/talks/build-your-own-github-bot.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Migrating a legacy PHP project to PSR-4 with scripts and Rector",
+          "url": "https://janmikes.cz/slides/psr-4-migration-with-rector/",
+          "datePublished": "2019-05-18",
+          "inLanguage": "cs",
+          "description": "How we moved a large legacy PHP codebase from Nette RobotLoader to Composer PSR-4 autoloading with small scripts and Rector, without blocking a team of 100 commits a day.",
+          "about": [
+            "PHP",
+            "PSR-4",
+            "Rector",
+            "Composer",
+            "Autoloading",
+            "Nette",
+            "Legacy code",
+            "Refactoring"
+          ],
+          "image": "https://janmikes.cz/assets/talks/psr-4-migration-with-rector.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "How we migrated from Nette to Symfony like ninjas",
+          "url": "https://janmikes.cz/slides/nette-to-symfony-like-ninjas/",
+          "datePublished": "2019-03-14",
+          "inLanguage": "cs",
+          "description": "How we moved the Entrydo API from Nette to Symfony in 13 working days with Rector: what changed, what still had to be done by hand, and the bug that took 20 hours.",
+          "about": [
+            "PHP",
+            "Nette",
+            "Symfony",
+            "Rector",
+            "Framework migration",
+            "Doctrine",
+            "Refactoring"
+          ],
+          "image": "https://janmikes.cz/assets/talks/nette-to-symfony-like-ninjas.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "How we write REST APIs with TDD",
+          "url": "https://janmikes.cz/slides/tdd-rest-api-testing/",
+          "datePublished": "2018-10-20",
+          "inLanguage": "cs",
+          "description": "How we went from zero tests to a test for every API endpoint: JSON request and response files in a data provider, written before the code, and 6 minutes from push to production.",
+          "about": [
+            "PHP",
+            "TDD",
+            "REST API",
+            "PHPUnit",
+            "Integration testing",
+            "Nette",
+            "GitLab CI"
+          ],
+          "image": "https://janmikes.cz/assets/talks/tdd-rest-api-testing.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Auto-deploying to Google App Engine with GitLab CI",
+          "url": "https://janmikes.cz/slides/gitlab-ci-app-engine-autodeploy/",
+          "datePublished": "2018-09-13",
+          "inLanguage": "cs",
+          "description": "Step by step: a Google Cloud project, a service account, the App Engine Admin API and a short .gitlab-ci.yml that deploys a PHP app to App Engine on every push.",
+          "about": [
+            "GitLab CI",
+            "Google App Engine",
+            "Google Cloud",
+            "Continuous deployment",
+            "PHP"
+          ],
+          "image": "https://janmikes.cz/assets/talks/gitlab-ci-app-engine-autodeploy.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "The simplest GitLab CI pipeline ever",
+          "url": "https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/",
+          "datePublished": "2018-06-23",
+          "inLanguage": "en",
+          "description": "A three-line .gitlab-ci.yml that runs, then how GitLab CI jobs work: Docker images, stages, artifacts, a multi-stage PHP pipeline with Composer and PHPStan.",
+          "about": [
+            "GitLab CI",
+            "Continuous integration",
+            "Docker",
+            "PHP",
+            "PHPStan"
+          ],
+          "image": "https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Profiling and speeding up a PHP app with Blackfire.io",
+          "url": "https://janmikes.cz/slides/blackfire-profiling/",
+          "datePublished": "2018-03-12",
+          "inLanguage": "cs",
+          "description": "Live profiling of a real REST API: how Blackfire works, how to read its call graph, and how Doctrine hydration and value objects slowed our endpoint down.",
+          "about": [
+            "PHP",
+            "Blackfire",
+            "Profiling",
+            "Performance",
+            "Doctrine ORM",
+            "Value objects"
+          ],
+          "image": "https://janmikes.cz/assets/talks/blackfire-profiling.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Don’t be afraid to move on",
+          "url": "https://janmikes.cz/slides/dont-be-afraid-to-move-on/",
+          "datePublished": "2018-02-27",
+          "inLanguage": "cs",
+          "description": "A talk about changing jobs as a developer: setting your own criteria, expectations vs reality on pay, a market with huge demand, and choosing among offers.",
+          "about": [
+            "Career",
+            "Changing jobs",
+            "Developer job market",
+            "Salary negotiation"
+          ],
+          "image": "https://janmikes.cz/assets/talks/dont-be-afraid-to-move-on.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "I tried DDD, and this is how it turned out",
+          "url": "https://janmikes.cz/slides/i-tried-ddd/",
+          "datePublished": "2018-02-08",
+          "inLanguage": "cs",
+          "description": "Mistakes from my first Domain-Driven Design project in PHP: value objects for everything, logic in entities, enums, UUIDs and exceptions, with Blackfire numbers.",
+          "about": [
+            "Domain-Driven Design",
+            "PHP",
+            "Doctrine",
+            "Value objects",
+            "Blackfire"
+          ],
+          "image": "https://janmikes.cz/assets/talks/i-tried-ddd.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "Less venting, more happiness",
+          "url": "https://janmikes.cz/slides/less-venting-more-happiness/",
+          "datePublished": "2017-11-22",
+          "inLanguage": "cs",
+          "description": "A talk on clearing the air at work: integrity, telling the truth, checking you understand each other, feedforward instead of feedback, and lessons from experience.",
+          "about": [
+            "Communication",
+            "Teamwork",
+            "Feedback",
+            "Feedforward",
+            "Workplace culture"
+          ],
+          "image": "https://janmikes.cz/assets/talks/less-venting-more-happiness.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        },
+        {
+          "@type": "PresentationDigitalDocument",
+          "name": "How logging saved our butts",
+          "url": "https://janmikes.cz/slides/logging-saved-us/",
+          "datePublished": "2017-10-12",
+          "inLanguage": "cs",
+          "description": "A true story: I deleted a production database after a migration, then rebuilt the lost orders from access logs, stored request bodies and Postman replays.",
+          "about": [
+            "Logging",
+            "Incident recovery",
+            "Monolog",
+            "MongoDB",
+            "Heroku",
+            "PHP"
+          ],
+          "image": "https://janmikes.cz/assets/talks/logging-saved-us.webp",
+          "author": {
+            "@type": "Person",
+            "@id": "https://janmikes.cz/#person",
+            "name": "Jan Mikeš",
+            "url": "https://janmikes.cz/"
+          }
+        }
+      ]
     },
     {
-      "@type": "PresentationDigitalDocument",
-      "name": "A vývojáři nebudou mít co žrát",
-      "url": "https://techmeetup-43-2.janmikes.cz/",
-      "datePublished": "2026-09-09",
-      "inLanguage": "cs",
-      "description": "Devs will have nothing to eat: autonomous delivery agents, the end of engineering as we knew it, and who is left standing. Lightning talk at Tech Meetup #43, in Czech.",
-      "about": [
-        "AI agents",
-        "Software engineering"
-      ],
-      "image": "https://janmikes.cz/assets/talks/techmeetup-43-2.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Homemade AI chatbot: Symfony, RAG & OCR",
-      "url": "https://techmeetup-39.janmikes.cz/",
-      "datePublished": "2026-01-28",
-      "inLanguage": "en",
-      "description": "A self-hosted chatbot that understands a municipal website, using RAG and vector search instead of fine-tuning. Tech Meetup #39 at Impact Hub Ostrava.",
-      "about": [
-        "Symfony",
-        "Retrieval-augmented generation",
-        "OCR"
-      ],
-      "image": "https://janmikes.cz/assets/talks/techmeetup-39.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "How to build a micro SaaS, brick by brick",
-      "url": "https://janmikes.cz/slides/micro-saas/",
-      "datePublished": "2025-01-29",
-      "inLanguage": "cs",
-      "description": "What a micro SaaS is, why build one next to your day job, and how: validating the idea, proof of concept, prototype, MVP, ready-made building blocks and cheap tech.",
-      "about": [
-        "Micro SaaS",
-        "Bootstrapping",
-        "MVP",
-        "Side projects",
-        "Product validation",
-        "PHP"
-      ],
-      "image": "https://janmikes.cz/assets/talks/micro-saas.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Modern PHP web servers",
-      "url": "https://janmikes.cz/slides/php-web-servers/",
-      "datePublished": "2024-05-17",
-      "inLanguage": "cs",
-      "description": "A practical comparison of PHP web servers: how SAPI and PHP-FPM fit in, what Apache, Nginx, Caddy, NGINX Unit and FrankenPHP are good and bad at, benchmark numbers, and which one to pick.",
-      "about": [
-        "PHP",
-        "Web servers",
-        "FrankenPHP",
-        "Caddy",
-        "Nginx",
-        "PHP-FPM"
-      ],
-      "image": "https://janmikes.cz/assets/talks/php-web-servers.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Fast database tests with PHPUnit, Nette and Doctrine",
-      "url": "https://janmikes.cz/slides/fast-database-tests-phpunit/",
-      "datePublished": "2024-04-27",
-      "inLanguage": "cs",
-      "description": "How to test a Nette + Doctrine app against a real database in PHPUnit: build the schema once, wrap each test in a transaction, roll back, and cache the database.",
-      "about": [
-        "PHP",
-        "PHPUnit",
-        "Doctrine",
-        "Nette",
-        "Testing",
-        "Database"
-      ],
-      "image": "https://janmikes.cz/assets/talks/fast-database-tests-phpunit.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Continuous Deployment is the best!",
-      "url": "https://janmikes.cz/slides/continuous-deployment/",
-      "datePublished": "2022-11-26",
-      "inLanguage": "cs",
-      "description": "Why every push should go to production: continuous deployment vs delivery, what it does to a team, the common excuses against it, and the tooling that makes it safe.",
-      "about": [
-        "Continuous deployment",
-        "Continuous delivery",
-        "CI/CD",
-        "DevOps",
-        "Feature flags"
-      ],
-      "image": "https://janmikes.cz/assets/talks/continuous-deployment.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Real-time updates with Mercure and Symfony UX Turbo",
-      "url": "https://janmikes.cz/slides/mercure-symfony-ux-turbo/",
-      "datePublished": "2022-10-21",
-      "inLanguage": "cs",
-      "description": "How Mercure pushes real-time updates over server-sent events, and how I used it with Symfony UX Turbo in Peon to show live job status, without writing JavaScript.",
-      "about": [
-        "Mercure",
-        "Symfony",
-        "Symfony UX Turbo",
-        "Hotwire Turbo",
-        "Server-sent events",
-        "Real-time web"
-      ],
-      "image": "https://janmikes.cz/assets/talks/mercure-symfony-ux-turbo.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "PHP app architecture: Symfony + DDD + CQRS, no event sourcing needed",
-      "url": "https://janmikes.cz/slides/php-app-architecture-cqrs/",
-      "datePublished": "2022-09-08",
-      "inLanguage": "cs",
-      "description": "How I structure Symfony apps with DDD and CQRS: clear layers, a command bus, a write model on Doctrine ORM, a read model on plain SQL, and CI checks that keep it all in place.",
-      "about": [
-        "PHP",
-        "Symfony",
-        "CQRS",
-        "Domain-Driven Design",
-        "Software architecture",
-        "Symfony Messenger",
-        "Doctrine"
-      ],
-      "image": "https://janmikes.cz/assets/talks/php-app-architecture-cqrs.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Application Performance Monitoring with OpenTelemetry",
-      "url": "https://janmikes.cz/slides/apm-opentelemetry/",
-      "datePublished": "2022-06-08",
-      "inLanguage": "cs",
-      "description": "What observability and APM are, how traces and spans work, why OpenTelemetry exists, how its SDK, exporters and collector fit together, and how to instrument a PHP app.",
-      "about": [
-        "OpenTelemetry",
-        "Application Performance Monitoring",
-        "Observability",
-        "Distributed tracing",
-        "PHP",
-        "Symfony"
-      ],
-      "image": "https://janmikes.cz/assets/talks/apm-opentelemetry.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "CI in a monorepo with GitLab parent-child pipelines",
-      "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
-      "datePublished": "2021-10-01",
-      "inLanguage": "cs",
-      "description": "How GitLab parent-child and dynamic child pipelines split one huge .gitlab-ci.yml into smaller pipelines, why that helps, and how it fits a monorepo.",
-      "about": [
-        "GitLab CI",
-        "CI/CD",
-        "Parent-child pipelines",
-        "Dynamic child pipelines",
-        "Monorepo"
-      ],
-      "image": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Ultra-fast Docker on a Mac with an Ubuntu VM",
-      "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
-      "datePublished": "2021-03-27",
-      "inLanguage": "cs",
-      "description": "Why Docker Desktop for Mac was so slow with mounted files in 2021, the usual fixes, and how Docker in a local Ubuntu VM took a page from 160 s to 85 ms.",
-      "about": [
-        "Docker",
-        "Docker Desktop",
-        "macOS",
-        "Virtual machines",
-        "Ubuntu",
-        "Developer experience"
-      ],
-      "image": "https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Your own GitHub Action: a quick start",
-      "url": "https://janmikes.cz/slides/docker-github-action/",
-      "datePublished": "2020-11-28",
-      "inLanguage": "cs",
-      "description": "How a Docker container GitHub Action works and how to build one in three steps: a small PHP tool, a Dockerfile and action.yml, then use it in a workflow.",
-      "about": [
-        "GitHub Actions",
-        "Docker",
-        "CI/CD",
-        "PHP",
-        "Composer"
-      ],
-      "image": "https://janmikes.cz/assets/talks/docker-github-action.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Save $$$ with Dokku",
-      "url": "https://janmikes.cz/slides/dokku/",
-      "datePublished": "2020-03-23",
-      "inLanguage": "en",
-      "description": "What Dokku is, when a self-hosted mini PaaS is enough, and a real startup bill: $3,960 on managed hosting versus about $520 on one Dokku server.",
-      "about": [
-        "Dokku",
-        "PaaS",
-        "Docker",
-        "Self-hosting",
-        "GitLab CI",
-        "Hosting costs"
-      ],
-      "image": "https://janmikes.cz/assets/talks/dokku.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Sentry 2.0 in Nette 3.0",
-      "url": "https://janmikes.cz/slides/sentry-in-nette/",
-      "datePublished": "2019-08-08",
-      "inLanguage": "cs",
-      "description": "How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.",
-      "about": [
-        "Sentry",
-        "Nette",
-        "Tracy",
-        "PHP",
-        "Error tracking",
-        "Logging"
-      ],
-      "image": "https://janmikes.cz/assets/talks/sentry-in-nette.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Build your own GitHub bot",
-      "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
-      "datePublished": "2019-06-20",
-      "inLanguage": "cs",
-      "description": "How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.",
-      "about": [
-        "GitHub Apps",
-        "Bots",
-        "Webhooks",
-        "Git",
-        "Rector",
-        "PHP",
-        "Coding standards"
-      ],
-      "image": "https://janmikes.cz/assets/talks/build-your-own-github-bot.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Migrating a legacy PHP project to PSR-4 with scripts and Rector",
-      "url": "https://janmikes.cz/slides/psr-4-migration-with-rector/",
-      "datePublished": "2019-05-18",
-      "inLanguage": "cs",
-      "description": "How we moved a large legacy PHP codebase from Nette RobotLoader to Composer PSR-4 autoloading with small scripts and Rector, without blocking a team of 100 commits a day.",
-      "about": [
-        "PHP",
-        "PSR-4",
-        "Rector",
-        "Composer",
-        "Autoloading",
-        "Nette",
-        "Legacy code",
-        "Refactoring"
-      ],
-      "image": "https://janmikes.cz/assets/talks/psr-4-migration-with-rector.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "How we migrated from Nette to Symfony like ninjas",
-      "url": "https://janmikes.cz/slides/nette-to-symfony-like-ninjas/",
-      "datePublished": "2019-03-14",
-      "inLanguage": "cs",
-      "description": "How we moved the Entrydo API from Nette to Symfony in 13 working days with Rector: what changed, what still had to be done by hand, and the bug that took 20 hours.",
-      "about": [
-        "PHP",
-        "Nette",
-        "Symfony",
-        "Rector",
-        "Framework migration",
-        "Doctrine",
-        "Refactoring"
-      ],
-      "image": "https://janmikes.cz/assets/talks/nette-to-symfony-like-ninjas.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "How we write REST APIs with TDD",
-      "url": "https://janmikes.cz/slides/tdd-rest-api-testing/",
-      "datePublished": "2018-10-20",
-      "inLanguage": "cs",
-      "description": "How we went from zero tests to a test for every API endpoint: JSON request and response files in a data provider, written before the code, and 6 minutes from push to production.",
-      "about": [
-        "PHP",
-        "TDD",
-        "REST API",
-        "PHPUnit",
-        "Integration testing",
-        "Nette",
-        "GitLab CI"
-      ],
-      "image": "https://janmikes.cz/assets/talks/tdd-rest-api-testing.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Auto-deploying to Google App Engine with GitLab CI",
-      "url": "https://janmikes.cz/slides/gitlab-ci-app-engine-autodeploy/",
-      "datePublished": "2018-09-13",
-      "inLanguage": "cs",
-      "description": "Step by step: a Google Cloud project, a service account, the App Engine Admin API and a short .gitlab-ci.yml that deploys a PHP app to App Engine on every push.",
-      "about": [
-        "GitLab CI",
-        "Google App Engine",
-        "Google Cloud",
-        "Continuous deployment",
-        "PHP"
-      ],
-      "image": "https://janmikes.cz/assets/talks/gitlab-ci-app-engine-autodeploy.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "The simplest GitLab CI pipeline ever",
-      "url": "https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/",
-      "datePublished": "2018-06-23",
-      "inLanguage": "en",
-      "description": "A three-line .gitlab-ci.yml that runs, then how GitLab CI jobs work: Docker images, stages, artifacts, a multi-stage PHP pipeline with Composer and PHPStan.",
-      "about": [
-        "GitLab CI",
-        "Continuous integration",
-        "Docker",
-        "PHP",
-        "PHPStan"
-      ],
-      "image": "https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Profiling and speeding up a PHP app with Blackfire.io",
-      "url": "https://janmikes.cz/slides/blackfire-profiling/",
-      "datePublished": "2018-03-12",
-      "inLanguage": "cs",
-      "description": "Live profiling of a real REST API: how Blackfire works, how to read its call graph, and how Doctrine hydration and value objects slowed our endpoint down.",
-      "about": [
-        "PHP",
-        "Blackfire",
-        "Profiling",
-        "Performance",
-        "Doctrine ORM",
-        "Value objects"
-      ],
-      "image": "https://janmikes.cz/assets/talks/blackfire-profiling.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Don’t be afraid to move on",
-      "url": "https://janmikes.cz/slides/dont-be-afraid-to-move-on/",
-      "datePublished": "2018-02-27",
-      "inLanguage": "cs",
-      "description": "A talk about changing jobs as a developer: setting your own criteria, expectations vs reality on pay, a market with huge demand, and choosing among offers.",
-      "about": [
-        "Career",
-        "Changing jobs",
-        "Developer job market",
-        "Salary negotiation"
-      ],
-      "image": "https://janmikes.cz/assets/talks/dont-be-afraid-to-move-on.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "I tried DDD, and this is how it turned out",
-      "url": "https://janmikes.cz/slides/i-tried-ddd/",
-      "datePublished": "2018-02-08",
-      "inLanguage": "cs",
-      "description": "Mistakes from my first Domain-Driven Design project in PHP: value objects for everything, logic in entities, enums, UUIDs and exceptions, with Blackfire numbers.",
-      "about": [
-        "Domain-Driven Design",
-        "PHP",
-        "Doctrine",
-        "Value objects",
-        "Blackfire"
-      ],
-      "image": "https://janmikes.cz/assets/talks/i-tried-ddd.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "Less venting, more happiness",
-      "url": "https://janmikes.cz/slides/less-venting-more-happiness/",
-      "datePublished": "2017-11-22",
-      "inLanguage": "cs",
-      "description": "A talk on clearing the air at work: integrity, telling the truth, checking you understand each other, feedforward instead of feedback, and lessons from experience.",
-      "about": [
-        "Communication",
-        "Teamwork",
-        "Feedback",
-        "Feedforward",
-        "Workplace culture"
-      ],
-      "image": "https://janmikes.cz/assets/talks/less-venting-more-happiness.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
-    },
-    {
-      "@type": "PresentationDigitalDocument",
-      "name": "How logging saved our butts",
-      "url": "https://janmikes.cz/slides/logging-saved-us/",
-      "datePublished": "2017-10-12",
-      "inLanguage": "cs",
-      "description": "A true story: I deleted a production database after a migration, then rebuilt the lost orders from access logs, stored request bodies and Postman replays.",
-      "about": [
-        "Logging",
-        "Incident recovery",
-        "Monolog",
-        "MongoDB",
-        "Heroku",
-        "PHP"
-      ],
-      "image": "https://janmikes.cz/assets/talks/logging-saved-us.webp",
-      "author": {
-        "@type": "Person",
-        "@id": "https://janmikes.cz/#person",
-        "name": "Jan Mikeš",
-        "url": "https://janmikes.cz/"
-      }
+      "@type": "BreadcrumbList",
+      "@id": "https://janmikes.cz/slides/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Jan Mikeš",
+          "item": "https://janmikes.cz/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Talks",
+          "item": "https://janmikes.cz/slides/"
+        }
+      ]
     }
   ]
 }

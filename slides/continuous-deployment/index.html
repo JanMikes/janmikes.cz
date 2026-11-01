@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Continuous Deployment is the best! · Jan Mikeš</title>
-<meta name="description" content="Why every push should go to production: continuous deployment vs delivery, what it does to a team, the common excuses against it, and the tooling that makes it safe.">
+<title>Continuous deployment: ship every push to production · Jan Mikeš</title>
+<meta name="description" content="Why every push should go to production: continuous deployment vs delivery, what it does to a team, the usual excuses, and the tooling that makes it safe.">
 <link rel="canonical" href="https://janmikes.cz/slides/continuous-deployment/">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -13,7 +13,7 @@
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="janmikes.cz">
-<meta property="og:title" content="Continuous Deployment is the best!">
+<meta property="og:title" content="Continuous deployment: ship every push to production">
 <meta property="og:description" content="A highly opinionated case for deploying on every push: the benefits, the excuses, and the tooling.">
 <meta property="og:url" content="https://janmikes.cz/slides/continuous-deployment/">
 <meta property="og:image" content="https://janmikes.cz/assets/talks/continuous-deployment.jpg">
@@ -21,9 +21,10 @@
 <meta property="og:image:height" content="675">
 <meta property="og:locale" content="en_GB">
 <meta property="article:published_time" content="2022-11-26">
+<meta property="article:modified_time" content="2026-11-01">
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Continuous Deployment is the best!">
+<meta name="twitter:title" content="Continuous deployment: ship every push to production">
 <meta name="twitter:description" content="A highly opinionated case for deploying on every push: the benefits, the excuses, and the tooling.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/talks/continuous-deployment.jpg">
 
@@ -128,6 +129,13 @@
       </ol>
     </details>
 
+    <h2>Related talks</h2>
+    <ul>
+      <li><a href="/slides/gitlab-ci-app-engine-autodeploy/">Auto-deploying to Google App Engine with GitLab CI</a> · 2018</li>
+      <li><a href="/slides/simplest-gitlab-ci-pipeline/">The simplest GitLab CI pipeline ever</a> · 2018</li>
+      <li><a href="/slides/dokku/">Save $$$ with Dokku</a> · 2020</li>
+    </ul>
+
     <p class="links">
       <a href="https://www.flagsmith.com">Flagsmith</a>
       <a href="https://sentry.io">Sentry</a>
@@ -140,15 +148,134 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Continuous Deployment is the best!",
-  "description": "Why every push should go to production: continuous deployment vs delivery, what it does to a team, the common excuses against it, and the tooling that makes it safe.",
-  "url": "https://janmikes.cz/slides/continuous-deployment/",
-  "datePublished": "2022-11-26",
-  "inLanguage": "en",
-  "image": "https://janmikes.cz/assets/talks/continuous-deployment.jpg",
-  "about": ["Continuous deployment", "Continuous delivery", "CI/CD", "DevOps", "Feature flags"],
-  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://janmikes.cz/slides/continuous-deployment/",
+      "url": "https://janmikes.cz/slides/continuous-deployment/",
+      "name": "Continuous deployment: ship every push to production · Jan Mikeš",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://janmikes.cz/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://janmikes.cz/slides/continuous-deployment/#breadcrumb"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://janmikes.cz/slides/continuous-deployment/#image"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://janmikes.cz/slides/continuous-deployment/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Jan Mikeš",
+          "item": "https://janmikes.cz/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Talks",
+          "item": "https://janmikes.cz/slides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Continuous Deployment is the best!",
+          "item": "https://janmikes.cz/slides/continuous-deployment/"
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://janmikes.cz/slides/continuous-deployment/#image",
+      "url": "https://janmikes.cz/assets/talks/continuous-deployment.jpg",
+      "contentUrl": "https://janmikes.cz/assets/talks/continuous-deployment.jpg",
+      "width": 1200,
+      "height": 675,
+      "caption": "Title slide of “Continuous Deployment is the best!”"
+    },
+    {
+      "@type": "Article",
+      "@id": "https://janmikes.cz/slides/continuous-deployment/#article",
+      "headline": "Continuous Deployment is the best!",
+      "description": "Why every push should go to production: continuous deployment vs delivery, what it does to a team, the usual excuses, and the tooling that makes it safe.",
+      "url": "https://janmikes.cz/slides/continuous-deployment/",
+      "mainEntityOfPage": {
+        "@id": "https://janmikes.cz/slides/continuous-deployment/"
+      },
+      "datePublished": "2022-11-26",
+      "dateModified": "2026-11-01",
+      "inLanguage": "en",
+      "image": {
+        "@id": "https://janmikes.cz/slides/continuous-deployment/#image"
+      },
+      "about": [
+        "Continuous deployment",
+        "Continuous delivery",
+        "CI/CD",
+        "DevOps",
+        "Feature flags"
+      ],
+      "author": {
+        "@type": "Person",
+        "@id": "https://janmikes.cz/#person",
+        "name": "Jan Mikeš",
+        "url": "https://janmikes.cz/"
+      },
+      "publisher": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "isPartOf": {
+        "@type": "CollectionPage",
+        "@id": "https://janmikes.cz/slides/",
+        "url": "https://janmikes.cz/slides/",
+        "name": "Talks · Jan Mikeš"
+      },
+      "alternativeHeadline": "Continuous Deployment je nejlepší!"
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/continuous-deployment/#talk",
+      "name": "Continuous Deployment is the best!",
+      "alternateName": "Continuous Deployment je nejlepší!",
+      "startDate": "2022-11-26",
+      "inLanguage": "cs",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "Pardubice",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Pardubice",
+          "addressCountry": "CZ"
+        }
+      },
+      "superEvent": {
+        "@type": "Event",
+        "name": "#posobota s04e08",
+        "location": {
+          "@type": "Place",
+          "name": "Pardubice",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Pardubice",
+            "addressCountry": "CZ"
+          }
+        },
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode"
+      },
+      "performer": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "subjectOf": {
+        "@id": "https://janmikes.cz/slides/continuous-deployment/#article"
+      }
+    }
+  ]
 }
 </script>
 </body>

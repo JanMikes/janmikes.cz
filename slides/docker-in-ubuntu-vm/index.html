@@ -21,6 +21,7 @@
 <meta property="og:image:height" content="675">
 <meta property="og:locale" content="en_GB">
 <meta property="article:published_time" content="2021-03-27">
+<meta property="article:modified_time" content="2026-11-01">
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ultra-fast Docker on a Mac with an Ubuntu VM">
@@ -120,6 +121,13 @@
       </ol>
     </details>
 
+    <h2>Related talks</h2>
+    <ul>
+      <li><a href="/slides/dokku/">Save $$$ with Dokku</a> · 2020</li>
+      <li><a href="/slides/docker-github-action/">Your own GitHub Action: a quick start</a> · 2020</li>
+      <li><a href="/slides/php-web-servers/">Modern PHP web servers</a> · 2024</li>
+    </ul>
+
     <p class="links">
       <a href="https://www.youtube.com/watch?v=FEaU47WbZcU">Video</a>
       <a href="https://github.com/evansm7/vftool">vftool</a>
@@ -132,16 +140,146 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Ultra-fast Docker on a Mac with an Ubuntu VM",
-  "description": "Why Docker Desktop for Mac was so slow with mounted files in 2021, the usual fixes, and how Docker in a local Ubuntu VM took a page from 160 s to 85 ms.",
-  "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
-  "datePublished": "2021-03-27",
-  "dateModified": "2026-11-01",
-  "inLanguage": "en",
-  "image": "https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.jpg",
-  "about": ["Docker", "Docker Desktop", "macOS", "Virtual machines", "Ubuntu", "Developer experience"],
-  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
+      "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
+      "name": "Ultra-fast Docker on a Mac with an Ubuntu VM · Jan Mikeš",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://janmikes.cz/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#breadcrumb"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#image"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Jan Mikeš",
+          "item": "https://janmikes.cz/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Talks",
+          "item": "https://janmikes.cz/slides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Ultra-fast Docker on a Mac with an Ubuntu VM",
+          "item": "https://janmikes.cz/slides/docker-in-ubuntu-vm/"
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#image",
+      "url": "https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.jpg",
+      "contentUrl": "https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.jpg",
+      "width": 1200,
+      "height": 675,
+      "caption": "Title slide of “Ultra-fast Docker on a Mac with an Ubuntu VM”"
+    },
+    {
+      "@type": "Article",
+      "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#article",
+      "headline": "Ultra-fast Docker on a Mac with an Ubuntu VM",
+      "description": "Why Docker Desktop for Mac was so slow with mounted files in 2021, the usual fixes, and how Docker in a local Ubuntu VM took a page from 160 s to 85 ms.",
+      "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
+      "mainEntityOfPage": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/"
+      },
+      "datePublished": "2021-03-27",
+      "dateModified": "2026-11-01",
+      "inLanguage": "en",
+      "image": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#image"
+      },
+      "about": [
+        "Docker",
+        "Docker Desktop",
+        "macOS",
+        "Virtual machines",
+        "Ubuntu",
+        "Developer experience"
+      ],
+      "author": {
+        "@type": "Person",
+        "@id": "https://janmikes.cz/#person",
+        "name": "Jan Mikeš",
+        "url": "https://janmikes.cz/"
+      },
+      "publisher": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "isPartOf": {
+        "@type": "CollectionPage",
+        "@id": "https://janmikes.cz/slides/",
+        "url": "https://janmikes.cz/slides/",
+        "name": "Talks · Jan Mikeš"
+      },
+      "alternativeHeadline": "Ultrarychlý Docker na Macu pomocí Ubuntu VM",
+      "video": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#video"
+      }
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#talk",
+      "name": "Ultra-fast Docker on a Mac with an Ubuntu VM",
+      "alternateName": "Ultrarychlý Docker na Macu pomocí Ubuntu VM",
+      "startDate": "2021-03-27",
+      "inLanguage": "cs",
+      "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+      "location": {
+        "@type": "VirtualLocation",
+        "name": "Online"
+      },
+      "superEvent": {
+        "@type": "Event",
+        "name": "#posobota s03e03",
+        "location": {
+          "@type": "VirtualLocation",
+          "name": "Online"
+        },
+        "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode"
+      },
+      "performer": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "subjectOf": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#article"
+      },
+      "recordedIn": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#video"
+      }
+    },
+    {
+      "@type": "VideoObject",
+      "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#video",
+      "name": "Honza Mikeš – Ultrarychlý Docker na Macu",
+      "description": "Recording of my talk “Ultra-fast Docker on a Mac with an Ubuntu VM” at #posobota s03e03, in Czech.",
+      "thumbnailUrl": "https://i.ytimg.com/vi/FEaU47WbZcU/hqdefault.jpg",
+      "uploadDate": "2021-03-27",
+      "duration": "PT35M42S",
+      "embedUrl": "https://www.youtube.com/embed/FEaU47WbZcU",
+      "url": "https://www.youtube.com/watch?v=FEaU47WbZcU",
+      "inLanguage": "cs",
+      "recordedAt": {
+        "@id": "https://janmikes.cz/slides/docker-in-ubuntu-vm/#talk"
+      }
+    }
+  ]
 }
 </script>
 </body>

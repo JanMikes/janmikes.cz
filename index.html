@@ -319,6 +319,15 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
       "primaryImageOfPage": { "@id": "https://janmikes.cz/#portrait" }
     },
     {
+      "@type": "CollectionPage",
+      "@id": "https://janmikes.cz/slides/",
+      "url": "https://janmikes.cz/slides/",
+      "name": "Talks on PHP, Symfony, CI/CD and AI agents · Jan Mikeš",
+      "inLanguage": "en",
+      "isPartOf": { "@id": "https://janmikes.cz/#website" },
+      "author": { "@id": "https://janmikes.cz/#person" }
+    },
+    {
       "@type": "ImageObject",
       "@id": "https://janmikes.cz/#portrait",
       "url": "https://janmikes.cz/assets/jan-mikes.jpg",
@@ -421,6 +430,7 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
       "@id": "https://janmikes.cz/#techmeetup-39",
       "name": "Tech Meetup #39",
       "startDate": "2026-01-28",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
       "location": {
         "@type": "Place",
         "name": "Impact Hub Ostrava",
@@ -437,6 +447,8 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
       "url": "https://janmikes.cz/slides/clean-context/",
       "image": "https://janmikes.cz/assets/talks/techmeetup-43-1.jpg",
       "superEvent": { "@id": "https://janmikes.cz/#techmeetup-43" },
+      "subjectOf": { "@id": "https://janmikes.cz/slides/clean-context/#article" },
+      "recordedIn": { "@id": "https://janmikes.cz/slides/clean-context/#video" },
       "performer": { "@id": "https://janmikes.cz/#person" },
       "workPerformed": { "@type": "PresentationDigitalDocument", "name": "Clean context: running Claude Code for days (slides)", "url": "https://techmeetup-43-1.janmikes.cz/" }
     },
@@ -451,6 +463,8 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
       "url": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/",
       "image": "https://janmikes.cz/assets/talks/techmeetup-43-2.jpg",
       "superEvent": { "@id": "https://janmikes.cz/#techmeetup-43" },
+      "subjectOf": { "@id": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/#article" },
+      "recordedIn": { "@id": "https://janmikes.cz/slides/devs-will-have-nothing-to-eat/#video" },
       "performer": { "@id": "https://janmikes.cz/#person" },
       "workPerformed": { "@type": "PresentationDigitalDocument", "name": "A vývojáři nebudou mít co žrát (slides)", "url": "https://techmeetup-43-2.janmikes.cz/", "inLanguage": "cs" }
     },
@@ -461,6 +475,7 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
       "description": "A self-hosted chatbot that understands a municipal website, using RAG and vector search instead of fine-tuning. It handles around 100 conversations a day on a single Hetzner box for about $3 a month.",
       "startDate": "2026-01-28",
       "inLanguage": "en",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
       "url": "https://janmikes.cz/slides/homemade-ai-chatbot/",
       "image": "https://janmikes.cz/assets/talks/techmeetup-39.jpg",
       "location": {
@@ -469,6 +484,8 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
         "address": { "@type": "PostalAddress", "addressLocality": "Ostrava", "addressCountry": "CZ" }
       },
       "superEvent": { "@id": "https://janmikes.cz/#techmeetup-39" },
+      "subjectOf": { "@id": "https://janmikes.cz/slides/homemade-ai-chatbot/#article" },
+      "recordedIn": { "@id": "https://janmikes.cz/slides/homemade-ai-chatbot/#video" },
       "performer": { "@id": "https://janmikes.cz/#person" },
       "workPerformed": { "@type": "PresentationDigitalDocument", "name": "Homemade AI chatbot: Symfony, RAG & OCR (slides)", "url": "https://techmeetup-39.janmikes.cz/" }
     }

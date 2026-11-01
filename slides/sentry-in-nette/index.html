@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sentry 2.0 in Nette 3.0: sending every Tracy error to Sentry · Jan Mikeš</title>
+<title>Sentry 2.0 in Nette 3.0: every Tracy error in Sentry · Jan Mikeš</title>
 <meta name="description" content="How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.">
 <link rel="canonical" href="https://janmikes.cz/slides/sentry-in-nette/">
 <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="janmikes.cz">
-<meta property="og:title" content="Sentry 2.0 in Nette 3.0">
+<meta property="og:title" content="Sentry 2.0 in Nette 3.0: every Tracy error in Sentry">
 <meta property="og:description" content="The three ways an error reaches Tracy in Nette, and one logger service that sends them all to Sentry.">
 <meta property="og:url" content="https://janmikes.cz/slides/sentry-in-nette/">
 <meta property="og:image" content="https://janmikes.cz/assets/talks/sentry-in-nette.jpg">
@@ -21,9 +21,10 @@
 <meta property="og:image:height" content="675">
 <meta property="og:locale" content="en_GB">
 <meta property="article:published_time" content="2019-08-08">
+<meta property="article:modified_time" content="2026-11-01">
 <meta property="article:author" content="https://janmikes.cz/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Sentry 2.0 in Nette 3.0">
+<meta name="twitter:title" content="Sentry 2.0 in Nette 3.0: every Tracy error in Sentry">
 <meta name="twitter:description" content="The three ways an error reaches Tracy in Nette, and one logger service that sends them all to Sentry.">
 <meta name="twitter:image" content="https://janmikes.cz/assets/talks/sentry-in-nette.jpg">
 
@@ -232,6 +233,12 @@ private function getSeverityFromPriority(string $priority): ?Severity
       </ol>
     </details>
 
+    <h2>Related talks</h2>
+    <ul>
+      <li><a href="/slides/logging-saved-us/">How logging saved our butts</a> · 2017</li>
+      <li><a href="/slides/apm-opentelemetry/">Application Performance Monitoring with OpenTelemetry</a> · 2022</li>
+    </ul>
+
     <p class="links">
       <a href="https://www.facebook.com/pehapkari/videos/jan-mikeš-sentry-20-v-nette-30/341535100091641/">Video (Facebook)</a>
       <a href="https://github.com/janmikes/nette-sentry-demo">Demo code on GitHub</a>
@@ -246,16 +253,135 @@ private function getSeverityFromPriority(string $priority): ?Severity
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "Sentry 2.0 in Nette 3.0: sending every Tracy error to Sentry",
-  "description": "How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.",
-  "url": "https://janmikes.cz/slides/sentry-in-nette/",
-  "datePublished": "2019-08-08",
-  "dateModified": "2026-11-01",
-  "inLanguage": "en",
-  "image": "https://janmikes.cz/assets/talks/sentry-in-nette.jpg",
-  "about": ["Sentry", "Nette", "Tracy", "PHP", "Error tracking", "Logging"],
-  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://janmikes.cz/slides/sentry-in-nette/",
+      "url": "https://janmikes.cz/slides/sentry-in-nette/",
+      "name": "Sentry 2.0 in Nette 3.0: every Tracy error in Sentry · Jan Mikeš",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://janmikes.cz/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://janmikes.cz/slides/sentry-in-nette/#breadcrumb"
+      },
+      "primaryImageOfPage": {
+        "@id": "https://janmikes.cz/slides/sentry-in-nette/#image"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://janmikes.cz/slides/sentry-in-nette/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Jan Mikeš",
+          "item": "https://janmikes.cz/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Talks",
+          "item": "https://janmikes.cz/slides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Sentry 2.0 in Nette 3.0",
+          "item": "https://janmikes.cz/slides/sentry-in-nette/"
+        }
+      ]
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "https://janmikes.cz/slides/sentry-in-nette/#image",
+      "url": "https://janmikes.cz/assets/talks/sentry-in-nette.jpg",
+      "contentUrl": "https://janmikes.cz/assets/talks/sentry-in-nette.jpg",
+      "width": 1200,
+      "height": 675,
+      "caption": "Title slide of “Sentry 2.0 in Nette 3.0”"
+    },
+    {
+      "@type": "Article",
+      "@id": "https://janmikes.cz/slides/sentry-in-nette/#article",
+      "headline": "Sentry 2.0 in Nette 3.0: sending every Tracy error to Sentry",
+      "description": "How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.",
+      "url": "https://janmikes.cz/slides/sentry-in-nette/",
+      "mainEntityOfPage": {
+        "@id": "https://janmikes.cz/slides/sentry-in-nette/"
+      },
+      "datePublished": "2019-08-08",
+      "dateModified": "2026-11-01",
+      "inLanguage": "en",
+      "image": {
+        "@id": "https://janmikes.cz/slides/sentry-in-nette/#image"
+      },
+      "about": [
+        "Sentry",
+        "Nette",
+        "Tracy",
+        "PHP",
+        "Error tracking",
+        "Logging"
+      ],
+      "author": {
+        "@type": "Person",
+        "@id": "https://janmikes.cz/#person",
+        "name": "Jan Mikeš",
+        "url": "https://janmikes.cz/"
+      },
+      "publisher": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "isPartOf": {
+        "@type": "CollectionPage",
+        "@id": "https://janmikes.cz/slides/",
+        "url": "https://janmikes.cz/slides/",
+        "name": "Talks · Jan Mikeš"
+      },
+      "alternativeHeadline": "Sentry 2.0 v Nette 3.0"
+    },
+    {
+      "@type": "Event",
+      "@id": "https://janmikes.cz/slides/sentry-in-nette/#talk",
+      "name": "Sentry 2.0 in Nette 3.0",
+      "alternateName": "Sentry 2.0 v Nette 3.0",
+      "startDate": "2019-08-08",
+      "inLanguage": "cs",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "location": {
+        "@type": "Place",
+        "name": "Prague",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Prague",
+          "addressCountry": "CZ"
+        }
+      },
+      "superEvent": {
+        "@type": "Event",
+        "name": "Péhápkaři Prague meetup #39",
+        "location": {
+          "@type": "Place",
+          "name": "Prague",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Prague",
+            "addressCountry": "CZ"
+          }
+        },
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode"
+      },
+      "performer": {
+        "@id": "https://janmikes.cz/#person"
+      },
+      "subjectOf": {
+        "@id": "https://janmikes.cz/slides/sentry-in-nette/#article"
+      }
+    }
+  ]
 }
 </script>
 </body>
