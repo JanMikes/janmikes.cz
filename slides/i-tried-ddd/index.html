@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I tried DDD, and this is how it turned out · Jan Mikeš</title>
+<meta name="description" content="Mistakes from my first Domain-Driven Design project in PHP: value objects for everything, logic in entities, enums, UUIDs and exceptions, with Blackfire numbers.">
+<link rel="canonical" href="https://janmikes.cz/slides/i-tried-ddd/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="I tried DDD, and this is how it turned out">
+<meta property="og:description" content="The mistakes from my first Domain-Driven Design project in PHP, with profiler numbers.">
+<meta property="og:url" content="https://janmikes.cz/slides/i-tried-ddd/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/i-tried-ddd.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2018-02-08">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="I tried DDD, and this is how it turned out">
+<meta name="twitter:description" content="The mistakes from my first Domain-Driven Design project in PHP, with profiler numbers.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/i-tried-ddd.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2018-02-08">8 February 2018</time> · Péhápkaři Prague meetup #25 · Prague · given in Czech</p>
+    <h1>I tried DDD, and this is how it turned out</h1>
+    <p class="lede"><span lang="cs">Zkusil jsem DDD a takhle to dopadlo&hellip;</span> <span>Not a DDD tutorial. A list of the mistakes I made the first time I used Domain-Driven Design, on a big production project, with the profiler screenshots to prove it.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The enum section below predates <a href="https://php.watch/versions/8.1/enums">native enums in PHP 8.1</a> (2021). Today you don&rsquo;t need a userland enum library like marc-mabe/php-enum for this.</div>
+
+    <h2>Why DDD at all</h2>
+    <p>Domain-Driven Design is a way to structure an application around its business domain: entities, value objects and aggregates that model the real problem, with the framework and the database pushed to the edges. The project was Entrydo, our event ticketing SaaS. My reasons for trying it:</p>
+    <ol>
+      <li>You write code that doesn&rsquo;t depend on the framework.</li>
+      <li>It forces you to write clean code.</li>
+      <li>I don&rsquo;t need a database.</li>
+      <li>It suits big projects.</li>
+      <li>Because I like it.</li>
+    </ol>
+    <p>The rest of the talk was about the negative experiences and missteps.</p>
+
+    <h2>Mixed getter naming</h2>
+    <p><code>firstName(): string</code> or <code>getFirstName(): string</code>? It doesn&rsquo;t really matter. What matters is picking one convention and keeping it across the whole project. We had both.</p>
+
+    <h2>A value object for everything</h2>
+    <p>A value object is a small immutable object defined by its value, like an e-mail address or a price. I took that idea a bit too far. Creating a person looked like this:</p>
+    <pre><code>$person = new Person(
+    new Email('info@odbav.to'),
+    new Name(
+        new FirstName('John'),
+        new LastName('Doe')
+    ),
+    new Phone(null, '603123123'),
+    new Address(
+        new Street('Slezska 123'),
+        new City('Prague'),
+        new PostalCode('11000'),
+        new Country(CountryCode::CZ())
+    ),
+    new Company(
+        new CompanyName('odbav.to'),
+        new CompanyId('28994124'),
+        new CompanyVatId(null)
+    )
+);</code></pre>
+    <p>The don&rsquo;ts: classes like <code>class FirstName extends SimpleString {}</code>, which are empty. They add no rules, only one more object. The dos: value objects that actually guard something, like a latitude that must be a number between &minus;90 and 90:</p>
+    <pre><code>class Latitude extends Floating
+{
+    protected function validate(?float $value): ?float
+    {
+        Assertion::numeric($value);
+        Assertion::range($value, -90, 90);
+
+        return $value;
+    }
+}</code></pre>
+    <p><code>Longitude</code> is the same with &minus;180 and 180.</p>
+    <p>All those objects have a cost, because Doctrine has to build every one of them when it loads data:</p>
+    <figure>
+      <img src="/assets/talks/i-tried-ddd/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Blackfire profile with 40.4 s wall time. The function list shows a Doctrine type convertToPHPValue called 83,399 times, AbstractType::createObject 80,121 times, SimpleString::__construct and SimpleString::setValue 71,775 times each, ReflectionEmbeddedProperty::setValue 42,963 times and MabeEnum Enum::byValue 24,524 times.">
+      <figcaption>One request, 40 seconds, and tens of thousands of value objects built along the way.</figcaption>
+    </figure>
+
+    <h2>Own value objects for things that already exist</h2>
+    <p>We had our own <code>Money</code> value object made of a <code>Price</code> and a <code>Currency</code>, next to the existing <code>\Money\Money</code> from the moneyphp library, with factory methods to convert between them:</p>
+    <pre><code>public static function fromMoney(\Money\Money $money): self
+{
+    return static::fromNative($money-&gt;getAmount(), $money-&gt;getCurrency()-&gt;getCode());
+}</code></pre>
+
+    <h2>Binary UUIDs</h2>
+    <p>The identifiers were UUIDs from ramsey/uuid, wrapped in our own <code>UuidIdentifier</code> and stored as binary. A Blackfire comparison on this slide shows how much time went into it: after the change, tens of thousands fewer calls to UUID encoding and decoding functions, &minus;29% wall time, &minus;22% I/O and &minus;29% CPU, for 8.38% more memory.</p>
+
+    <h2>Enums and serialization</h2>
+    <p>The combination of <code>marc-mabe/php-enum</code> and <code>jms/serializer</code> was a disaster.</p>
+
+    <h2>Namespaces and directory structure</h2>
+    <p>Our <code>src</code> mixed DDD layers and features at the same level: <code>Application</code>, <code>Domain</code>, <code>Infrastructure</code> next to <code>Invoicing</code>, <code>Mailing</code>, <code>Schemes</code>, <code>Security</code>, <code>Templating</code>, <code>Translations</code> and <code>Utils</code>.</p>
+
+    <h2>All logic in entities</h2>
+    <p>Putting behaviour into entities is the DDD way. Putting <i>all</i> of it there is not. This counts orders with a given status by loading all the orders and filtering them in PHP:</p>
+    <pre><code>public function ordersWithStatusCount(OrderStatus $status): int
+{
+    return $this-&gt;orders-&gt;filter(function(Order $order) use ($status) {
+        return $order-&gt;paymentStatus()-&gt;equals($status);
+    })-&gt;count();
+}</code></pre>
+    <p>And <code>paymentStatus()</code> itself, marked <code>@TODO remove</code>, computes the status on the fly from the cancellation date, the payment, its status and the payment method. In the ticket export, one method, <code>getInputValues</code>, took 20.9 seconds, 72.6% of the request. Another profile shows a request taking 14.8 seconds and 266 MB of memory.</p>
+
+    <h2>XML mapping?</h2>
+    <p>The entities were mapped to the database with Doctrine XML mapping files, including single-table inheritance for events and sub-events and a long list of fields with custom types.</p>
+
+    <h2>An exception for every exception</h2>
+    <p>Every domain rule had its own exception class: <code>EventNotReadyException</code>, <code>NoAvailableTicketsOfVariant</code>, <code>TicketVariantCancelledException</code>, <code>DiscountCodeCancelledException</code>, <code>DiscountDateNotValidException</code> and more. Then a wall of <code>catch</code> blocks translated each of them into an <code>OrderCannotBeCreatedException</code> with a message, and the API layer turned that into an error response:</p>
+    <pre><code>if ($e instanceof ApplicationException) {
+    return $this-&gt;createErrorResponse([
+        'title' =&gt; $e-&gt;title(),
+        'detail' =&gt; $e-&gt;detail(),
+    ], $e-&gt;additionalResponses());
+}</code></pre>
+
+    <h2>Aggregate roots?</h2>
+    <p>&ldquo;What is that?&rdquo; was the whole slide. For context: an aggregate root is the one entity through which you change a group of related objects, which keeps their rules consistent.</p>
+
+    <h2>Watch out for overexcitement</h2>
+    <p>The slide showed the book <a href="https://leanpub.com/ddd-in-php">Domain-Driven Design in PHP</a> by Carlos Buenosvinos, Christian Soronellas and Keyvan Akbary. It&rsquo;s easy to get carried away by it.</p>
+    <p>And the last point: using DDD for the first time, and on a big project. That combination is where most of these mistakes came from. The details are in the recording.</p>
+
+    <details class="deck">
+      <summary>All 22 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/i-tried-ddd/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title slide: &quot;Zkusil jsem DDD&quot; (I tried DDD) and how it went, Jan Mikeš, 8 Feb 2018"></li>
+        <li><img src="/assets/talks/i-tried-ddd/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Why DDD: framework-independent code, forces clean code, no database needed, fits big projects, I like it"></li>
+        <li><img src="/assets/talks/i-tried-ddd/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: What this talk covers: sharing negative experiences and stumbles"></li>
+        <li><img src="/assets/talks/i-tried-ddd/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Mixed getter naming: firstName() vs getFirstName(); either works, but keep one convention"></li>
+        <li><img src="/assets/talks/i-tried-ddd/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Value objects for everything: a Person built from nested Email, Name, Phone, Address and Company objects"></li>
+        <li><img src="/assets/talks/i-tried-ddd/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Value objects for everything: the same nested Person code next to a &quot;WTF bro&quot; meme"></li>
+        <li><img src="/assets/talks/i-tried-ddd/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Value objects for everything: don&#x27;t subclass strings for names; do wrap validated latitude and longitude"></li>
+        <li><img src="/assets/talks/i-tried-ddd/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Value objects for everything: profiler shows 83,399 calls to Doctrine convertToPHPValue"></li>
+        <li><img src="/assets/talks/i-tried-ddd/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Custom value objects for existing things: a Money class wrapping the moneyphp library"></li>
+        <li><img src="/assets/talks/i-tried-ddd/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Binary UUID: profiler comparison showing about 29% faster after dropping Ramsey UUID codec overhead"></li>
+        <li><img src="/assets/talks/i-tried-ddd/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Enums plus serialization: combining marc-mabe/php-enum with jms/serializer is a pain"></li>
+        <li><img src="/assets/talks/i-tried-ddd/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Namespaces and folder structure: src with Application, Domain, Infrastructure and other folders"></li>
+        <li><img src="/assets/talks/i-tried-ddd/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: All logic in entities: order status computed by filtering collections inside the entity"></li>
+        <li><img src="/assets/talks/i-tried-ddd/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: All logic in entities: profiler call graph dominated by Doctrine hydration"></li>
+        <li><img src="/assets/talks/i-tried-ddd/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: All logic in entities: profiler showing 266 MB memory use from PDO fetches"></li>
+        <li><img src="/assets/talks/i-tried-ddd/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: XML mapping? A long Doctrine XML entity mapping file"></li>
+        <li><img src="/assets/talks/i-tried-ddd/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Exception on exception: a single generic ApplicationException handler"></li>
+        <li><img src="/assets/talks/i-tried-ddd/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Exception on exception: a long chain of catch blocks rethrowing order exceptions"></li>
+        <li><img src="/assets/talks/i-tried-ddd/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Aggregate roots? Cat meme: &quot;What is that&quot;"></li>
+        <li><img src="/assets/talks/i-tried-ddd/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Beware of overexcitement: cover of the book Domain-Driven Design in PHP"></li>
+        <li><img src="/assets/talks/i-tried-ddd/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Lesson: first DDD attempt was on a big project"></li>
+        <li><img src="/assets/talks/i-tried-ddd/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Thank you, questions? Homer Simpson, with email address"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.facebook.com/pehapkari/videos/vl.1779501342352698/1587929124590225/">Video (Facebook)</a>
+      <a href="https://leanpub.com/ddd-in-php">Domain-Driven Design in PHP</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "I tried DDD, and this is how it turned out",
+  "description": "Mistakes from my first Domain-Driven Design project in PHP: value objects for everything, logic in entities, enums, UUIDs and exceptions, with Blackfire numbers.",
+  "url": "https://janmikes.cz/slides/i-tried-ddd/",
+  "datePublished": "2018-02-08",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/i-tried-ddd.jpg",
+  "about": ["Domain-Driven Design", "PHP", "Doctrine", "Value objects", "Blackfire"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

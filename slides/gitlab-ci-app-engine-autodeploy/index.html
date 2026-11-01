@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-deploying to Google App Engine with GitLab CI · Jan Mikeš</title>
+<meta name="description" content="Step by step: a Google Cloud project, a service account, the App Engine Admin API and a short .gitlab-ci.yml that deploys a PHP app to App Engine on every push.">
+<link rel="canonical" href="https://janmikes.cz/slides/gitlab-ci-app-engine-autodeploy/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Auto-deploying to Google App Engine with GitLab CI">
+<meta property="og:description" content="From an empty Google Cloud project to a PHP app deployed by GitLab CI on every push.">
+<meta property="og:url" content="https://janmikes.cz/slides/gitlab-ci-app-engine-autodeploy/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/gitlab-ci-app-engine-autodeploy.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2018-09-13">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Auto-deploying to Google App Engine with GitLab CI">
+<meta name="twitter:description" content="From an empty Google Cloud project to a PHP app deployed by GitLab CI on every push.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/gitlab-ci-app-engine-autodeploy.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2018-09-13">13 September 2018</time> · Péhápkaři Prague meetup #30 · Prague · given in Czech</p>
+    <h1>Auto-deploying to Google App Engine with GitLab CI</h1>
+    <p class="lede"><span lang="cs">Autodeploy na Google App Engine s Gitlab CI.</span> <span>Every push to the repository ends with the app live on Google App Engine, and nobody runs a deploy command by hand. It takes five steps, and most of them are clicking through the Google Cloud console once.</span></p>
+
+    <div class="note"><b>Update, 2026</b>Two things are different today. The <code>php55</code> runtime used below is a first-generation App Engine runtime: it <a href="https://cloud.google.com/appengine/docs/standard/long-term-support">reached end of support in January 2024 and was deprecated in January 2026</a>, so use a current PHP runtime. And instead of storing a service account key in a CI variable, GitLab can now authenticate to Google Cloud with <a href="https://docs.gitlab.com/integration/google_cloud_iam/">Workload Identity Federation</a>, which needs no long-lived key at all.</div>
+
+    <h2>What you need, and what App Engine is</h2>
+    <p>Three things: a Google Cloud account, a GitLab account, and an app to deploy.</p>
+    <p>Google App Engine (GAE) is Google&rsquo;s &ldquo;fully managed serverless app platform&rdquo;. You give it your code and a small config file, and it runs the app. You pay only for what you use, and it scales instantly. No servers to install or patch.</p>
+
+    <h2>The whole process</h2>
+    <ol>
+      <li>Create a project on Google Cloud.</li>
+      <li>Create a Google Cloud service account.</li>
+      <li>Hand its credentials to GitLab CI.</li>
+      <li>Enable the App Engine Admin API.</li>
+      <li>Configure the deploy in <code>.gitlab-ci.yml</code>.</li>
+    </ol>
+    <p>The app itself is as small as it gets:</p>
+<pre><code>&lt;?php
+
+echo 'Hello everyone at LMC!';
+echo '&lt;br&gt;';
+echo 'Grab a beer and enjoy the moment!';
+
+exit(0);</code></pre>
+
+    <h2>Step 1: a project, and why not the CLI</h2>
+    <p>First a new project in the Google Cloud console. Mine was called <code>lmc-gae-autodeploy-demo</code>. Remember that the project ID can&rsquo;t be changed later.</p>
+    <p>The &ldquo;proper&rdquo; way to set up App Engine is the command line: <code>gcloud init</code>. On my laptop that ended in a long Python traceback. The Cloud SDK was built on Python 2.7, and the local install failed to load its <code>sqlite3</code> extension. <code>gcloud app deploy</code> failed with the same error. Nope.</p>
+    <p>So I went through the web console instead. The App Engine section has an &ldquo;Your first app with PHP&rdquo; wizard: pick a region (I used <code>us-central</code>), then follow a quickstart that runs in the browser. It&rsquo;s actually good.</p>
+    <p>To make the app ready for App Engine you add one file, <code>app.yaml</code>, to the root of the repository:</p>
+<pre><code>runtime: php55
+api_version: 1
+threadsafe: true
+
+handlers:
+  - url: /.*
+    script: public/index.php</code></pre>
+    <p>It says which runtime to use and sends every URL to <code>public/index.php</code>. That&rsquo;s the whole config.</p>
+    <p>The broken local SDK turned out to be a good argument for the rest of the talk: if deploying depends on a working setup on someone&rsquo;s laptop, it will break. Let the CI do it.</p>
+
+    <h2>Step 2: a service account</h2>
+    <p>A service account is a Google Cloud identity for a machine rather than a person. GitLab CI will log in as this account.</p>
+    <ul>
+      <li>Go to <b>IAM &amp; admin &rarr; Service accounts</b> and click <b>Create service account</b>.</li>
+      <li>Name it, for example <code>gitlab-ci</code>.</li>
+      <li>Give it a project role. In the demo I picked <b>Editor</b>.</li>
+      <li>Tick <b>Furnish a new private key</b>, key type JSON. Google gives you a JSON file with the key, and only once, so store it safely.</li>
+    </ul>
+
+    <h2>Step 3: credentials into GitLab CI</h2>
+    <p>In the GitLab project, under <b>Settings &rarr; CI/CD &rarr; Variables</b>, I created two variables:</p>
+    <ul>
+      <li><code>GOOGLECLOUDACCOUNT</code>: the whole content of the JSON key file,</li>
+      <li><code>GOOGLECLOUDPROJECT</code>: the project ID, <code>lmc-gae-autodeploy-demo</code>.</li>
+    </ul>
+    <p>Variables are passed to the job by the runner, so the key never sits in the repository. GitLab can also restrict them to protected branches.</p>
+
+    <h2>Step 4: enable the App Engine Admin API</h2>
+    <p>In <b>APIs &amp; Services &rarr; Library</b>, search for &ldquo;google app engine&rdquo; and enable the <b>App Engine Admin API</b>. That&rsquo;s the API the deploy goes through, and the service account can&rsquo;t deploy until it&rsquo;s on.</p>
+
+    <h2>Step 5: <code>.gitlab-ci.yml</code></h2>
+    <p>The first version installs the Google Cloud SDK into a <code>python:2.7</code> image, writes the key from the variable into a temporary file, logs in with it and deploys:</p>
+<pre><code>image: python:2.7
+
+before_script:
+  - echo "deb http://packages.cloud.google.com/apt cloud-sdk-jessie main" | tee /etc/apt/sources.list.d/google-cloud-sdk.list
+  - curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+  - apt-get update &amp;&amp; apt-get install google-cloud-sdk
+
+after_script:
+  - rm /tmp/$CI_PIPELINE_ID.json
+
+deploy:
+  stage: deploy
+  script:
+    - echo $GOOGLECLOUDACCOUNT &gt; /tmp/$CI_PIPELINE_ID.json
+    - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+    - gcloud --quiet --project $GOOGLECLOUDPROJECT app deploy</code></pre>
+    <p>The key file is named after the pipeline ID, and <code>after_script</code> deletes it when the job ends. <code>--quiet</code> stops gcloud from asking questions nobody will answer in CI.</p>
+    <p>Installing the SDK on every run is slow, so the second version uses a prepared Docker image with <a href="https://github.com/travis-ci/dpl">dpl</a>, a deploy tool from Travis CI that knows how to deploy to App Engine:</p>
+<pre><code>image: registry.gitlab.com/entrydo/docker/dpl:latest
+
+stages:
+  - deploy
+
+production:
+  stage: deploy
+  script:
+    - echo $GOOGLECLOUDACCOUNT &gt; /tmp/$CI_PIPELINE_ID.json
+    - dpl --provider=gae --keyfile=/tmp/$CI_PIPELINE_ID.json
+  after_script:
+    - rm /tmp/$CI_PIPELINE_ID.json</code></pre>
+
+    <h2>The result</h2>
+    <figure>
+      <img src="/assets/talks/gitlab-ci-app-engine-autodeploy/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitLab CI job log: uploading 4 files to Google Cloud Storage, updating service default, setting the traffic split, then 'Deployed service [default] to https://lmc-gae-autodeploy-demo.appspot.com', the after script removing the key file, and 'Job succeeded'. Below it a green production job in the pipeline.">
+      <figcaption>The deploy job: four files uploaded, service updated, app live on appspot.com.</figcaption>
+    </figure>
+    <p>Push, and the pipeline uploads the files, updates the service and prints the URL where the app now runs. Then came the live demo, with the usual &ldquo;what could go wrong?&rdquo;. The recording is linked below, in two parts.</p>
+
+    <h2>#movingtogitlab</h2>
+    <p>I closed with the GitLab chart of GitHub imports from early June 2018, when Microsoft announced it was buying GitHub. Imports went from a few hundred a day to over 100,000. The demo project is at <a href="https://gitlab.com/Lexinek/lmc-gae-autodeploy">gitlab.com/Lexinek/lmc-gae-autodeploy</a>.</p>
+
+    <details class="deck">
+      <summary>All 29 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Jan Mikeš, 13.9.2018, GitLab CI Google App Engine autodeploy, with speaker photo"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Photo of a sheet cake baking in an oven"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: What is Google App Engine? Fully managed serverless app platform, pay only what you use, instant scalability"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Deploy steps: create GC project, service account, pass credentials to GitLab CI, enable GAE Admin API, configure .gitlab-ci.yml"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: App: a PHP hello world printing “Hello everyone at LMC! Grab a beer and enjoy the moment!”"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Creating the lmc-gae-autodeploy-demo project in the Google Cloud console"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: App Engine via CLI: gcloud init"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: App Engine via CLI: gcloud failing with a Python sqlite3 import error"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: SpongeBob rainbow meme captioned “Nope” after the error"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: App Engine console: choosing a region for your first PHP app"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Awesome quickstart: the App Engine quickstart tutorial in Cloud Shell"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Get our app ready for GAE: app.yaml with runtime php55 routing all URLs to public/index.php"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Deploy our app: gcloud app deploy"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Deploy our app: gcloud app deploy failing with the same Python sqlite3 error"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: SpongeBob rainbow meme captioned “Nope” (continued)"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Creating a service account: IAM &amp; admin → Service accounts in the Cloud console menu"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Creating a service account: Create service account button in the project"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Creating a service account: naming it gitlab-ci and picking the Editor role"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Creating a service account: furnishing a new JSON private key"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Enabling the GAE API: APIs &amp; Services → Library"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Enabling the GAE API: searching for and selecting App Engine Admin API"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: GitLab CI variables: service-account JSON in a GitLab CI variable, key redacted, plus project ID"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: .gitlab-ci.yml: install Cloud SDK, activate service account from variable, gcloud app deploy"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: .gitlab-ci.yml: production deploy job using dpl --provider=gae with the key file"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: GitLab CI pipeline: job log deploying to lmc-gae-autodeploy-demo.appspot.com, job succeeded"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Disaster girl meme: “Time for a live demo, what could go wrong?”"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: #movingtogitlab: GitLab chart of GitHub imports spiking sharply"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Link to the demo repository: gitlab.com/Lexinek/lmc-gae-autodeploy"></li>
+        <li><img src="/assets/talks/gitlab-ci-app-engine-autodeploy/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Homer Simpson asking “Questions?” and Thank you! janmikes.cz, j.mikes@me.com, entry.do"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.facebook.com/pehapkari/videos/vl.271120013524654/2130194010333313/">Video (Facebook), part 1</a>
+      <a href="https://www.facebook.com/pehapkari/videos/vl.271120013524654/472092719945370/">Video (Facebook), part 2</a>
+      <a href="https://gitlab.com/Lexinek/lmc-gae-autodeploy">Demo project on GitLab</a>
+      <a href="https://cloud.google.com/appengine">Google App Engine</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Auto-deploying to Google App Engine with GitLab CI",
+  "description": "Step by step: a Google Cloud project, a service account, the App Engine Admin API and a short .gitlab-ci.yml that deploys a PHP app to App Engine on every push.",
+  "url": "https://janmikes.cz/slides/gitlab-ci-app-engine-autodeploy/",
+  "datePublished": "2018-09-13",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/gitlab-ci-app-engine-autodeploy.jpg",
+  "about": ["GitLab CI", "Google App Engine", "Google Cloud", "Continuous deployment", "PHP"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

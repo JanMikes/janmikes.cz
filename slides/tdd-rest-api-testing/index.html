@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we write REST APIs with TDD · Jan Mikeš</title>
+<meta name="description" content="How we went from zero tests to a test for every API endpoint: JSON request and response files in a data provider, written before the code, and 6 minutes from push to production.">
+<link rel="canonical" href="https://janmikes.cz/slides/tdd-rest-api-testing/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="How we write REST APIs with TDD">
+<meta property="og:description" content="From zero tests to a JSON-driven test for every API endpoint, written before the code.">
+<meta property="og:url" content="https://janmikes.cz/slides/tdd-rest-api-testing/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/tdd-rest-api-testing.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2018-10-20">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How we write REST APIs with TDD">
+<meta name="twitter:description" content="From zero tests to a JSON-driven test for every API endpoint, written before the code.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/tdd-rest-api-testing.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2018-10-20">20 October 2018</time> · HUBBR Developer Day 2018 · Havlíčkův Brod · given in Czech</p>
+    <h1>How we write REST APIs with TDD</h1>
+    <p class="lede"><span lang="cs">Jak píšeme REST API pomocí TDD.</span> <span>Write tests. Lots of tests. Here&rsquo;s how we got from zero tests to one for every endpoint of our API, and why we now write the test first.</span></p>
+
+    <h2>Who tests?</h2>
+    <p>I opened with three questions to the room: who writes tests, who writes REST APIs, and who tests their REST API. For a long time I wasn&rsquo;t in that last group.</p>
+
+    <h2>Zero tests</h2>
+    <p>Four or five years before the talk I built Odbav.to. Two years of development, a one-man show, on Nette. The number of tests: zero. The <code>tests</code> directory in that repository contains a <code>.htaccess</code> and a <code>web.config</code>, and nothing else.</p>
+    <p>Entrydo was a different setup: a team with two backend developers, two web developers and one mobile developer, all depending on the same API. That doesn&rsquo;t work without tests. Today there are tests everywhere: a test for every presenter in the API.</p>
+
+    <h2>What we test</h2>
+    <p>Our API endpoints are Nette presenters. Each one is thin: it takes the request, hands it to a use case, and returns a response.</p>
+<pre><code>final class BillingInfoDetailPresenter extends UserAwarePresenter implements IPresenter
+{
+    /** @var BillingInfoDetailUseCase */
+    private $useCase;
+
+    public function __construct(BillingInfoDetailUseCase $useCase)
+    {
+        $this-&gt;useCase = $useCase;
+    }
+
+    public function run(Request $appRequest): IResponse
+    {
+        $response = $this-&gt;useCase-&gt;handle(
+            new BillingInfoDetailRequest($this-&gt;userId)
+        );
+
+        return new OKResponse($response);
+    }
+}</code></pre>
+    <p>So we test the whole thing from the outside: send an HTTP request, check the HTTP response.</p>
+
+    <h2>How we used to test</h2>
+    <p>The first version was one test class per presenter. Make a request, assert the status code:</p>
+<pre><code>class BillingInfoDetailPresenterTest extends TestCase
+{
+    use DatabaseSetup;
+
+    /** @test */
+    public function responseShouldBeValid(): void
+    {
+        $httpClient = $this-&gt;createHttpClient();
+        $httpClient-&gt;request(IRequest::GET, RouterFactory::BILLING_ROUTE);
+
+        $response = $httpClient-&gt;getResponse();
+
+        $this-&gt;assertSame(IResponse::S200_OK, $response-&gt;getStatus());
+    }
+}</code></pre>
+    <p>It works, but you write the same class over and over, and a 200 status says very little about what came back.</p>
+
+    <h2>How we test now</h2>
+    <p>Now a single test goes through a data provider. Each case is a name, a URL, a JSON file with the request body, a JSON file with the expected response, and the values to put into the URL:</p>
+<pre><code>public function getPresenters(): array
+{
+    return [
+        'Digital Queue - Pair ticket with phone' =&gt; [
+            '/digital-queues/tickets/&lt;ticketId&gt;/pair-with-phone',
+            __DIR__ . '/PostRequestData/digital-queue/pair-ticket-with-phone/request.json',
+            __DIR__ . '/PostRequestData/digital-queue/pair-ticket-with-phone/response.json',
+            ['ticketId' =&gt; TicketFixture::getTicketId()],
+        ],
+
+        'Digital Queue - Queue reservation - Reserve' =&gt; [
+            '/digital-queues/tickets/&lt;ticketId&gt;/queues/&lt;queueId&gt;/reservation',
+            __DIR__ . '/PostRequestData/digital-queue/queue-reservation/reserve/request.json',
+            __DIR__ . '/PostRequestData/digital-queue/queue-reservation/reserve/response.json',
+            [
+                'ticketId' =&gt; TicketFixture::getTicketId(),
+                'queueId' =&gt; EventQueueFixture::QUEUE_ID,
+            ],
+        ],
+    ];
+}</code></pre>
+    <p>The test sends the request through an in-process HTTP client and compares the JSON it gets back with the expected file. Adding a test for a new endpoint means adding two JSON files and one array entry. The examples in the <a href="https://github.com/JanMikes/hubbr-2018">talk repository</a> show the rest: the test client is built on <a href="https://github.com/VaclavSir/NBrowserKit">NBrowserKit</a>, the clock is mocked so responses with dates stay stable, and every run gets a fresh database with its schema created from the Doctrine entities and data loaded from fixtures.</p>
+
+    <h2>The workflow</h2>
+    <p>This is where the TDD comes in. For a new endpoint we go in this order:</p>
+    <ol>
+      <li><b>Expectations:</b> a new entry in the data provider, with the JSON request, the JSON response and the URL.</li>
+      <li><b>Presenter:</b> write the code until the response matches.</li>
+      <li><b>Router:</b> wire up the route.</li>
+    </ol>
+
+    <h2>The challenges</h2>
+    <ul>
+      <li>Starting to write tests at all</li>
+      <li>Finding a way of testing that suits you</li>
+      <li>Demo data</li>
+      <li>Speed</li>
+      <li>Automation</li>
+    </ul>
+
+    <h2>Why we test</h2>
+    <ul>
+      <li>Debugging: a test is an easy way into any endpoint with Xdebug.</li>
+      <li>Full automation: 6 minutes from push to production.</li>
+      <li>We can sleep peacefully.</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/tdd-rest-api-testing/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitLab CI pipeline: 9 jobs from master in 6 minutes and 17 seconds, queued for 6 seconds. Build stage: composer. Test stage: code-checker, integration-tests, lint, migrations up, phpstan, unit-tests. Deploy stage: dev and production. All jobs passed.">
+      <figcaption>The whole pipeline, from build to production, in 6 minutes 17 seconds.</figcaption>
+    </figure>
+    <p>The API test suite alone was 243 tests with 480 assertions, running in 2.4 minutes in CI.</p>
+    <p>The rest of the talk was a live demo. It&rsquo;s in the <a href="https://slideslive.com/38911180/jak-piseme-rest-api-pomoci-tdd">recording</a>, and the example code is on GitHub.</p>
+
+    <details class="deck">
+      <summary>All 26 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/tdd-rest-api-testing/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title slide: TDD + REST API, Jan Mikeš, 20 Oct 2018, Entrydo logo and speaker photo"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Czech text: write tests, lots of tests"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Meme: a plain bug next to the same bug wearing a suit, labelled Bug and Feature"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Audience question: who tests?"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Audience question: who writes REST APIs?"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Audience question: who tests their own REST API?"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Logos of Odbav.to, Eventgers and Entrydo"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Odbav.to: 4–5 years ago, 2 years of development, One Man Show and Nette logos"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Odbav.to GitLab repository with a tests folder last touched 4 years ago"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Odbav.to: zero tests"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Cartoon trash can saying &quot;I&#x27;m full of garbage!&quot;"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Entrydo team: two backend, two web and one mobile developer"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Long list of presenter test files in the Entrydo codebase"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Toy Story meme: tests everywhere"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: What we test: a BillingInfoDetailPresenter class calling a use case, PHP code"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: How we used to test: PHPUnit test sending a GET request, asserting status 200"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: How we test now: data provider mapping routes to JSON request and response files"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Workflow: 1. expectations data provider with JSON request, response and URL, 2. presenter, 3. router"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Challenges: start writing tests, find the right approach, demo data, speed, automation"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Why we test: Xdebug, full automation with 6 minutes from push to production, sleeping well"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: PHPUnit API test suite output: 243 tests, 480 assertions in 2.4 minutes"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: GitLab pipeline: composer build, six test jobs, deploy to dev and production in about 6 minutes"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: Workflow recap: data provider with JSON request, response and URL, then presenter, then router"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Demo time, with a cheering Minion"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Demo code at github.com/janmikes/hubbr-2018"></li>
+        <li><img src="/assets/talks/tdd-rest-api-testing/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Thank you, questions? Homer Simpson, with links entry.do, janmikes.cz and email"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://slideslive.com/38911180/jak-piseme-rest-api-pomoci-tdd">Video</a>
+      <a href="https://github.com/JanMikes/hubbr-2018">Example code on GitHub</a>
+      <a href="https://github.com/VaclavSir/NBrowserKit">NBrowserKit</a>
+      <a href="https://github.com/nettrine/fixtures">Nettrine Fixtures</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How we write REST APIs with TDD",
+  "description": "How we went from zero tests to a test for every API endpoint: JSON request and response files in a data provider, written before the code, and 6 minutes from push to production.",
+  "url": "https://janmikes.cz/slides/tdd-rest-api-testing/",
+  "datePublished": "2018-10-20",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/tdd-rest-api-testing.jpg",
+  "about": ["PHP", "TDD", "REST API", "PHPUnit", "Integration testing", "Nette", "GitLab CI"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

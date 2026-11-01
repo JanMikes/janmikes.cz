@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The simplest GitLab CI pipeline ever · Jan Mikeš</title>
+<meta name="description" content="A three-line .gitlab-ci.yml that runs, then how GitLab CI jobs work: Docker images, stages, artifacts, a multi-stage PHP pipeline with Composer and PHPStan.">
+<link rel="canonical" href="https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="The simplest GitLab CI pipeline ever">
+<meta property="og:description" content="Three lines of YAML, a green pipeline, and how GitLab CI jobs, stages and artifacts work.">
+<meta property="og:url" content="https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2018-06-23">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The simplest GitLab CI pipeline ever">
+<meta name="twitter:description" content="Three lines of YAML, a green pipeline, and how GitLab CI jobs, stages and artifacts work.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2018-06-23">23 June 2018</time> · PHPPrague 2018 · Prague</p>
+    <h1>The simplest GitLab CI pipeline ever</h1>
+    <p class="lede"><span>Continuous integration sounds like a project of its own. In GitLab it starts with one file and three lines of YAML. The goal of this talk was simple: share my CI experience and show how little you need to begin.</span></p>
+
+    <h2>A quick show of hands</h2>
+    <p>I started with some quick research in the room. Who knows GitLab exists? Who uses GitLab? Who automates anything with CI?</p>
+
+    <h2>Three lines</h2>
+    <p>Here is the simplest GitLab CI pipeline ever:</p>
+<pre><code>greeting:
+  script:
+    - echo "Hello PHPPrague 2018!"</code></pre>
+    <p>Commit this as <code>.gitlab-ci.yml</code> in the root of a GitLab repository and you have CI. <code>greeting</code> is the name of a job, <code>script</code> is the list of shell commands it runs. That&rsquo;s it.</p>
+    <p>The result: one job from <code>master</code>, finished in 49 seconds, queued for one second. The pipeline shows a single green <code>greeting</code> job in the default Test stage. The job log (slightly shortened) tells the whole story:</p>
+<pre><code>Running with gitlab-runner 11.0.0-rc1 (6dcccded)
+  on docker-auto-scale ed2dce3a
+Using Docker executor with image ruby:2.5 ...
+Pulling docker image ruby:2.5 ...
+Cloning repository...
+Cloning into '/builds/Lexinek/gitlab-ci-test-1'...
+Checking out e9bfb0f6 as master...
+Skipping Git submodules setup
+$ echo "Hello PHPPrague 2018!"
+Hello PHPPrague 2018!
+Job succeeded</code></pre>
+    <p>I didn&rsquo;t pick a Docker image, so the shared runner on GitLab.com used its default one, <code>ruby:2.5</code>. I didn&rsquo;t install or configure a runner either. Wasn&rsquo;t that simple?</p>
+
+    <h2>How does it work?</h2>
+    <p>The <code>.gitlab-ci.yml</code> file is all you need. GitLab sees it on every push, creates a pipeline, and hands its jobs to runners. Every job goes through the same lifecycle:</p>
+    <ol>
+      <li>choose a Docker image,</li>
+      <li>git clone the repository,</li>
+      <li>pass in artifacts from earlier jobs,</li>
+      <li>run the script,</li>
+      <li>upload its own artifacts.</li>
+    </ol>
+    <p>Artifacts are files a job keeps after it finishes, for example an installed <code>vendor/</code> directory, so later jobs don&rsquo;t have to build it again. Each job starts in a fresh container, so artifacts are how jobs share work.</p>
+
+    <h2>A multi-stage pipeline</h2>
+    <p>Real projects need more than one job, and some jobs have to wait for others. That&rsquo;s what stages are for: jobs in the same stage run in parallel, and the next stage starts only when the previous one succeeds. A typical PHP setup:</p>
+<pre><code>stages:
+  - build
+  - test
+
+composer:
+  stage: build
+  image: composer:1.3.2
+  script:
+    - composer install
+  artifacts:
+    paths:
+      - vendor/
+    expire_in: 24h
+
+phpstan:
+  stage: test
+  image: php:7.1
+  script:
+    - composer phpstan</code></pre>
+    <p>The <code>composer</code> job installs dependencies in the official Composer image and saves <code>vendor/</code> as an artifact for 24 hours. The <code>phpstan</code> job runs in a plain PHP image, gets <code>vendor/</code> passed in, and runs static analysis. Each job picks the image that fits it.</p>
+
+    <h2>Where it can go</h2>
+    <figure>
+      <img src="/assets/talks/simplest-gitlab-ci-pipeline/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="A GitLab pipeline with 12 jobs in five stages. Build: build. Test: codequality, dependency scanning, sast, sast:container, test. Staging: staging. Production: rollout 10%, rollout 25%, rollout 50%, rollout 100%. Performance: performance.">
+      <figcaption>A complex pipeline: build, five kinds of tests, staging, a production rollout in four steps, and a performance check.</figcaption>
+    </figure>
+    <p>The same file scales up to this: 12 jobs in five stages, with code quality, dependency and security scanning, a staging deploy, and a production rollout to 10%, 25%, 50% and then 100% of traffic.</p>
+    <p>After that came the demo, live. The recording is linked below.</p>
+
+    <h2>GitLab is much more than Git</h2>
+    <p>Git hosting is only the start. GitLab covers the whole cycle: plan, create, verify, package, release, configure and monitor. CI is the &ldquo;verify&rdquo; part.</p>
+    <figure>
+      <img src="/assets/talks/simplest-gitlab-ci-pipeline/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Bar chart titled GitHub Imports, from GitLab, by day. 26 May 2018: 0, 27 May: 0, 28 May: 594, 29 May: 711, 30 May: 339, 31 May: 674, 1 June: 1,990, 2 June: 1,916, 3 June: 8,897, 4 June: 46,900, 5 June: 98,300, 6 June: 113,900.">
+      <figcaption>#movingtogitlab: daily imports from GitHub to GitLab, late May to early June 2018.</figcaption>
+    </figure>
+    <p>And the timing was right. A few weeks before the talk, imports of GitHub projects into GitLab jumped from hundreds a day to 46,900 on 4 June, 98,300 on 5 June and 113,900 on 6 June. That was the week Microsoft announced it was buying GitHub.</p>
+
+    <details class="deck">
+      <summary>All 19 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: The simplest gitlab ci pipeline ever"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: GOAL:"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Let’s make"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Who knows"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Who Uses"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Who automates with CI?"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: The simplest gitlab ci pipeline ever"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Result"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Result (Log)"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Wasn’t that simple?"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: how does"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: how does it work?"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: ci job lifecycle"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: MultistaGE"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: complex pipeline"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: DEMO TIME"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Gitlab is much more than git"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: #movingtogitlab"></li>
+        <li><img src="/assets/talks/simplest-gitlab-ci-pipeline/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Thank you!"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=HG0HgeUDbR8">Video</a>
+      <a href="https://docs.gitlab.com/ci/">GitLab CI/CD docs</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The simplest GitLab CI pipeline ever",
+  "description": "A three-line .gitlab-ci.yml that runs, then how GitLab CI jobs work: Docker images, stages, artifacts, a multi-stage PHP pipeline with Composer and PHPStan.",
+  "url": "https://janmikes.cz/slides/simplest-gitlab-ci-pipeline/",
+  "datePublished": "2018-06-23",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/simplest-gitlab-ci-pipeline.jpg",
+  "about": ["GitLab CI", "Continuous integration", "Docker", "PHP", "PHPStan"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

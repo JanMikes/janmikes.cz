@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real-time updates with Mercure and Symfony UX Turbo · Jan Mikeš</title>
+<meta name="description" content="How Mercure pushes real-time updates over server-sent events, and how I used it with Symfony UX Turbo in Peon to show live job status, without writing JavaScript.">
+<link rel="canonical" href="https://janmikes.cz/slides/mercure-symfony-ux-turbo/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Real-time updates with Mercure and Symfony UX Turbo">
+<meta property="og:description" content="Mercure, server-sent events and Turbo Streams: live job status in a Symfony app without writing JavaScript.">
+<meta property="og:url" content="https://janmikes.cz/slides/mercure-symfony-ux-turbo/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/mercure-symfony-ux-turbo.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2022-10-21">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Real-time updates with Mercure and Symfony UX Turbo">
+<meta name="twitter:description" content="Mercure, server-sent events and Turbo Streams: live job status in a Symfony app without writing JavaScript.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/mercure-symfony-ux-turbo.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2022-10-21">21 October 2022</time> · TechMeetup Ostrava Conference 2022 · Ostrava · given in Czech</p>
+    <h1>Real-time updates with Mercure and Symfony UX Turbo</h1>
+    <p class="lede"><span lang="cs">Real-time komunikace s Mercure protokolem a Symfony.</span> <span>How to show users what&rsquo;s happening right now, without polling and without writing JavaScript, on a real example from Peon. I first gave this talk in English at AmsterdamPHP on 21 April 2022, and then in Czech in Ostrava. Both recordings are linked at the bottom.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The <code>symfony/ux-turbo-mercure</code> package used below was <a href="https://github.com/symfony/ux/releases/tag/v2.6.1">deprecated in Symfony UX 2.6.1</a>, a few months after this talk. Its code now ships inside <code>symfony/ux-turbo</code>: install that together with <code>symfony/mercure-bundle</code>. The approach itself hasn&rsquo;t changed.</div>
+
+    <p>The original agenda also had a hello world, installing Mercure, running the Mercure server and an introduction to Hotwire Turbo. For the conference I crossed those out and focused on how Mercure works, when it&rsquo;s worth it, which Symfony packages to use, and a clean implementation in the Peon codebase.</p>
+
+    <h2>Mercure, the modern websockets</h2>
+    <p><a href="https://mercure.rocks">Mercure</a> is a protocol and a server for pushing updates from the server to browsers. What I like about it:</p>
+    <ul>
+      <li>Fully open source (<a href="https://github.com/dunglas/mercure">github.com/dunglas/mercure</a>), written in Go</li>
+      <li>Native browser support through server-sent events, which browsers have had since 2006</li>
+      <li>It uses HTTP/2</li>
+      <li>Reconnecting after a dropped connection is built in</li>
+      <li>Works in IE7+ with polyfills</li>
+      <li>Authorization with JWT</li>
+      <li>A lovely debug UI</li>
+      <li>You publish updates with a plain HTTP POST</li>
+    </ul>
+    <p>The Mercure FAQ explains the difference from WebSockets well: the WebSocket API is low level, Mercure is high level and gives you authorization, reconnection and state reconciliation for free. In most cases you can use it as a modern and easier replacement for WebSockets.</p>
+
+    <h2>The terminology</h2>
+    <ul>
+      <li><b>Hub:</b> the Mercure server, on <code>/.well-known/mercure</code></li>
+      <li><b>Topic:</b> the thing you subscribe to, a string</li>
+      <li><b>Subscription:</b> an open connection to the hub</li>
+      <li><b>Subscriber:</b> the client app that subscribes to updates</li>
+      <li><b>Publication:</b> sending an update to the hub</li>
+      <li><b>Publisher:</b> whoever published the update</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/mercure-symfony-ux-turbo/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Diagram: the app server sends updates to the Mercure hub with HTTP POST, and the hub pushes them to a desktop browser, a laptop and a phone over server-sent events (SSE).">
+      <figcaption>The app server POSTs to the hub. The hub fans updates out to every subscriber over SSE.</figcaption>
+    </figure>
+    <p>Publishing is a single request:</p>
+<pre><code>curl \
+  -d 'topic=my-topic' \
+  -d 'data="Some data"' \
+  -H 'Authorization: Bearer &lt;TOKEN&gt;' \
+  -X POST \
+  https://localhost/.well-known/mercure</code></pre>
+    <p>Topics should be URIs. They can use templates like <code>news/{id}</code> and the <code>*</code> wildcard, and you can subscribe to several at once: <code>https://localhost/.well-known/mercure?topic=X&amp;topic=Y</code>. In the browser it&rsquo;s the native <code>EventSource</code>:</p>
+<pre><code>const url = new URL('https://localhost/.well-known/mercure');
+url.searchParams.append('topic', 'topic-a');
+url.searchParams.append('topic', 'projects/{id}');
+
+const eventSource = new EventSource(url);
+
+// The callback will be called every time an update is published
+eventSource.onmessage = e =&gt; console.log(e);</code></pre>
+
+    <h2>When it&rsquo;s worth it</h2>
+    <p>Not every application benefits from Mercure. It&rsquo;s about user experience: giving the user feedback. Good fits are live availability (e-commerce, booking.com), chat, asynchronous jobs and real-time collaboration.</p>
+
+    <h2>The Symfony pieces</h2>
+    <ul>
+      <li><b>Mercure:</b> the server and the protocol</li>
+      <li><b><a href="https://hotwired.dev">Hotwire Turbo</a>:</b> a frontend library from Basecamp for an SPA-like experience by sending HTML over the wire instead of JSON</li>
+      <li><b>symfony/ux-turbo:</b> Hotwire Turbo integrated into Symfony</li>
+      <li><b>symfony/ux-turbo-mercure:</b> Mercure as the transport for Turbo</li>
+    </ul>
+
+    <h2>The use case in Peon</h2>
+    <p><a href="https://github.com/peon-dev/peon">Peon</a> runs tasks on your repositories. The domain use case: the user tells Peon to run a task, which creates a pending job. A worker in the background picks the job up and starts working on it. Then the job finishes.</p>
+    <p>Whenever the status changes, the domain dispatches an event:</p>
+<pre><code>final class JobStatusChanged
+{
+    public function __construct(
+        public readonly JobId $jobId,
+        public readonly ProjectId $projectId,
+    ) {}
+}
+
+$this-&gt;eventBus-&gt;dispatch(
+    new JobStatusChanged(
+        $job-&gt;jobId,
+        $job-&gt;projectId,
+    ),
+);</code></pre>
+    <p>The page itself is ordinary: <code>ProjectOverviewController</code> loads the read jobs for the project and renders <code>project_overview.html.twig</code>, a table that shows &ldquo;Pending&rdquo; or &ldquo;In progress&rdquo; for each job.</p>
+    <p>That&rsquo;s the standard, poor user experience. You open the page, the job says &ldquo;In progress&rdquo;, and it keeps saying so until you refresh. The new requirement: as a user, I want to see status updates in real time.</p>
+
+    <h2>Adding Mercure without touching the domain</h2>
+    <p>Before you start, you need basic knowledge of Mercure and Hotwire Turbo, a running Mercure hub, and <code>symfony/ux-turbo-mercure</code> installed and configured.</p>
+    <figure>
+      <img src="/assets/talks/mercure-symfony-ux-turbo/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Diagram: the client browser calls the controller in the UI layer, which renders a template. In the domain, a worker drives a use case handler that dispatches an event. A subscriber receives the event, renders the template and publishes it to the Mercure hub, which pushes it back to the client browser. The Mercure hub part is circled.">
+      <figcaption>The only new parts are a subscriber and the hub. The domain doesn&rsquo;t know Mercure exists.</figcaption>
+    </figure>
+    <p>One rule I hold to: the application must behave exactly the same way with Mercure as without it. If the user refreshes the page, they must see exactly the same content. That leads to three types of templates:</p>
+    <ul>
+      <li>A reusable <b>fragment</b> template</li>
+      <li>A <b>stream</b> template that includes the fragments</li>
+      <li>The <b>controller</b> template that includes the fragments</li>
+    </ul>
+    <p>First, the page subscribes to a topic from Twig:</p>
+<pre><code>&lt;div {{ turbo_stream_listen('project-' ~ activeProject.projectId ~ '-overview') }}&gt;&lt;/div&gt;</code></pre>
+    <p>Then the row of the table moves into its own fragment, <code>_recent_job.html.twig</code>, with a stable id, and the controller template just includes it in the loop:</p>
+<pre><code>&lt;tbody id="recent-jobs"&gt;
+    {% for job in jobs %}
+        {{ include('project_overview/_recent_job.html.twig') }}
+    {% endfor %}
+&lt;/tbody&gt;
+
+&lt;span id="recent-job-{{ job.jobId }}"&gt;
+    {% if job.pending %}
+        &lt;span class="status-pending"&gt;Pending&lt;/span&gt;
+    {% endif %}
+    {# .. more template code .. #}
+&lt;/span&gt;</code></pre>
+    <p>The stream template wraps the same fragment in a <a href="https://turbo.hotwired.dev/handbook/streams">Turbo Stream</a> that replaces the element with that id:</p>
+<pre><code>&lt;turbo-stream action="replace" target="recent-job-{{ job.jobId }}"&gt;
+    &lt;template&gt;
+        {{ include('project_overview/_recent_job.html.twig') }}
+    &lt;/template&gt;
+&lt;/turbo-stream&gt;</code></pre>
+    <p>And the event subscriber renders the final HTML, just like a controller would, and publishes it to the hub:</p>
+<pre><code>final class PublishMercureUpdateWhenJobStatusChanged implements EventHandlerInterface
+{
+    public function __construct(
+        private HubInterface $hub,
+        private Environment $twig,
+        private ProvideReadJobById $provideReadJobById,
+    ) {}
+
+    public function __invoke(JobStatusChanged $event): void {
+        $topic = 'project-' . $event-&gt;projectId-&gt;id . '-overview';
+
+        // Render the final HTML, just like you would in controller:
+        $data = $this-&gt;twig-&gt;render('job_status_changed.stream.html.twig', [
+            'job' =&gt; $this-&gt;provideReadJobById-&gt;provide($event-&gt;jobId),
+        ]);
+
+        $this-&gt;hub-&gt;publish(
+            new Update($topic, $data)
+        );
+    }
+}</code></pre>
+    <p>That&rsquo;s it. The browser keeps one EventSource connection open, the stream arrives, Turbo swaps the row, and the status changes from &ldquo;Pending&rdquo; to &ldquo;In progress&rdquo; to &ldquo;Succeeded&rdquo; on its own. In the browser&rsquo;s network tab you can see the single <code>eventsource</code> request, and the Mercure debug UI on <code>/.well-known/mercure/ui/</code> shows the published Turbo Stream HTML.</p>
+
+    <h2>Final thoughts</h2>
+    <ul>
+      <li>There&rsquo;s a positive side effect on performance.</li>
+      <li>If you can, use Caddy as the web server.</li>
+      <li>Don&rsquo;t use it everywhere just because it&rsquo;s cool.</li>
+    </ul>
+    <p>Kudos to Kévin Dunglas, the author of Mercure.</p>
+
+    <details class="deck">
+      <summary>All 35 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Real-time updates with Mercure protocol and Symfony UX Turbo, Jan Mikeš, #TechMeetupConf 21.10.2022"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Agenda: introducing Mercure, use cases, Mercure + Symfony components, clean implementation in Peon.dev"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Mercure, the modern websockets: open source in Go, server-sent events, HTTP/2, JWT auth, updates via POST"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Mercure documentation FAQ comparing Mercure with WebSockets, WebSub, and Web Push"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Mercure terminology: hub, topic, subscription, subscriber, publication, publisher"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Diagram: app server POSTs to the Mercure hub, which pushes updates to clients via SSE"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Publishing an update with curl; topics in URI format, templates, and wildcards"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: JavaScript code subscribing to a topic with EventSource"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Not every application benefits from using Mercure"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: User experience use cases: live availability, chat, asynchronous jobs, real-time collaboration"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Mercure + Symfony packages: Mercure, Hotwire Turbo, symfony/ux-turbo, symfony/ux-turbo-mercure"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Hotwire website: HTML over the wire, an alternative to building apps with JSON and JavaScript"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Peon &quot;run a task&quot; use case: user creates a pending job, worker starts it, job is finished"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: PHP code: JobStatusChanged event class dispatched to the event bus"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Diagram: controller and template in UI, use case handler dispatching events to subscribers"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: PHP code: ProjectOverviewController rendering the project overview template with jobs"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Twig template rendering job status as Pending or In progress"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Standard (poor) user experience example"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Peon app screenshot: a task shown &quot;In progress&quot; that does not update without refresh"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Peon use case again, plus the goal: as a user I want status updates in real time"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Before you start: basics of Mercure and Hotwire Turbo, Mercure hub, symfony/ux-turbo-mercure installed"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Diagram from before with a Mercure hub added between subscriber and browser client"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: Peon app screenshot: task in Pending state"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Peon app screenshot: project overview with recipes and recent jobs all succeeded"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Peon task finished in real time, with browser devtools showing the Mercure event stream"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Mercure debugging UI with subscribe and publish forms and received Turbo Stream update"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: App must behave the same with or without Mercure; 3 template types: fragment, stream, controller"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: PHP code: event subscriber rendering a Twig stream template and publishing it to the Mercure hub"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Twig code subscribing to a topic with turbo_stream_listen, link to Symfony UX Turbo docs"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Twig code: extracting the job row into a reusable fragment template"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Turbo Stream template replacing the job row with the fragment, link to Turbo handbook"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: Final thoughts: better performance, use Caddy if possible, don't use it just because it's cool"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: Kudos to Kévin Dunglas, illustrated with many thumbs-up hands"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/34.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 34: Useful resources: mercure.rocks, turbo.hotwired.dev, Symfony UX Turbo, MDN server-sent events, peon-dev/peon"></li>
+        <li><img src="/assets/talks/mercure-symfony-ux-turbo/35.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 35: Homer Simpson asking &quot;Questions?&quot; and Thank you! @honza_mikes, janmikes.cz"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=FuoWeOVxaMc">Video</a>
+      <a href="https://www.youtube.com/watch?v=DYHM2FrjWEs">Video in English (AmsterdamPHP)</a>
+      <a href="https://mercure.rocks">Mercure</a>
+      <a href="https://symfony.com/bundles/ux-turbo/current/index.html">Symfony UX Turbo</a>
+      <a href="https://github.com/peon-dev/peon">Peon on GitHub</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Real-time updates with Mercure and Symfony UX Turbo",
+  "description": "How Mercure pushes real-time updates over server-sent events, and how I used it with Symfony UX Turbo in Peon to show live job status, without writing JavaScript.",
+  "url": "https://janmikes.cz/slides/mercure-symfony-ux-turbo/",
+  "datePublished": "2022-10-21",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/mercure-symfony-ux-turbo.jpg",
+  "about": ["Mercure", "Symfony", "Symfony UX Turbo", "Hotwire Turbo", "Server-sent events", "Real-time web"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentry 2.0 in Nette 3.0: sending every Tracy error to Sentry · Jan Mikeš</title>
+<meta name="description" content="How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.">
+<link rel="canonical" href="https://janmikes.cz/slides/sentry-in-nette/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Sentry 2.0 in Nette 3.0">
+<meta property="og:description" content="The three ways an error reaches Tracy in Nette, and one logger service that sends them all to Sentry.">
+<meta property="og:url" content="https://janmikes.cz/slides/sentry-in-nette/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/sentry-in-nette.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2019-08-08">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sentry 2.0 in Nette 3.0">
+<meta name="twitter:description" content="The three ways an error reaches Tracy in Nette, and one logger service that sends them all to Sentry.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/sentry-in-nette.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2019-08-08">8 August 2019</time> · Péhápkaři Prague meetup #39 · Prague · given in Czech</p>
+    <h1>Sentry 2.0 in Nette 3.0</h1>
+    <p class="lede"><span lang="cs">Sentry 2.0 v Nette 3.0.</span> <span>Getting the first error into Sentry takes one line. Getting every error there means understanding how Tracy, Nette&rsquo;s debugger, logs things. Once you do, the fix is one service in the config.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The idea still works, the code needs changes. Since <a href="https://github.com/getsentry/sentry-php/blob/master/UPGRADE-3.0.md">sentry-php 3.0</a>, <code>captureEvent()</code> takes an <code>Event</code> object, not the array used below. The <a href="https://packagist.org/packages/sentry/sdk"><code>sentry/sdk</code></a> metapackage is no longer recommended; install <code>sentry/sentry</code> directly. And there&rsquo;s now <a href="https://packagist.org/packages/contributte/sentry">contributte/sentry</a>, a maintained Nette integration you may want instead of writing your own.</div>
+
+    <h2>Picking a package</h2>
+    <p>Sentry is a service that collects errors from your app, groups them, and shows each one with its stack trace and context. In 2019 there were several ways to connect it to a PHP app:</p>
+    <ul>
+      <li><code>sentry/sentry-symfony</code>, the official bundle, but only for Symfony</li>
+      <li><code>contributte/logging</code></li>
+      <li><code>salamek/raven-nette</code></li>
+      <li>Monolog with the old Raven handler</li>
+      <li>Monolog with the new Sentry handler</li>
+    </ul>
+    <p>I crossed them out one by one. The winner was the plain <code>sentry/sdk</code>, with a few lines of my own glue.</p>
+    <p>Along the way I sent a few pull requests to <code>getsentry/sentry-php</code> to improve its Monolog handler. Adding the channel to the payload as <code>logger</code> and setting the transaction name from Monolog&rsquo;s extra context were merged into the 2.2 milestone; two others were closed.</p>
+    <figure>
+      <img src="/assets/talks/sentry-in-nette/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="The getsentry/sentry-php 2.2 milestone on GitHub, 71% complete. Four of the listed pull requests are by JanMikes: Make use of Event::$logger (closed), Possibility to add transaction to record (closed), Add channel to payload as logger (merged), Added support for setting transaction name via monolog extra context (merged).">
+      <figcaption>My pull requests in the sentry-php 2.2 milestone.</figcaption>
+    </figure>
+    <p>The transaction one didn&rsquo;t last. The maintainers reverted it 20 days before the talk: key names like <code>transaction</code> are too generic and may not mean what Sentry means, and copying structured log data blindly into the event can make it very big or leak things you don&rsquo;t want there.</p>
+
+    <h2>The quickstart</h2>
+    <p>The minimum is one call in <code>Bootstrap::boot()</code>, next to <code>enableTracy()</code>:</p>
+<pre><code>$configurator->enableTracy(__DIR__ . '/../log');
+
+\Sentry\init(['dsn' => 'https://xyz@sentry.io/1480147']);</code></pre>
+    <p>Throw an exception in a presenter and it shows up in Sentry with the browser, PHP version, URL and the exact line. Done? Not quite. Wrap that exception in try/catch and log it the usual Nette way, and nothing arrives:</p>
+<pre><code>try {
+    throw new \Exception('This is demo!');
+} catch (\Exception $e) {
+    Debugger::log($e, Debugger::CRITICAL);
+}</code></pre>
+
+    <h2>Three ways an error reaches Tracy</h2>
+    <p>Tracy is Nette&rsquo;s debugger and logger. To catch everything, I had to find every path an error takes in a Nette app. There are three.</p>
+    <p><b>Option 1: logging directly.</b> You call <code>Debugger::log()</code> yourself, as above.</p>
+    <p><b>Option 2: an uncaught exception.</b> The app starts with:</p>
+<pre><code>App\Bootstrap::boot()
+    ->createContainer()
+    ->getByType(Nette\Application\Application::class)
+    ->run();</code></pre>
+    <p><code>Application::run()</code> wraps the whole request in try/catch. When something throws, and <code>catchExceptions</code> is on with an error presenter set, it calls <code>processException()</code>. That forwards to the <code>ErrorPresenter</code>, which logs the exception with <code>$this->logger->log($exception, ILogger::EXCEPTION)</code>.</p>
+    <p><b>Option 3: an uncaught uncaught exception.</b> If there&rsquo;s no error presenter, or exceptions aren&rsquo;t caught, <code>run()</code> rethrows. Then Tracy steps in. <code>Debugger::enable()</code>, called by <code>enableTracy()</code>, registers its own <code>set_exception_handler</code>, and in production mode that handler calls <code>self::log($exception, self::EXCEPTION)</code>.</p>
+    <p>All three end in the same place. <code>Debugger::log()</code> is just:</p>
+<pre><code>public static function log($message, string $priority = ILogger::INFO)
+{
+    return self::getLogger()->log($message, $priority);
+}</code></pre>
+    <p>So the answer is to replace Tracy&rsquo;s logger. <code>Debugger::setLogger()</code> exists, but where do you call it, and early enough?</p>
+
+    <h2>Let the container do it</h2>
+    <p>Nette&rsquo;s Tracy DI extension already handles this. If the <code>tracy.logger</code> service isn&rsquo;t the default <code>Debugger::getLogger()</code>, it adds a <code>Tracy\Debugger::setLogger(...)</code> call to the container&rsquo;s initialization:</p>
+<pre><code>$logger = $builder->getDefinition($this->prefix('logger'));
+if ($logger->getFactory()->getEntity() !== [Tracy\Debugger::class, 'getLogger']) {
+    $initialize->addBody($builder->formatPhp('Tracy\Debugger::setLogger(?);', [$logger]));
+}</code></pre>
+    <p>So all you do is register your own logger under that name. I checked the generated container to be sure, and the <code>setLogger()</code> call was there. Mystery solved.</p>
+
+    <h2>The decorated logger</h2>
+    <p>The logger decorates Tracy&rsquo;s default one: it keeps the original file logging and also sends to Sentry. The config holds the Sentry options, with the DSN left empty so each environment sets it in <code>local.neon</code>:</p>
+<pre><code>parameters:
+    sentry:
+        dsn: '' # Change this in your local.neon
+        in_app_exclude:
+            - %appDir%/../vendor/
+            - %appDir%/../temp/
+        project_root: %appDir%/../
+        send_default_pii: true
+
+services:
+    tracy.logger: App\Logging\SentryDecoratedTracyLogger(%sentry%)</code></pre>
+    <p>And the class:</p>
+<pre><code>public function __construct(array $sentryOptions)
+{
+    $this->parentLogger = Debugger::getLogger();
+
+    \Sentry\init($sentryOptions);
+}
+
+public function log($value, $priority = self::INFO): void
+{
+    // Logging to default Tracy logger
+    $this->parentLogger->log($value, $priority);
+    $this->logToSentry($value, $priority);
+}
+
+private function logToSentry($value, $priority): void
+{
+    $severity = $this->getSeverityFromPriority($priority);
+
+    if (!$severity) {
+        return;
+    }
+
+    $payload = [
+        'message' => $value,
+        'level' => $severity,
+    ];
+
+    if ($value instanceof \Throwable) {
+        $payload['exception'] = $value;
+        $payload['message'] = $value->getMessage();
+    }
+
+    captureEvent($payload);
+}
+
+private function getSeverityFromPriority(string $priority): ?Severity
+{
+    switch ($priority) {
+        case ILogger::WARNING:
+            return Severity::warning();
+
+        case ILogger::ERROR:
+            return Severity::error();
+
+        case ILogger::EXCEPTION:
+        case ILogger::CRITICAL:
+            return Severity::fatal();
+
+        default:
+            return null;
+    }
+}</code></pre>
+    <p>Info and debug messages stay in the log files. Warnings, errors, exceptions and critical errors go to Sentry too. With this in place, the caught exception from the beginning shows up in Sentry with its stack trace.</p>
+
+    <h2>In production</h2>
+    <p>The version we ran at GLAMI was the same idea with more context. The logger took a custom stack trace factory and registered several global event processors through <code>Scope::addGlobalEventProcessor()</code>: user context, transaction, system user, console command and country. Each one adds its piece of information to every event before it&rsquo;s sent.</p>
+    <p>The full demo is on GitHub: <a href="https://github.com/janmikes/nette-sentry-demo">github.com/janmikes/nette-sentry-demo</a>.</p>
+
+    <details class="deck">
+      <summary>All 52 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/sentry-in-nette/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Sentry 2.0 v Nette 3.0, 8 August 2019"></li>
+        <li><img src="/assets/talks/sentry-in-nette/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Entrydo, GLAMI, Péhápkaři.cz, Rector"></li>
+        <li><img src="/assets/talks/sentry-in-nette/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Sentry issue list with test exceptions"></li>
+        <li><img src="/assets/talks/sentry-in-nette/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: sentry/sentry-symfony"></li>
+        <li><img src="/assets/talks/sentry-in-nette/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Options: contributte/logging, salamek/raven-nette, Monolog with Raven handler, Monolog with Sentry handler"></li>
+        <li><img src="/assets/talks/sentry-in-nette/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: contributte/logging crossed out"></li>
+        <li><img src="/assets/talks/sentry-in-nette/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: salamek/raven-nette crossed out"></li>
+        <li><img src="/assets/talks/sentry-in-nette/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Monolog with Raven handler crossed out"></li>
+        <li><img src="/assets/talks/sentry-in-nette/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: All four options crossed out"></li>
+        <li><img src="/assets/talks/sentry-in-nette/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: sentry-php 2.2 milestone with Jan&#x27;s pull requests"></li>
+        <li><img src="/assets/talks/sentry-in-nette/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Pull request #853 reverting transaction name extraction in the Monolog handler"></li>
+        <li><img src="/assets/talks/sentry-in-nette/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: And the winner is..."></li>
+        <li><img src="/assets/talks/sentry-in-nette/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: The winner: sentry/sdk"></li>
+        <li><img src="/assets/talks/sentry-in-nette/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Quickstart: Sentry\init in Bootstrap"></li>
+        <li><img src="/assets/talks/sentry-in-nette/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Presenter throwing an exception in startup"></li>
+        <li><img src="/assets/talks/sentry-in-nette/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: The exception as a Sentry event"></li>
+        <li><img src="/assets/talks/sentry-in-nette/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Happy Friday? Still only Thursday"></li>
+        <li><img src="/assets/talks/sentry-in-nette/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Bootstrap with the hardcoded DSN highlighted"></li>
+        <li><img src="/assets/talks/sentry-in-nette/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Caught exception logged with Debugger::log"></li>
+        <li><img src="/assets/talks/sentry-in-nette/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Handwritten notes"></li>
+        <li><img src="/assets/talks/sentry-in-nette/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Handwritten notes on Nette Application events and logging"></li>
+        <li><img src="/assets/talks/sentry-in-nette/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Meet Tracy!"></li>
+        <li><img src="/assets/talks/sentry-in-nette/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: Holding hands"></li>
+        <li><img src="/assets/talks/sentry-in-nette/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Looking under the hood"></li>
+        <li><img src="/assets/talks/sentry-in-nette/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Option 1: logging directly"></li>
+        <li><img src="/assets/talks/sentry-in-nette/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Option 2: uncaught exception"></li>
+        <li><img src="/assets/talks/sentry-in-nette/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: Bootstrap::boot()-&gt;createContainer()-&gt;getByType(Application)-&gt;run()"></li>
+        <li><img src="/assets/talks/sentry-in-nette/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Application::run() source"></li>
+        <li><img src="/assets/talks/sentry-in-nette/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Application::run() calling processException"></li>
+        <li><img src="/assets/talks/sentry-in-nette/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: ErrorPresenter logging the exception"></li>
+        <li><img src="/assets/talks/sentry-in-nette/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Option 3: uncaught uncaught exception, rethrown from run()"></li>
+        <li><img src="/assets/talks/sentry-in-nette/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: enableTracy() in Bootstrap"></li>
+        <li><img src="/assets/talks/sentry-in-nette/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: Debugger::enable registering exceptionHandler, which logs in production mode"></li>
+        <li><img src="/assets/talks/sentry-in-nette/34.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 34: Heureka!"></li>
+        <li><img src="/assets/talks/sentry-in-nette/35.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 35: Debugger::log calls getLogger()-&gt;log"></li>
+        <li><img src="/assets/talks/sentry-in-nette/36.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 36: Debugger::setLogger and getLogger"></li>
+        <li><img src="/assets/talks/sentry-in-nette/37.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 37: Tracy DI extension adding Debugger::setLogger for a custom tracy.logger"></li>
+        <li><img src="/assets/talks/sentry-in-nette/38.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 38: Not sure if the solution works"></li>
+        <li><img src="/assets/talks/sentry-in-nette/39.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 39: Decorated logger: parent log plus logToSentry"></li>
+        <li><img src="/assets/talks/sentry-in-nette/40.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 40: services: tracy.logger: App\Logging\SentryDecoratedTracyLogger"></li>
+        <li><img src="/assets/talks/sentry-in-nette/41.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 41: Generated container calling Debugger::setLogger"></li>
+        <li><img src="/assets/talks/sentry-in-nette/42.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 42: Mystery solved"></li>
+        <li><img src="/assets/talks/sentry-in-nette/43.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 43: The final logger class and NEON config"></li>
+        <li><img src="/assets/talks/sentry-in-nette/44.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 44: NEON parameters for Sentry"></li>
+        <li><img src="/assets/talks/sentry-in-nette/45.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 45: Logger constructor and log method"></li>
+        <li><img src="/assets/talks/sentry-in-nette/46.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 46: logToSentry building the payload"></li>
+        <li><img src="/assets/talks/sentry-in-nette/47.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 47: Mapping Tracy priorities to Sentry severities"></li>
+        <li><img src="/assets/talks/sentry-in-nette/48.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 48: The caught exception in Sentry"></li>
+        <li><img src="/assets/talks/sentry-in-nette/49.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 49: Production SentryTracyLogger with event processors"></li>
+        <li><img src="/assets/talks/sentry-in-nette/50.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 50: github.com/janmikes/nette-sentry-demo"></li>
+        <li><img src="/assets/talks/sentry-in-nette/51.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 51: GLAMI and Rector: we want you"></li>
+        <li><img src="/assets/talks/sentry-in-nette/52.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 52: Thank you! Questions?"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.facebook.com/pehapkari/videos/jan-mikeš-sentry-20-v-nette-30/341535100091641/">Video (Facebook)</a>
+      <a href="https://github.com/janmikes/nette-sentry-demo">Demo code on GitHub</a>
+      <a href="https://github.com/getsentry/sentry-php">sentry-php</a>
+      <a href="https://tracy.nette.org">Tracy</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Sentry 2.0 in Nette 3.0: sending every Tracy error to Sentry",
+  "description": "How to send every error from a Nette 3 app to Sentry: the three ways an exception reaches Tracy, and one decorated logger service that catches them all.",
+  "url": "https://janmikes.cz/slides/sentry-in-nette/",
+  "datePublished": "2019-08-08",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/sentry-in-nette.jpg",
+  "about": ["Sentry", "Nette", "Tracy", "PHP", "Error tracking", "Logging"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

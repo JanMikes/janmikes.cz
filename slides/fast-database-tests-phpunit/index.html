@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fast database tests with PHPUnit, Nette and Doctrine · Jan Mikeš</title>
+<meta name="description" content="How to test a Nette + Doctrine app against a real database in PHPUnit: build the schema once, wrap each test in a transaction, roll back, and cache the database.">
+<link rel="canonical" href="https://janmikes.cz/slides/fast-database-tests-phpunit/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Fast database tests with PHPUnit, Nette and Doctrine">
+<meta property="og:description" content="A PHPUnit extension that prepares the database once, rolls back every test and caches the schema between runs.">
+<meta property="og:url" content="https://janmikes.cz/slides/fast-database-tests-phpunit/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/fast-database-tests-phpunit.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2024-04-27">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fast database tests with PHPUnit, Nette and Doctrine">
+<meta name="twitter:description" content="A PHPUnit extension that prepares the database once, rolls back every test and caches the schema between runs.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/fast-database-tests-phpunit.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2024-04-27">27 April 2024</time> · #posobota s06e04 · Ostrava · given in Czech</p>
+    <h1>Fast database tests with PHPUnit, Nette and Doctrine</h1>
+    <p class="lede"><span lang="cs">Nette + PHPUnit + Doctrine &ndash; Efektivní práce s databází v testech.</span> <span>Tests that touch a real database are the most useful tests you can write, and the slowest. Here is how I made them fast with one small PHPUnit extension.</span></p>
+
+    <h2>The problem</h2>
+    <p>We had a PHP application built on Nette and Doctrine. I wanted to write PHPUnit tests, and the testing strategy involved working with the database. Not mocks, a real database.</p>
+    <p>A test like that always needs the same things:</p>
+    <ul>
+      <li>a database,</li>
+      <li>its structure (tables),</li>
+      <li>fake data (rows),</li>
+      <li>&hellip; the test itself &hellip;,</li>
+      <li>and a cleanup afterwards.</li>
+    </ul>
+    <p>I looked at what was out there. The Nette world mostly talks about Nette Tester, its own testing tool, and the articles about testing models with a database didn&rsquo;t fit PHPUnit. Laravel has the <code>RefreshDatabase</code> trait that resets the database after each test. Symfony documents a separate test database and points to <a href="https://github.com/dmaicher/doctrine-test-bundle">DAMADoctrineTestBundle</a>, which wraps each test in a transaction. Nette + Doctrine + PHPUnit had nothing like that ready, so I built it.</p>
+    <figure>
+      <img src="/assets/talks/fast-database-tests-phpunit/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Screenshot of the Symfony documentation section &ldquo;Resetting the Database Automatically Before each Test&rdquo;: install dama/doctrine-test-bundle with composer require --dev and enable DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension in phpunit.xml.dist. The bundle begins a transaction before every test and rolls it back afterwards.">
+      <figcaption>The Symfony way: DAMADoctrineTestBundle, a transaction per test. The idea I wanted for Nette.</figcaption>
+    </figure>
+
+    <h2>The naive version</h2>
+    <p>The first version does everything inside the test: drop the schema, create it, run migrations, load fixtures, then test.</p>
+<pre><code>class MyServiceTest extends TestCase
+{
+    public function testSomething(): void
+    {
+        passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:drop', __DIR__));
+        passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:create', __DIR__));
+        passthru(sprintf('php "%s/../bin/console" --env=test migrations:migrate', __DIR__));
+        passthru(sprintf('php "%s/../bin/console" --env=test doctrine:fixtures:load', __DIR__));
+
+        // We need container to work with the application ...
+        $container = Bootstrap::getTestsContainer();
+
+        // ... the service we are testing ...
+        $service = $container-&gt;getByType(MyService::class);
+
+        // ... check state of the app before ...
+        $this-&gt;assertCount(0, $service-&gt;countSomething());
+
+        $service-&gt;doSomething();
+
+        // ... make sure the app changed into expected state ...
+        $this-&gt;assertCount(1, $service-&gt;countSomething());
+    }
+}</code></pre>
+    <p>The container comes from the application&rsquo;s <code>Bootstrap</code>, with one extra config file for tests and a static variable, so it&rsquo;s built only once per run:</p>
+<pre><code>private static null|Container $testsContainer = null;
+
+public static function getTestsContainer(): Container
+{
+    // Local caching
+    if (self::$testsContainer === null) {
+        $_ENV['APP_ENV'] = 'test';
+
+        $configurator = self::boot();
+
+        // Customize the app for tests
+        $configurator-&gt;addConfig(__DIR__ . '/../config/tests.neon');
+
+        self::$testsContainer = $configurator-&gt;createContainer();
+    }
+
+    return self::$testsContainer;
+}</code></pre>
+    <p>It works. Tada! But it rebuilds the whole database for every single test, and that gets slow very quickly.</p>
+
+    <h2>What we really want</h2>
+    <ol>
+      <li>Run PHPUnit.</li>
+      <li>Only once, at the start, prepare the database structure and data.</li>
+      <li>Before each test, start a transaction.</li>
+      <li>Run the test.</li>
+      <li>Roll the transaction back after each test.</li>
+    </ol>
+    <p>There are two ways to hook into PHPUnit. A <b>bootstrap</b> file is the easy way, but it runs only once before all tests. An <b>extension</b> uses PHPUnit&rsquo;s event system (since PHPUnit 10). It&rsquo;s more robust, and you can hook into any stage of the test suite. That&rsquo;s what we need.</p>
+
+    <h2>Step 0: create the extension</h2>
+    <p>An extension implements one interface:</p>
+<pre><code>namespace PHPUnit\Runner\Extension;
+
+use PHPUnit\TextUI\Configuration\Configuration;
+
+interface Extension
+{
+    public function bootstrap(Configuration $configuration, Facade $facade, ParameterCollection $parameters): void;
+}</code></pre>
+    <p>and gets registered in <code>phpunit.xml</code>:</p>
+<pre><code>&lt;extensions&gt;
+    &lt;bootstrap class="Omnicado\Tests\PHPUnit\TestingDatabaseExtension" /&gt;
+&lt;/extensions&gt;</code></pre>
+    <p>Inside <code>bootstrap()</code> you register subscribers on the <code>$facade</code>. Each one reacts to one event.</p>
+
+    <h2>Step 1: prepare the database only once</h2>
+<pre><code>$facade-&gt;registerSubscriber(new class () implements TestRunnerStartedSubscriber {
+    public function notify(TestRunnerStartedEvent $event): void
+    {
+        passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:create', __DIR__));
+        passthru(sprintf('php "%s/../bin/console" --env=test migrations:migrate', __DIR__));
+        passthru(sprintf('php "%s/../bin/console" --env=test doctrine:fixtures:load', __DIR__));
+    }
+});</code></pre>
+
+    <h2>Step 2: start a transaction before each test</h2>
+<pre><code>$facade-&gt;registerSubscriber(new class () implements TestStartedSubscriber {
+    public function notify(TestStartedEvent $event): void
+    {
+        Bootstrap::getTestsContainer()
+            -&gt;getByType(EntityManagerInterface::class)
+            -&gt;beginTransaction();
+
+        TestingDatabaseExtension::$transactionStarted = true;
+    }
+});</code></pre>
+
+    <h2>Step 3: roll back after each test</h2>
+    <p>A test can end in more ways than one. It can finish, be skipped, or error out, so we roll back on all three events:</p>
+<pre><code>$facade-&gt;registerSubscriber(new class () implements SkippedSubscriber {
+    public function notify(Skipped $event): void
+    {
+        TestingDatabaseExtension::rollBack();
+    }
+});
+
+$facade-&gt;registerSubscriber(new class () implements TestFinishedSubscriber {
+    public function notify(TestFinishedEvent $event): void
+    {
+        TestingDatabaseExtension::rollBack();
+    }
+});
+
+$facade-&gt;registerSubscriber(new class () implements ErroredSubscriber {
+    public function notify(Errored $event): void
+    {
+        TestingDatabaseExtension::rollBack();
+    }
+});</code></pre>
+    <p>The flag makes the rollback safe to call more than once:</p>
+<pre><code>public static function rollBack(): void
+{
+    if (!self::$transactionStarted) {
+        return;
+    }
+
+    Bootstrap::getTestsContainer()
+        -&gt;getByType(EntityManagerInterface::class)
+        -&gt;rollback();
+
+    self::$transactionStarted = false;
+}</code></pre>
+    <p>Now the test itself is clean. No setup, no cleanup, only the behaviour:</p>
+<pre><code>class MarketplaceStockUpdateLogRepositoryTest extends TestCase
+{
+    public function testGetMostRecentStockQuantities(): void
+    {
+        $container = Bootstrap::getTestsContainer();
+        $repository = $container-&gt;getByType(MarketplaceStockUpdateLogRepository::class);
+
+        $this-&gt;assertCount(0, $repository-&gt;getMostRecentStockQuantities());
+
+        $entity = new MarketplaceStockUpdateLog($repository-&gt;nextId(), 1, 1);
+        $repository-&gt;save($entity);
+
+        $this-&gt;assertCount(1, $repository-&gt;getMostRecentStockQuantities());
+    }
+}</code></pre>
+
+    <h2>Step 4 of 3: &ldquo;cache&rdquo; the database</h2>
+    <p>One more thought. If the structure hasn&rsquo;t changed, and the data hasn&rsquo;t changed, and every test rolls back its changes, why create a fresh database on every run?</p>
+    <p>The structure comes from migrations and the data from fixtures. So I hash those two directories and store the hash in a file. The database gets rebuilt only when the hash differs. It&rsquo;s also skipped completely when only unit tests run, because they don&rsquo;t need a database at all.</p>
+<pre><code>$facade-&gt;registerSubscriber(new class () implements TestRunnerStartedSubscriber {
+    public function notify(TestRunnerStartedEvent $event): void
+    {
+        $cacheFilePath = __DIR__ . '/../.database.cache';
+
+        $currentDatabaseHash = TestingDatabase::calculateDirectoriesHash(
+            __DIR__ . '/../../migrations',
+            __DIR__ . '/../DataFixtures',
+        );
+
+        if (
+            TestingDatabaseExtension::isRunningUnitTestOnly() === false
+            &amp;&amp; TestingDatabase::isCacheUpToDate($cacheFilePath, $currentDatabaseHash) === false
+        ) {
+            passthru(sprintf('php "%s/../bin/console" --env=test orm:schema-tool:create', __DIR__));
+            passthru(sprintf('php "%s/../bin/console" --env=test migrations:migrate', __DIR__));
+            passthru(sprintf('php "%s/../bin/console" --env=test doctrine:fixtures:load', __DIR__));
+
+            file_put_contents($cacheFilePath, $currentDatabaseHash);
+        }
+    }
+});</code></pre>
+    <p>The hash is just the MD5 of every PHP file in those directories:</p>
+<pre><code>public static function calculateDirectoriesHash(string ...$directories): string
+{
+    $finder = Finder::find('*.php')-&gt;in(...$directories);
+    $files = array_keys(iterator_to_array($finder-&gt;getIterator()));
+    $hash = '';
+
+    foreach ($files as $file) {
+        $hash .= md5_file($file);
+    }
+
+    return $hash;
+}</code></pre>
+    <p>The check compares the stored hash with the current one, and also looks at the age of the cache file against a validity window:</p>
+<pre><code>public static function isCacheUpToDate(string $cacheFilePath, string $currentDatabaseHash): bool
+{
+    if (!file_exists($cacheFilePath)) {
+        return false;
+    }
+
+    $cachedDatabaseHash = file_get_contents($cacheFilePath);
+    $lastModificationTimestamp = filemtime($cacheFilePath);
+    $cacheValidUntil = time() + self::CACHE_VALID_FOR_SECONDS;
+
+    if ($cacheValidUntil &lt; $lastModificationTimestamp) {
+        return false;
+    }
+
+    return $currentDatabaseHash === $cachedDatabaseHash;
+}</code></pre>
+    <p>The result: the database is built once, and only again when migrations or fixtures change. Every test starts from the same clean state, and tests stay independent of each other. The full working example is on GitHub.</p>
+
+    <details class="deck">
+      <summary>All 28 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Nette + Doctrine + PHPUnit, title slide"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Problem solving: a Nette + Doctrine app, PHPUnit tests that work with the database"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Illustration: developers playing poker"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Search results about testing Nette models with a database"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Illustration: two developers staring at a screen"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Laravel documentation: resetting the database after each test"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Symfony documentation: configuring a database for tests"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Testing with database: database, structure, fake data, test, cleanup"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Code: the outline of a database test"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Code: a test that drops and recreates the schema before running"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Code: Bootstrap::getTestsContainer() with local caching"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Code: a test using the tests container"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Illustration: a team celebrating, TADA!"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Symfony documentation: DAMADoctrineTestBundle"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: What we really want?"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Customizing PHPUnit: bootstrap vs extension"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Step 0: create the extension"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Step 1/3: prepare database only once"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Step 2/3: start transaction before test"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Step 3/3: rollback after test, subscribers"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Step 3/3: rollback after test, the rollBack() method"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Code: MarketplaceStockUpdateLogRepositoryTest"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: What if ... ?"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Step 4/3: cache the database"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Code: calculateDirectoriesHash()"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Code: isCacheUpToDate()"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: Links to the example repository and doctrine-test-bundle"></li>
+        <li><img src="/assets/talks/fast-database-tests-phpunit/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Thank you!"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://github.com/JanMikes/posobota-phpunit-nette-doctrine">Example code on GitHub</a>
+      <a href="https://github.com/dmaicher/doctrine-test-bundle">DAMADoctrineTestBundle</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Fast database tests with PHPUnit, Nette and Doctrine",
+  "description": "How to test a Nette + Doctrine app against a real database in PHPUnit: build the schema once, wrap each test in a transaction, roll back, and cache the database.",
+  "url": "https://janmikes.cz/slides/fast-database-tests-phpunit/",
+  "datePublished": "2024-04-27",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/fast-database-tests-phpunit.jpg",
+  "about": ["PHP", "PHPUnit", "Doctrine", "Nette", "Testing", "Database"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

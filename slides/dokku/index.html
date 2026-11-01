@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Save $$$ with Dokku: a self-hosted Heroku for small projects · Jan Mikeš</title>
+<meta name="description" content="What Dokku is, when a self-hosted mini PaaS is enough, and a real startup bill: $3,960 on managed hosting versus about $520 on one Dokku server.">
+<link rel="canonical" href="https://janmikes.cz/slides/dokku/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Save $$$ with Dokku">
+<meta property="og:description" content="Dokku as a self-hosted Heroku: when it&rsquo;s enough, and a real bill of $3,960 versus $520.">
+<meta property="og:url" content="https://janmikes.cz/slides/dokku/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/dokku.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2020-03-23">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Save $$$ with Dokku">
+<meta name="twitter:description" content="Dokku as a self-hosted Heroku: when it&rsquo;s enough, and a real bill of $3,960 versus $520.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/dokku.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2020-03-23">23 March 2020</time> · Cloud Native Prague #9 · online</p>
+    <h1>Save $$$ with Dokku</h1>
+    <p class="lede"><span>A lightning talk about the smallest PaaS you&rsquo;ve ever seen. What Dokku is, when it&rsquo;s all you need, and a real bill from a startup that paid for scale it never used.</span></p>
+
+    <div class="note"><b>Update, 2026</b>Dokku is alive and well, but the GitLab CI setup below is the old way. Dokku now ships its own image for this, <code>dokku/ci-docker-image</code>, and the <a href="https://dokku.com/docs/deployment/continuous-integration/gitlab-ci/">official GitLab CI docs</a> use it instead of <code>ilyasemenov/gitlab-ci-git-push</code>.</div>
+
+    <h2>What Dokku is</h2>
+    <p><a href="https://github.com/dokku/dokku">Dokku</a> calls itself the smallest PaaS implementation you&rsquo;ve ever seen. A PaaS, platform as a service, is the thing where you push code and the platform builds it, runs it and puts it on a URL. Dokku does that on your own server, with Docker underneath.</p>
+    <p>It works very much like Heroku: you <code>git push</code> to it and your app gets deployed. The difference is that it&rsquo;s open source and you run it yourself, on a server you pay a flat price for.</p>
+
+    <h2>Why I love Dokku</h2>
+    <ul>
+      <li>Super easy zero-downtime deploys</li>
+      <li>Scaling processes up and down</li>
+      <li>Log management</li>
+      <li>Networking between apps</li>
+      <li>A good community</li>
+      <li>Support for buildpacks, so many apps deploy without writing a Dockerfile</li>
+    </ul>
+    <p>Deploying from CI is just another <code>git push</code>. This is the GitLab CI config I used, one job for production from <code>master</code> and one for staging:</p>
+<pre><code>deploy:production:
+    image: ilyasemenov/gitlab-ci-git-push
+    stage: deploy
+    environment:
+        name: production
+        url: https://easy.entry.do/
+    script:
+        - git-push dokku@apps.entry.do:dq
+    only:
+        - master
+
+deploy:staging:
+    image: ilyasemenov/gitlab-ci-git-push
+    stage: deploy
+    environment:
+        name: staging
+        url: https://easy.entrydo-dev.com/
+    script:
+        - git-push dokku@apps.entry.do:dq-dev</code></pre>
+    <p>The part after the colon, <code>dq</code> or <code>dq-dev</code>, is the name of the Dokku app. Two apps on the same server, two environments.</p>
+
+    <h2>What it&rsquo;s perfect for</h2>
+    <ul>
+      <li>Side and hobby projects</li>
+      <li>Startups</li>
+      <li>Anything under about 200,000 requests a day</li>
+    </ul>
+    <p>That&rsquo;s more than it sounds like. One server from the talk was running all of this at once:</p>
+    <ul>
+      <li>40 Dokku apps</li>
+      <li>4 MariaDB databases</li>
+      <li>2 RabbitMQ servers</li>
+      <li>30 RabbitMQ consumer processes</li>
+      <li>a GitLab CI runner</li>
+    </ul>
+    <p>The htop screenshot on the slide shows 4 CPU cores mostly idle, a load average of 0.10, 3.7 GB of 7.8 GB RAM in use, and 39 days of uptime.</p>
+
+    <h2>A real example of wasting money</h2>
+    <p>At Entrydo in 2018 and 2019 we ran 12 Node apps, one PHP app, one RabbitMQ server with 10 consumers, and one MariaDB server. Traffic was somewhere between 100 and 100,000 requests a day.</p>
+    <p>Startups live by &ldquo;scale fast or die&rdquo;, so we paid for hosting that was ready to grow. This is what it cost from September 2018 to October 2019:</p>
+    <figure>
+      <img src="/assets/talks/dokku/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Monthly invoices from September 2018 to October 2019: between $296 and $374 a month until July 2019, then $221, $205 and $28, adding up to $3,960.44.">
+      <figcaption>Fourteen months of hosting invoices: $3,960.44 in total.</figcaption>
+    </figure>
+    <p>Most months were around $300. On a Dokku server at $40 a month, the same 13 months would have cost $520. The difference: $3,440.</p>
+
+    <details class="deck">
+      <summary>All 17 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/dokku/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Save $$$ with Dokku, Cloud Native Prague e-meetup #9, 23 March 2020"></li>
+        <li><img src="/assets/talks/dokku/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Today: what is Dokku, when to use it, a real-world $$$ wasting example"></li>
+        <li><img src="/assets/talks/dokku/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Dokku: the smallest PaaS implementation you&#x27;ve ever seen"></li>
+        <li><img src="/assets/talks/dokku/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: The Docker whale logo"></li>
+        <li><img src="/assets/talks/dokku/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Very much like Heroku, but open source: github.com/dokku/dokku"></li>
+        <li><img src="/assets/talks/dokku/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Why I love Dokku: zero-downtime deploys, process scaling, log management, networking, community, buildpacks"></li>
+        <li><img src="/assets/talks/dokku/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: GitLab CI config deploying production and staging with git-push to Dokku"></li>
+        <li><img src="/assets/talks/dokku/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Perfect for side and hobby projects, startups, anything under 200,000 requests a day"></li>
+        <li><img src="/assets/talks/dokku/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: One server: 40 Dokku apps, 4 MariaDB, 2 RabbitMQ servers, 30 consumers, a GitLab CI runner"></li>
+        <li><img src="/assets/talks/dokku/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: A SpaceX rocket launch"></li>
+        <li><img src="/assets/talks/dokku/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Empty wallet"></li>
+        <li><img src="/assets/talks/dokku/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Entrydo in 2018/19: 12 Node apps, 1 PHP app, RabbitMQ with 10 consumers, MariaDB, 100 to 100,000 requests a day"></li>
+        <li><img src="/assets/talks/dokku/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Scale fast or die"></li>
+        <li><img src="/assets/talks/dokku/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Hosting invoices September 2018 to October 2019, total $3,960.44"></li>
+        <li><img src="/assets/talks/dokku/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: The same months at $40 each: $520, difference $3,440"></li>
+        <li><img src="/assets/talks/dokku/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: A woman surrounded by dollar bills"></li>
+        <li><img src="/assets/talks/dokku/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Thank you! Questions?"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://dokku.com">Dokku</a>
+      <a href="https://github.com/dokku/dokku">Dokku on GitHub</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Save $$$ with Dokku: a self-hosted Heroku for small projects",
+  "description": "What Dokku is, when a self-hosted mini PaaS is enough, and a real startup bill: $3,960 on managed hosting versus about $520 on one Dokku server.",
+  "url": "https://janmikes.cz/slides/dokku/",
+  "datePublished": "2020-03-23",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/dokku.jpg",
+  "about": ["Dokku", "PaaS", "Docker", "Self-hosting", "GitLab CI", "Hosting costs"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

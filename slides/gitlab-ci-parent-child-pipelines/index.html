@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI in a monorepo with GitLab parent-child pipelines · Jan Mikeš</title>
+<meta name="description" content="How GitLab parent-child and dynamic child pipelines split one huge .gitlab-ci.yml into smaller pipelines, why that helps, and how it fits a monorepo.">
+<link rel="canonical" href="https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="CI in a monorepo with GitLab parent-child pipelines">
+<meta property="og:description" content="Parent-child and dynamic child pipelines in GitLab CI: what they are, why they help, and how they fit a monorepo.">
+<meta property="og:url" content="https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2021-10-01">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CI in a monorepo with GitLab parent-child pipelines">
+<meta name="twitter:description" content="Parent-child and dynamic child pipelines in GitLab CI: what they are, why they help, and how they fit a monorepo.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2021-10-01">1 October 2021</time> · php.live 2021 · Ostrava · given in Czech</p>
+    <h1>CI in a monorepo with GitLab parent-child pipelines</h1>
+    <p class="lede"><span lang="cs">CI v monorepu pomocí Gitlab parent-child pipelines.</span> <span>One <code>.gitlab-ci.yml</code> for a whole monorepo grows until nobody wants to touch it. GitLab lets one pipeline start other pipelines in the same project, and even generate them on the fly.</span></p>
+
+    <p>We used this setup in production at Carvago and Sharry, so this isn&rsquo;t a toy. The talk had four parts: what a parent-child pipeline is, what a dynamic child pipeline is, the use case (a monorepo), and a live demo. A shorter, demo-focused version of the same topic was also at WarpCamp 2021.</p>
+
+    <h2>What is a parent-child pipeline?</h2>
+    <p>GitLab already had multi-project pipelines, where a job in one project triggers a pipeline in another project. Parent-child pipelines, introduced in GitLab 12.7, do the same within one project. In the words of the GitLab docs: a pipeline can trigger a set of concurrently running child pipelines, but within the same project.</p>
+    <figure>
+      <img src="/assets/talks/gitlab-ci-parent-child-pipelines/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Screenshot of the GitLab documentation page for parent-child pipelines, introduced in GitLab 12.7. It lists the problems of growing pipelines and shows a pipeline graph with Build, Test and Deploy stages plus a Downstream column holding three child pipelines.">
+      <figcaption>The GitLab docs: the parent pipeline shows its child pipelines in a &ldquo;Downstream&rdquo; column.</figcaption>
+    </figure>
+    <p>A child pipeline is just a job with the <code>trigger</code> keyword. The simplest version points at another YAML file in the repository:</p>
+    <pre><code>microservice_a:
+  trigger:
+    include: path/to/microservice_a.yml</code></pre>
+    <p>The <code>include</code> can be a list, and it can mix local files with GitLab&rsquo;s built-in templates:</p>
+    <pre><code>microservice_a:
+  trigger:
+    include:
+      - local: path/to/microservice_a.yml
+      - template: Security/SAST.gitlab-ci.yml</code></pre>
+    <p>Or it can take the child configuration from a different project, for example a shared pipeline library:</p>
+    <pre><code>microservice_a:
+  trigger:
+    include:
+      - project: 'my-group/my-pipeline-library'
+        file: 'path/to/ci-config.yml'</code></pre>
+
+    <h2>Why bother?</h2>
+    <p>These are the problems that show up as a single pipeline grows, and the ones parent-child pipelines solve:</p>
+    <ul>
+      <li><b>Too big <code>.gitlab-ci.yml</code>.</b> The one global configuration becomes very long and hard to manage.</li>
+      <li><b>Inefficient blocking stages.</b> With classic stages, every job in a stage must finish before the next stage starts. A slow test for one part of the repo holds up the deploy of a completely unrelated part. Each child pipeline still runs its own stages in order, but it doesn&rsquo;t wait for unrelated jobs in the parent.</li>
+      <li><b>Imports complexity and collisions.</b> Splitting the file with <code>include</code> helps with length, but all included files share one namespace, so job names can collide and jobs can get duplicated by accident.</li>
+      <li><b>Pipeline UX.</b> One pipeline with dozens of jobs and stages is hard to read in the UI. Child pipelines group related jobs together.</li>
+    </ul>
+
+    <h2>Dynamic child pipelines</h2>
+    <p>The second half of the idea: instead of running a child pipeline from a static YAML file, you write a job that runs your own script to generate the YAML, save it as an artifact, and trigger a child pipeline from that artifact.</p>
+    <pre><code>generate-config:
+  stage: build
+  script: generate-ci-config &gt; generated-config.yml
+  artifacts:
+    paths:
+      - generated-config.yml
+
+child-pipeline:
+  stage: test
+  trigger:
+    include:
+      - artifact: generated-config.yml
+        job: generate-config</code></pre>
+    <p>The generator can be anything: a shell script, a PHP script, whatever you like. It can look at the repository, decide what needs to run, and write only those jobs. That&rsquo;s the real power. The pipeline is no longer a fixed list of jobs, it&rsquo;s the output of a program.</p>
+    <figure>
+      <img src="/assets/talks/gitlab-ci-parent-child-pipelines/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitLab pipeline mini graph: two green successful stages, then three orange warning icons for downstream pipelines and a grey bubble with a tooltip saying +42 more downstream pipelines.">
+      <figcaption>Why generate pipelines dynamically: because writing 45 child pipelines by hand is no fun.</figcaption>
+    </figure>
+
+    <h2>The use case: a monorepo</h2>
+    <p>A monorepo keeps many packages or services in one repository. That&rsquo;s exactly where one big pipeline hurts the most: every package adds its own test and deploy jobs, the file keeps growing, and stages block each other across packages that have nothing in common.</p>
+    <p>With parent-child pipelines, each package gets its own child pipeline. With a dynamic child pipeline, a script can produce the configuration for all the packages, so adding a new package doesn&rsquo;t mean copy-pasting another block of YAML.</p>
+
+    <h2>Live demo</h2>
+    <p>The rest of the talk was a live demo (&ldquo;what could go wrong&rdquo;). It starts from a small PHP monorepo with packages A, B and C and a single flat pipeline with build, test and deploy jobs for each package, and turns it into parent-child pipelines. The code is on GitLab: <a href="https://gitlab.com/janmikes/phplive-2021-parent-child-pipelines">gitlab.com/janmikes/phplive-2021-parent-child-pipelines</a>. To see the steps, watch <a href="https://www.youtube.com/watch?v=XqS6YkCBOuI">the video</a>.</p>
+
+    <details class="deck">
+      <summary>All 18 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Jan Mikeš, #PHPLive 01.10.2021, GitLab CI parent-child pipelines, Carvago logo"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Successfully implemented at Carvago and Sharry"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Agenda: parent-child pipeline, dynamic child pipeline, use cases, live demo"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: What is parent-child pipeline? GitLab docs page with a pipeline graph"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: GitLab docs: a pipeline can trigger concurrently running child pipelines within the same project"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: YAML: microservice_a job with trigger include path/to/microservice_a.yml"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: YAML: trigger include with a local file and the Security/SAST template"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: YAML: trigger include from another project, my-group/my-pipeline-library"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Section title in large letters: Why parent-child pipeline?"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Meme: a confused toddler shrugging with open hands"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Why: too big .gitlab-ci.yml, ineffective blocking stages, imports complexity + collisions, pipeline UX"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: What is dynamic child pipeline? A job generates a YAML file that triggers a child pipeline"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: YAML: generate-config job creating an artifact, child-pipeline triggered from that artifact"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Why dynamic child pipeline? Pipeline graph with “+42 more downstream pipelines”"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Use case(s): monorepo, in large letters"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Disaster girl meme: “Live demo time, what could go wrong”"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Live demo code at the repository gitlab.com/janmikes/phplive-2021-parent-child-pipelines"></li>
+        <li><img src="/assets/talks/gitlab-ci-parent-child-pipelines/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Homer Simpson asking “Questions?” and Thank you! @honza_mikes, janmikes.cz"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=XqS6YkCBOuI">Video</a>
+      <a href="https://gitlab.com/janmikes/phplive-2021-parent-child-pipelines">Demo code on GitLab</a>
+      <a href="https://docs.gitlab.com/ci/pipelines/downstream_pipelines/">GitLab docs: downstream pipelines</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "CI in a monorepo with GitLab parent-child pipelines",
+  "description": "How GitLab parent-child and dynamic child pipelines split one huge .gitlab-ci.yml into smaller pipelines, why that helps, and how it fits a monorepo.",
+  "url": "https://janmikes.cz/slides/gitlab-ci-parent-child-pipelines/",
+  "datePublished": "2021-10-01",
+  "dateModified": "2021-10-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/gitlab-ci-parent-child-pipelines.jpg",
+  "about": ["GitLab CI", "CI/CD", "Parent-child pipelines", "Dynamic child pipelines", "Monorepo"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

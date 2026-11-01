@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Continuous Deployment is the best! · Jan Mikeš</title>
+<meta name="description" content="Why every push should go to production: continuous deployment vs delivery, what it does to a team, the common excuses against it, and the tooling that makes it safe.">
+<link rel="canonical" href="https://janmikes.cz/slides/continuous-deployment/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Continuous Deployment is the best!">
+<meta property="og:description" content="A highly opinionated case for deploying on every push: the benefits, the excuses, and the tooling.">
+<meta property="og:url" content="https://janmikes.cz/slides/continuous-deployment/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/continuous-deployment.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2022-11-26">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Continuous Deployment is the best!">
+<meta name="twitter:description" content="A highly opinionated case for deploying on every push: the benefits, the excuses, and the tooling.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/continuous-deployment.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2022-11-26">26 November 2022</time> · #posobota s04e08 · Pardubice · given in Czech</p>
+    <h1>Continuous Deployment is the best!</h1>
+    <p class="lede"><span lang="cs">Continuous Deployment je nejlepší!</span> <span>A short and highly opinionated talk. Proceed with caution: I think almost every team should ship to production on every push.</span></p>
+
+    <h2>Deployment vs delivery</h2>
+    <p><b>Continuous deployment</b> means you deploy the application to production just by pushing to source control. Nothing else. <b>Continuous delivery</b> is the same pipeline with one extra manual step at the end: somebody has to push the button.</p>
+    <figure>
+      <img src="/assets/talks/continuous-deployment/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Hand-drawn diagram of two pipelines: code done, unit tests, integrate, acceptance test, deploy to production. In continuous delivery every step is automatic except the last one, deploy to production, which is manual. In continuous deployment the last step is automatic too.">
+      <figcaption>The only difference is the last arrow: manual for delivery, automatic for deployment.</figcaption>
+    </figure>
+
+    <h2>When to go with CD?</h2>
+    <p>Always. That was the whole slide.</p>
+    <p>It doesn&rsquo;t matter how you deploy. It works with FTP, with sending the source code as a zip over e-mail, GitHub Pages, static pages served from a CDN, serverless, Docker and Docker Compose, Kubernetes, multicloud. The exceptions are mobile and desktop apps, where a store or an installer sits between you and the user.</p>
+
+    <h2>So why is CD so cool?</h2>
+    <p>Midnight party deployments with confidence. I showed photos from a party on a bus to make the point: when deploying is boring and safe, you can do it at any time, even at midnight in the middle of a party.</p>
+    <p>The serious list:</p>
+    <ul>
+      <li><b>Higher effectiveness and productivity.</b> It saves developers&rsquo; time by making processes simpler.</li>
+      <li><b>A shorter feedback loop.</b> I compared two companies: in one, the response to a change took a year, in the other a day.</li>
+      <li><b>It forces best practices on developers:</b> small commits, tests, checking your own work, ownership. It turns people into dream team members.
+        <ul>
+          <li>Fewer git conflicts.</li>
+          <li>Your brain will love you for smaller and faster tasks.</li>
+        </ul>
+      </li>
+      <li>Imagine being a developer whose code gets deployed 30 days after they wrote it. WTF.</li>
+      <li>It&rsquo;s highly addictive.</li>
+    </ul>
+    <p>One warning, though. CD is not a miracle pill. It can&rsquo;t fix all your problems and ineffective processes. CD is more about processes than about tooling.</p>
+
+    <h2>Excuses vs solutions</h2>
+    <p>These are the excuses I hear most often:</p>
+    <ul>
+      <li>No time to implement something as complicated as CD.</li>
+      <li>We don&rsquo;t know how to implement CD.</li>
+      <li>Fear of bugs appearing on production.</li>
+      <li>Fear of downtime.</li>
+      <li>Fear of losing control over deployments.</li>
+      <li>We would lose the overview of what is deployed and when.</li>
+      <li>Manual deployment is faster.</li>
+      <li>It&rsquo;s a waste, we are a team of two developers.</li>
+      <li>I deploy over FTP, why would I need CD?</li>
+      <li>We do &ldquo;agile&rdquo;, we release once every 30 days.</li>
+      <li>Our features are so complex that we can&rsquo;t deploy them immediately.</li>
+      <li>Management doesn&rsquo;t want CD (a political decision).</li>
+    </ul>
+
+    <h2>Tooling, the helping hand</h2>
+    <p>Most of the fears above have a known answer:</p>
+    <ul>
+      <li><b>A test suite in CI.</b> Obviously.</li>
+      <li><b>Feature flags</b>, for example <a href="https://www.flagsmith.com">Flagsmith</a>. Unfinished or complex features can be deployed switched off and turned on later.</li>
+      <li><b>Review apps</b>: a running copy of the app for every branch, so changes get checked before they are merged.</li>
+      <li><b>API versioning</b>, to stay backward compatible with clients.</li>
+      <li><b>Backward and forward compatible database migrations</b>, so the old and the new version of the code both work with the database during a deploy.</li>
+      <li><b>Deployment freezes</b> for the moments when you really don&rsquo;t want anything to change.</li>
+      <li><b>Error tracking</b>, for example <a href="https://sentry.io">Sentry</a>, so you see a bug from production before your users report it.</li>
+    </ul>
+    <p>And one hint to finish: don&rsquo;t lock deployment to CI only. Keep a way to deploy without it, or one day you&rsquo;ll be standing outside the car with the keys inside.</p>
+    <p>There is no recording of this talk.</p>
+
+    <details class="deck">
+      <summary>All 17 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/continuous-deployment/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Continuous Deployment vs Delivery"></li>
+        <li><img src="/assets/talks/continuous-deployment/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Warning: highly opinionated, proceed with caution"></li>
+        <li><img src="/assets/talks/continuous-deployment/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: When go with CD?"></li>
+        <li><img src="/assets/talks/continuous-deployment/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Photo: an Always product package"></li>
+        <li><img src="/assets/talks/continuous-deployment/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Where CD works: FTP to Kubernetes; exceptions: mobile and desktop apps"></li>
+        <li><img src="/assets/talks/continuous-deployment/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: So why is CD so cool?"></li>
+        <li><img src="/assets/talks/continuous-deployment/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Midnight party deployments with confidence!"></li>
+        <li><img src="/assets/talks/continuous-deployment/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Photo: a party on a bus"></li>
+        <li><img src="/assets/talks/continuous-deployment/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Photo: a party on a bus"></li>
+        <li><img src="/assets/talks/continuous-deployment/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Why CD: productivity, shorter feedback loop, best practices"></li>
+        <li><img src="/assets/talks/continuous-deployment/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: CD can not fix all your problems"></li>
+        <li><img src="/assets/talks/continuous-deployment/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Excuses vs. solutions"></li>
+        <li><img src="/assets/talks/continuous-deployment/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Common excuses"></li>
+        <li><img src="/assets/talks/continuous-deployment/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Common excuses, continued"></li>
+        <li><img src="/assets/talks/continuous-deployment/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Tooling, the helping hand"></li>
+        <li><img src="/assets/talks/continuous-deployment/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: HINT: Do not lock deployment to CI only"></li>
+        <li><img src="/assets/talks/continuous-deployment/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Thank you!"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.flagsmith.com">Flagsmith</a>
+      <a href="https://sentry.io">Sentry</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Continuous Deployment is the best!",
+  "description": "Why every push should go to production: continuous deployment vs delivery, what it does to a team, the common excuses against it, and the tooling that makes it safe.",
+  "url": "https://janmikes.cz/slides/continuous-deployment/",
+  "datePublished": "2022-11-26",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/continuous-deployment.jpg",
+  "about": ["Continuous deployment", "Continuous delivery", "CI/CD", "DevOps", "Feature flags"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHP app architecture: Symfony, DDD and CQRS without event sourcing · Jan Mikeš</title>
+<meta name="description" content="How I structure Symfony apps with DDD and CQRS: clear layers, a command bus, a write model on Doctrine ORM, a read model on plain SQL, and CI checks that keep it all in place.">
+<link rel="canonical" href="https://janmikes.cz/slides/php-app-architecture-cqrs/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="PHP app architecture: Symfony + DDD + CQRS">
+<meta property="og:description" content="Clear layers, a command bus, a Doctrine write model and a plain SQL read model. CQRS in Symfony without event sourcing.">
+<meta property="og:url" content="https://janmikes.cz/slides/php-app-architecture-cqrs/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/php-app-architecture-cqrs.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2022-09-08">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PHP app architecture: Symfony + DDD + CQRS">
+<meta name="twitter:description" content="Clear layers, a command bus, a Doctrine write model and a plain SQL read model. CQRS in Symfony without event sourcing.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/php-app-architecture-cqrs.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2022-09-08">8 September 2022</time> · Péhápkaři · given in Czech</p>
+    <h1>PHP app architecture: Symfony + DDD + CQRS, no event sourcing needed</h1>
+    <p class="lede"><span lang="cs">PHP App architecture &ndash; Symfony + DDD + CQRS.</span> <span>The architecture I like to build Symfony apps with, shown on real code from Peon, my open-source project. The subtitle on the first slide said it plainly: Symfony + DDD + CQRS != Event Sourcing.</span></p>
+
+    <h2>What software architecture is</h2>
+    <p>A definition I like: &ldquo;Software architecture is about making fundamental structural choices that are costly to change once implemented.&rdquo; It&rsquo;s like the architecture of buildings: a set of rules everyone should follow.</p>
+    <p>The Czech version of it is often &ldquo;do it this way, because we&rsquo;ve done it this way for a long time&rdquo;. So the first rule of this talk: never copy anything 1:1, mine included, without knowing the answer to <em>why</em>.</p>
+
+    <h2>What I expect from architecture</h2>
+    <ul>
+      <li><b>Agility:</b> being able to react quickly to changing requirements, whether business, technical or organisational</li>
+      <li>Scalability</li>
+      <li>Testability, so TDD is possible</li>
+      <li>Transparency</li>
+      <li>A framework-agnostic model layer (DDD)</li>
+      <li>One convention for directory structure and naming</li>
+    </ul>
+    <p>Why these? I work in a highly competitive startup environment. I want the &ldquo;users&rdquo; of the code, the programmers, to enjoy working with it. I don&rsquo;t want to be ashamed of my work. We deploy continuously. And after years of practice, this simply feels right.</p>
+    <p>The common reality looks different: the app has no tests because it&rsquo;s hard to test, it&rsquo;s slow and hard to optimise, features take long and deadlines slip, upgrades hurt because of compatibility, and changing anything in the tech stack is extremely hard.</p>
+
+    <h2>My favourite combination</h2>
+    <p>Everything below comes from <a href="https://github.com/peon-dev/peon">Peon</a>, which is public on GitHub:</p>
+    <ul>
+      <li>Layers with clearly defined responsibilities</li>
+      <li>CQRS, with Doctrine ORM for writes and Doctrine DBAL for reads</li>
+      <li>The command bus pattern, using Symfony Messenger</li>
+      <li>DDD</li>
+      <li>As little magic as possible</li>
+      <li>TDD</li>
+    </ul>
+
+    <h2>What CQRS is</h2>
+    <p>Search for &ldquo;CQRS PHP&rdquo; and the top results are about CQRS <em>and event sourcing</em>. People often treat them as one thing. They aren&rsquo;t.</p>
+    <p>CQRS means Command Query Responsibility Segregation. It&rsquo;s a pattern that separates the operations that read data from the ones that change it. Instead of one model doing both, you have a command model that validates and writes, and a query model that reads and feeds the UI.</p>
+    <figure>
+      <img src="/assets/talks/php-app-architecture-cqrs/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Martin Fowler&rsquo;s CQRS diagram: the UI sends changes to a command model, which validates them and updates the database, while a separate query model reads from the database and serves presentations back to the UI through service interfaces.">
+      <figcaption>Separate models for writing and reading. Diagram from <a href="https://martinfowler.com/bliki/CQRS.html">Martin Fowler</a>.</figcaption>
+    </figure>
+    <p>Nothing here says you have to store events. Both models can work on the same plain relational database.</p>
+
+    <h2>A simple use case: user registration</h2>
+    <p>To show the difference, I used the most boring example possible. Registering a user means: check the e-mail isn&rsquo;t taken, save the user to the database, send a welcome e-mail.</p>
+    <p>The &ldquo;get your hands dirty&rdquo; way is to put all of it in the controller:</p>
+<pre><code>final class RegisterUserController extends AbstractController
+{
+    public function __construct(
+        private readonly Database $database,
+        private readonly Mailer $mailer,
+    ) {}
+
+    #[Route(path: '/register-user', name: 'register', methods: ['POST'])]
+    public function __invoke(Request $request): Response
+    {
+        $email = $request-&gt;attributes-&gt;get('email');
+
+        if ($this-&gt;database-&gt;find('users', ['email' =&gt; $email]) !== null) {
+            return $this-&gt;render('...');
+        }
+
+        $plainTextPassword = $request-&gt;attributes-&gt;get('password');
+        $hashedPassword = md5($plainTextPassword);
+
+        $this-&gt;database-&gt;insert('users', [
+            'email' =&gt; $email,
+            'password' =&gt; $hashedPassword,
+        ]);
+
+        $this-&gt;mailer-&gt;send($email, new Message('...'));
+
+        return $this-&gt;render('...');
+    }
+}</code></pre>
+    <p>Then a new requirement arrives: we also need to register users by hand from the console. Now there&rsquo;s a console command that copies the same validation, database queries and e-mail sending. Two entry points, two copies of the business logic.</p>
+    <p>So what is a controller actually responsible for? Taking information from the HTTP request, passing it to the domain, and returning a response (JSON, HTML, &hellip;). A console command does the same with its input and output. Neither should hold the logic itself. Both are just entry points into the domain.</p>
+    <p>With a command bus the controller shrinks to this:</p>
+<pre><code>final class RegisterUserController extends AbstractController
+{
+    public function __construct(
+        private readonly CommandBus $commandBus,
+    ) {}
+
+    #[Route(path: '/register-user', name: 'register', methods: ['POST'])]
+    public function __invoke(Request $request): Response
+    {
+        $email = $request-&gt;attributes-&gt;get('email');
+        $plainTextPassword = $request-&gt;attributes-&gt;get('password');
+
+        try {
+            $this-&gt;commandBus-&gt;dispatch(
+                new RegisterUser($email, $plainTextPassword),
+            );
+        } catch (UserWithEmailAlreadyRegistered) {
+            $this-&gt;render('...');
+        }
+
+        return $this-&gt;render('...');
+    }
+}</code></pre>
+    <p>The console command looks the same: read the arguments, dispatch <code>RegisterUser</code>, catch the exception, write a success or error message.</p>
+
+    <h2>Building blocks and layers</h2>
+    <p>A typical app is made of controllers and console commands, use cases and event subscribers (both Messenger handlers), entities as aggregate roots, commands and events as DTOs, value objects, query objects, Symfony forms, request and response DTOs, domain and validation services, exceptions and configuration files. Each of them belongs to one layer:</p>
+    <ul>
+      <li><b>Entrypoint:</b> where the app starts (<code>index.php</code>, <code>bin/console</code>).</li>
+      <li><b>Application:</b> passes data to the domain and presents the result to the user. Controllers and console commands live here.</li>
+      <li><b>Domain:</b> your business logic.</li>
+      <li><b>Use cases:</b> command handlers that orchestrate the domain.</li>
+      <li><b>Infrastructure:</b> implementations for a specific technology.</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/php-app-architecture-cqrs/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Layer diagram: entrypoints index.php and bin/console send requests and input to the application layer (controllers, console commands), which dispatches to message buses (command bus, event bus, with middleware) into the domain (use cases, aggregates, events, domain services). The domain dispatches events back to the buses. The application layer also reads through queries. An infrastructure layer spans underneath everything.">
+      <figcaption>Writes go through the buses into the domain. Reads go straight from the application layer to queries.</figcaption>
+    </figure>
+    <p>In Peon the <code>src</code> directory follows that split: <code>Cli</code>, <code>Domain</code>, <code>Infrastructure</code>, <code>Subscribers</code>, <code>Ui</code> and <code>UseCase</code>.</p>
+    <p>Rules about layers only last if a machine checks them. Always try to enforce them in CI. Tools for that:</p>
+    <ul>
+      <li><a href="https://github.com/deptrac/deptrac">Deptrac</a></li>
+      <li><a href="https://github.com/carlosas/phpat">carlosas/phpat</a></li>
+      <li><a href="https://github.com/DaveLiddament/php-language-extensions">DaveLiddament/php-language-extensions</a></li>
+      <li>Your own PHPStan extensions and custom rules</li>
+    </ul>
+
+    <h2>The write model</h2>
+    <p>The aggregate root is a plain PHP class. No annotations, no framework:</p>
+<pre><code>class User
+{
+    public function __construct(
+        public readonly UserId $userId,
+        public readonly string $username,
+        public string $hashedPassword,
+    ) {}
+
+    public function changePassword(string $hashedPassword): void
+    {
+        $this-&gt;hashedPassword = $hashedPassword;
+    }
+}</code></pre>
+    <p>The command is a DTO, <code>RegisterUser</code>, with a username and a plain-text password. The use case is its handler:</p>
+<pre><code>final class RegisterUserHandler implements CommandHandlerInterface
+{
+    public function __construct(
+        private readonly UsersCollection $usersCollection,
+        private readonly HashPlainTextPassword $hashPlainTextPassword,
+    ) {}
+
+    public function __invoke(RegisterUser $command): void
+    {
+        $userId = $this-&gt;usersCollection-&gt;nextIdentity();
+        $hashedPassword = $this-&gt;hashPlainTextPassword-&gt;hash($command-&gt;plainTextPassword);
+
+        if ($this-&gt;usersCollection-&gt;usernameExists($command-&gt;username)) {
+            throw new UserWithEmailAlreadyExists();
+        }
+
+        $user = new User($userId, $command-&gt;username, $hashedPassword);
+
+        $this-&gt;usersCollection-&gt;save($user);
+    }
+}</code></pre>
+    <p>Look at what the handler imports: only classes from <code>Peon\Domain\User</code> and the project&rsquo;s own <code>CommandHandlerInterface</code>. Nothing from Symfony or Doctrine. The repository is an interface in the domain:</p>
+<pre><code>interface UsersCollection
+{
+    public function nextIdentity(): UserId;
+
+    public function usernameExists(string $username): bool;
+
+    /**
+     * @throws UserNotFound
+     */
+    public function get(UserId $userId): User;
+
+    public function save(User $user): void;
+}</code></pre>
+    <p>Doctrine lives in infrastructure. The entity is mapped in XML, so the domain class stays clean, and <code>DoctrineUsersCollection</code> implements the interface with the entity manager: <code>persist</code> and <code>flush</code> on save, a UUID v4 for the next identity, and <code>find</code> or a <code>UserNotFound</code> exception on get.</p>
+
+    <h2>The read model</h2>
+    <p>Reading is where CQRS pays off. The dashboard controller doesn&rsquo;t touch entities at all. It asks small query interfaces for exactly what it needs:</p>
+<pre><code>$accessibleProjectIdentifiers = $this-&gt;getProjectIdentifiers-&gt;ownedByUser($userId);
+$jobs = $this-&gt;provideReadJobs-&gt;provide($accessibleProjectIdentifiers, 10);
+$projects = $this-&gt;provideReadProjects-&gt;provide($accessibleProjectIdentifiers);</code></pre>
+    <p>Each query is an interface, for example <code>ProvideReadJobs::provide(array $projectIdentifiers, int $maxJobsLimit): array</code>, which returns an array of <code>ReadJob</code> objects. The Doctrine implementation uses plain SQL through DBAL. For jobs that&rsquo;s a big query that joins jobs, projects, tasks and processes and sums up execution time. As one slide put it, this is where the heavy SQL goes. The rows are then hydrated straight into read objects:</p>
+<pre><code>$resultSet = $this-&gt;connection-&gt;executeQuery($sql, [
+    'projectIdentifiers' =&gt; $projectIdentifiers,
+    'maxJobs' =&gt; $maxJobsLimit,
+], [
+    'projectIdentifiers' =&gt; Connection::PARAM_STR_ARRAY,
+    'maxJobs' =&gt; 'integer',
+]);
+
+return $this-&gt;hydrator-&gt;hydrateArrays(
+    $resultSet-&gt;fetchAllAssociative(),
+    ReadJob::class,
+);</code></pre>
+    <p>The read side can be optimised freely, one query per screen, without bending the write model around it. Access control is a query too: <code>GetProjectIdentifiers::ownedByUser()</code> returns the projects a user may see.</p>
+
+    <h2>Testing it</h2>
+    <p>Every piece has the same pattern: an interface, an implementation, a test. The controller test checks the page redirects to login when you aren&rsquo;t signed in, and that a logged-in user sees two projects and five jobs from the data fixtures. The query test boots the kernel, gets <code>ProvideReadJobs</code> from the container and checks it against known fixture data:</p>
+<pre><code>$readJobs = $provideReadJobs-&gt;provide([
+    new ProjectId(DataFixtures::USER_1_PROJECT_1_ID),
+    new ProjectId(DataFixtures::USER_1_PROJECT_2_ID),
+], 10);
+
+self::assertCount(5, $readJobs);</code></pre>
+
+    <h2>Further reading</h2>
+    <p>I closed with a book recommendation: <a href="https://matthiasnoback.nl/book/advanced-web-application-architecture/">Advanced Web Application Architecture</a> by Matthias Noback. It covers this way of building apps in much more depth.</p>
+
+    <details class="deck">
+      <summary>All 49 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Clean architecture, Symfony + DDD + CQRS != Event Sourcing, Jan Mikeš, #Pehapkari 08.09.2022"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: What is software architecture? Costly-to-change structural choices, like rules in building architecture"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Never copy 1:1 without asking why; meme of a drawing copied from client to analyst to developer to code"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: What I expect from architecture: agility, scalability, testability, transparency, framework-agnostic domain, one convention"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Why these requirements? Competitive startups, happy developers, continuous deployment, years of experience"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Expectation vs reality meme: graceful jump into a pool vs splashing face-first"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Common reality: no tests, slow app, late features, painful upgrades, hard tech stack changes"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: My favourite combination (peon-dev/peon): clear layers, CQRS with Doctrine, Symfony Messenger command bus, DDD, TDD"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Section title slide: What is CQRS?"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Google search for &quot;cqrs php&quot; whose top result is about CQRS and Event Sourcing"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: CQRS, Command Query Responsibility Segregation: separating reads from writes, explained in Czech"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Martin Fowler diagram: a single model reading from and updating the database for the UI"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Martin Fowler CQRS diagram: separate query model and command model between database and UI"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Close-up photo of dirty, muddy hands"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Simple use case, user registration: check duplicate email, save to database, send welcome email"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Diagram: framework passes request from index.php to a controller doing validation, DB queries, templating"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: PHP code: RegisterUserController doing everything itself, database, password hashing, and mailer"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Same use case with a new requirement: register users manually from the console"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Diagram: framework with both a controller and a console command, each duplicating the logic"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: PHP code: console command duplicating the registration logic from the controller"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Controller responsibilities: take data from the HTTP request, send it to the domain, return a response"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Console command responsibilities: take data from input, send it to the domain, output the result"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: Diagram: entrypoints (index.php, bin/console) to application layer dispatching to a command bus with business logic"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: PHP code: clean controller dispatching a RegisterUser command via the command bus"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: PHP code: clean console command dispatching RegisterUser via the command bus"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Application building blocks: controllers, use cases, subscribers, entities, DTOs, value objects, queries, forms, and more"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: Application layers: framework, entrypoints, domain, use cases, infrastructure, with src folder tree"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Layer diagram: entrypoints, application, message buses, domain with use cases, query, and infrastructure"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Clear layer responsibilities: entrypoint, application, domain holds business logic, infrastructure implements technology"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Tools and packages, always enforce in CI: Deptrac, phpat, php-language-extensions, custom PHPStan rules"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Section title slide: Write model"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: PHP code: User aggregate root entity with changePassword method"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: PHP code: RegisterUser command DTO with username and plain-text password"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/34.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 34: PHP code: RegisterUserHandler hashing the password, checking duplicates, and saving the user"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/35.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 35: PHP code: use statements showing the handler depends only on domain classes"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/36.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 36: PHP code: UsersCollection repository interface with nextIdentity, usernameExists, get, save"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/37.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 37: Doctrine XML mapping of the User entity to the users table"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/38.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 38: PHP code: DoctrineUsersCollection implementing the repository with the entity manager"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/39.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 39: Section title slide: Read model"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/40.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 40: PHP code: DashboardController using read-model query services to render jobs and projects"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/41.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 41: PHP code: GetProjectIdentifiers access-control interface returning projects owned by a user"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/42.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 42: PHP code: ProvideReadJobs query interface returning ReadJob objects"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/43.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 43: PHP code: Doctrine DBAL implementation of GetProjectIdentifiers with a raw SQL query"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/44.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 44: PHP code: DoctrineProvideReadJobs with a long SQL query hydrated into ReadJob objects"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/45.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 45: PHP code: DoctrineProvideReadJobs, condensed with the SQL placeholder"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/46.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 46: PHP code: DashboardController functional test for login redirect and rendered projects and jobs"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/47.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 47: PHP code: ProvideReadJobsTest kernel test asserting jobs returned from fixtures"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/48.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 48: Book cover: Advanced Web Application Architecture by Matthias Noback"></li>
+        <li><img src="/assets/talks/php-app-architecture-cqrs/49.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 49: Homer Simpson asking &quot;Questions?&quot; and Thank you! @honza_mikes, janmikes.cz"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://github.com/peon-dev/peon">Peon on GitHub</a>
+      <a href="https://martinfowler.com/bliki/CQRS.html">CQRS by Martin Fowler</a>
+      <a href="https://github.com/deptrac/deptrac">Deptrac</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "PHP app architecture: Symfony + DDD + CQRS, no event sourcing needed",
+  "description": "How I structure Symfony apps with DDD and CQRS: clear layers, a command bus, a write model on Doctrine ORM, a read model on plain SQL, and CI checks that keep it all in place.",
+  "url": "https://janmikes.cz/slides/php-app-architecture-cqrs/",
+  "datePublished": "2022-09-08",
+  "dateModified": "2022-09-08",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/php-app-architecture-cqrs.jpg",
+  "about": ["PHP", "Symfony", "CQRS", "Domain-Driven Design", "Software architecture", "Symfony Messenger", "Doctrine"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

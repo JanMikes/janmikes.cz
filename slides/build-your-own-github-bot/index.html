@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build your own GitHub bot that fixes code and opens pull requests · Jan Mikeš</title>
+<meta name="description" content="How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.">
+<link rel="canonical" href="https://janmikes.cz/slides/build-your-own-github-bot/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Build your own GitHub bot">
+<meta property="og:description" content="A GitHub App that fixes your code on push and opens a pull request: webhooks, auth and the Git Data API.">
+<meta property="og:url" content="https://janmikes.cz/slides/build-your-own-github-bot/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2019-06-20">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Build your own GitHub bot">
+<meta name="twitter:description" content="A GitHub App that fixes your code on push and opens a pull request: webhooks, auth and the Git Data API.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2019-06-20">20 June 2019</time> · Péhápkaři Prague meetup #38 · Prague · given in Czech</p>
+    <h1>Build your own GitHub bot</h1>
+    <p class="lede"><span lang="cs">Jak si udělat vlastního GitHub otroka.</span> <span>A bot that watches your pushes, fixes what it can, and sends you a pull request. The fix is the easy part. Cloning, committing and pushing as a bot is where it gets interesting.</span></p>
+
+    <h2>The boring loop</h2>
+    <p>You push, CI fails on the coding standard, you run the fixer, you push again:</p>
+<pre><code>vendor/bin/ecs check src app tests --fix</code></pre>
+    <p>The slide shows that line written over and over on a school chalkboard, which is how it feels. Commit and push, error, fix, commit and push. The fix is a single command that a machine can run perfectly well, so why should a person do it?</p>
+    <p>My demo bot did exactly that. After a push it ran the fixers, for example replacing a fully qualified class name with the short imported one, and opened a pull request with the changes against <code>master</code>, with an overly devoted title along the lines of &ldquo;Applied coding standards fixes for my dear master&rdquo;.</p>
+    <p>Note that the bot doesn&rsquo;t commit and push to your branch. It sends a pull request instead, and you decide whether to merge it.</p>
+
+    <h2>What the bot has to do</h2>
+    <ol>
+      <li>git clone</li>
+      <li>create a new branch</li>
+      <li>fix: run the command</li>
+      <li>commit and push</li>
+      <li>open a pull request</li>
+    </ol>
+    <p>Running the command is the only step that&rsquo;s the same as on your laptop. Everything else needs the bot to have an identity on GitHub and permission to act on someone else&rsquo;s repository.</p>
+
+    <h2>GitHub App, not OAuth App</h2>
+    <p>GitHub has two kinds of integrations. An OAuth App acts on behalf of a user. A GitHub App is its own actor: it gets installed on an organization or repositories, asks for specific permissions, and shows up with a <b>bot</b> badge next to its name. For a bot, a GitHub App is the right choice.</p>
+    <p>Authentication has a few steps:</p>
+    <ol>
+      <li>A <b>push webhook</b> arrives. Its payload says which installation it came from.</li>
+      <li><b>App auth:</b> the app signs a JWT with its private key to prove it is the app.</li>
+      <li><b>Installation auth:</b> with that JWT it asks GitHub for a token for this one installation.</li>
+      <li>It gets back an <b>access token</b>, limited to the repositories and permissions of that installation.</li>
+    </ol>
+    <p>With the token, cloning is ordinary git over HTTPS:</p>
+<pre><code>https://x-access-token:%s@github.com/%s.git</code></pre>
+    <p>The first <code>%s</code> is the installation token, the second is the repository name, like <code>owner/repo</code>.</p>
+
+    <h2>Committing and pushing as a bot</h2>
+    <p>So how do you commit and push as the bot? My answer was GitHub&rsquo;s Git Data API, the low-level API that creates git objects directly on GitHub. To use it, you need to know how git stores things:</p>
+    <figure>
+      <img src="/assets/talks/build-your-own-github-bot/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Diagram of git objects: HEAD points to a branch, the branch to a commit, the commit to a tree, and the tree to other trees and blobs. Older commits and the objects they share are greyed out.">
+      <figcaption>A branch points to a commit, the commit to a tree, the tree to blobs, which hold file contents.</figcaption>
+    </figure>
+    <p>So a commit through the API is built bottom up:</p>
+    <ol>
+      <li><b>Blobs:</b> upload the content of each changed file.</li>
+      <li><b>Tree:</b> create a tree that uses the new blobs, based on the existing tree.</li>
+      <li><b>Commit:</b> create a commit pointing to the new tree, with the current commit as its parent.</li>
+      <li><b>Reference:</b> create the new branch pointing to that commit.</li>
+      <li><b>Pull request:</b> open it from the new branch.</li>
+    </ol>
+    <p>That way both the commit and the pull request come from the bot.</p>
+
+    <h2>The whole flow, and a trap</h2>
+    <p>Put together: push, webhook, auth, then commit, push and pull request. The last slide of the flow adds an arrow from the bot&rsquo;s own push back to the webhook. The bot&rsquo;s push is a push too, and it triggers the webhook again. Make sure the bot recognises its own work, or it will keep going round.</p>
+    <p>For testing webhooks I used <a href="https://www.postman.com">Postman</a> and <a href="https://ngrok.com">ngrok</a>, which gives your local server a public URL that GitHub can send webhooks to.</p>
+
+    <h2>The surprise: Rector CI</h2>
+    <p>The demo wasn&rsquo;t just a toy. I was building the same thing for <a href="https://getrector.org">Rector</a>, the tool that upgrades and refactors PHP code automatically, under the name Rector CI. You installed it as a GitHub App on your organization, with write access to code, read access to metadata, and read and write access to checks, pull requests and repository hooks. Then, on a push to a feature branch, it ran Rector and opened a pull request with the changes:</p>
+    <figure>
+      <img src="/assets/talks/build-your-own-github-bot/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="A GitHub pull request titled Rector - Fix #34, opened by the rector-ci bot to merge one commit from some-cool-feature-rectified into some-cool-feature. The bot comments: Automated pull request by Rector. The branch has no conflicts with the base branch.">
+      <figcaption>A pull request from the Rector CI bot: the feature branch, rectified.</figcaption>
+    </figure>
+
+    <details class="deck">
+      <summary>All 36 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/build-your-own-github-bot/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Jak si udělat vlastního GitHub otroka, 20 June 2019"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Entrydo, GLAMI, Péhápkaři.cz, Rector"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Failed coding standard check and the fixer command written on a chalkboard"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Diff: fully qualified class names replaced with short ones"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Commit &amp; push, error, fix, commit &amp; push"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Robot hand reaching to a human hand"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: The bot account"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: A nagging couple"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Pull request from the bot: Applied coding standards fixes"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Fix, then commit &amp; push"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Fix, then pull request instead of commit &amp; push"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Brainstorm"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Steps: git clone, new branch, run the fix, commit &amp; push, pull request"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Step: git clone"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Step: create a new branch"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Step: run the fix command"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Step: commit &amp; push"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Step: send a pull request"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: The hard steps highlighted: clone, branch, commit &amp; push, pull request"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: GitHub App vs OAuth App"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Authentication: push webhook, app auth (JWT), installation auth, access token"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Git clone URL with x-access-token"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: How to commit &amp; push as a bot?"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Git Data, the low-level API"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Diagram of git objects: branch, commit, tree, blob"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Git Data: blobs, tree, commit, reference, pull request"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: Push, webhook, auth, commit &amp; push &amp; PR"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: The flow with the bot&#x27;s push highlighted"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: The bot&#x27;s push loops back to the webhook"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Webhooks testing: Postman and ngrok"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Kinder Surprise"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: Install Rector CI GitHub App"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: Pull request from the rector-ci bot"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/34.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 34: getrector.org, rector-ci.org"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/35.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 35: We want you!"></li>
+        <li><img src="/assets/talks/build-your-own-github-bot/36.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 36: Thank you! Questions?"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.facebook.com/pehapkari/videos/vl.1061677974028234/680638195708955/">Video (Facebook)</a>
+      <a href="https://getrector.org">Rector</a>
+      <a href="https://docs.github.com/en/rest/git">GitHub Git Data API</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Build your own GitHub bot that fixes code and opens pull requests",
+  "description": "How to build a GitHub App that reacts to a push, fixes the code and opens a pull request: webhooks, JWT and installation tokens, and the Git Data API.",
+  "url": "https://janmikes.cz/slides/build-your-own-github-bot/",
+  "datePublished": "2019-06-20",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/build-your-own-github-bot.jpg",
+  "about": ["GitHub Apps", "Bots", "Webhooks", "Git", "Rector", "PHP", "Coding standards"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

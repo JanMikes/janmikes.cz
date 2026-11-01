@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to build a micro SaaS, brick by brick · Jan Mikeš</title>
+<meta name="description" content="What a micro SaaS is, why build one next to your day job, and how: validating the idea, proof of concept, prototype, MVP, ready-made building blocks and cheap tech.">
+<link rel="canonical" href="https://janmikes.cz/slides/micro-saas/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="How to build a micro SaaS, brick by brick">
+<meta property="og:description" content="From idea to MVP: how to build a small, profitable SaaS on your own, next to a day job.">
+<meta property="og:url" content="https://janmikes.cz/slides/micro-saas/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/micro-saas.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2025-01-29">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How to build a micro SaaS, brick by brick">
+<meta name="twitter:description" content="From idea to MVP: how to build a small, profitable SaaS on your own, next to a day job.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/micro-saas.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2025-01-29">29 January 2025</time> · TechMeetup Ostrava #33 · Ostrava · given in Czech</p>
+    <h1>How to build a micro SaaS, brick by brick</h1>
+    <p class="lede"><span lang="cs">Micro SaaS &ndash; kostička ke kostičce.</span> <span>You don&rsquo;t need investors and a big team to build a software business. You need a narrow problem, a lot of honesty with yourself, and the discipline to build only what matters.</span></p>
+
+    <div class="note"><b>Update, 2026</b>I recommended MinIO below for self-hosted file storage. Its community edition <a href="https://www.infoq.com/news/2025/12/minio-s3-api-alternatives/">went into maintenance mode in December 2025</a> (no new features, security fixes only case by case), and the repository <a href="https://itsfoss.com/news/minio-moves-away-from-open-source/">has since been archived</a>. For a new project, look at an S3-compatible alternative such as Garage or SeaweedFS, or a cheap hosted object storage.</div>
+
+    <h2>What is a micro SaaS?</h2>
+    <p>I opened with a poster from RocketSpace, a startup campus in San Francisco, bragging about billions raised by its members and companies like Uber and Spotify. That is one end of the startup world. Micro SaaS is the other end:</p>
+    <ul>
+      <li><b>Narrow focus.</b> It solves a highly specific problem for a well-defined audience.</li>
+      <li><b>Low costs.</b> Minimal development and operational expenses.</li>
+      <li><b>Small team.</b> Built and maintained by a single developer or a very small team.</li>
+      <li><b>No need for large capital.</b> It can be bootstrapped without external investors.</li>
+      <li><b>Recurring revenue.</b> Usually a subscription.</li>
+      <li><b>High automation.</b> Designed to need as little manual work as possible.</li>
+    </ul>
+    <p>There are many kinds: B2B (invoicing and billing tools), B2C (a meal planning app), e-commerce (a Shopify plugin), community and membership (a puzzle community, which is my <a href="https://myspeedpuzzling.com">MySpeedPuzzling</a>), automation and productivity (e-mail automation), dev tools, analytics and reporting, and AI.</p>
+
+    <h2>But why?</h2>
+    <ul>
+      <li>It&rsquo;s fun.</li>
+      <li>It&rsquo;s sustainable next to your day job.</li>
+      <li>You learn something new.</li>
+      <li>Money, as passive income.</li>
+      <li>Total freedom and 100% ownership.</li>
+      <li>It&rsquo;s a challenge.</li>
+      <li>The approaches carry over to your day job.</li>
+    </ul>
+    <p>Most of all: find your own, inner motivation. I showed the ikigai diagram here, the overlap of what you love, what you&rsquo;re good at, what the world needs and what you can be paid for.</p>
+
+    <h2>A friendly reminder</h2>
+    <p>Building one alone needs a unique set of skills: UX, UI, backend, DevOps, marketing, communication, copywriting, design and sales. That is also the good news. A product built by such a combination is hard to copy one to one, and the chance of failure is lower.</p>
+    <p>Still, failure is extremely important. Don&rsquo;t be too optimistic, and be honest with yourself.</p>
+
+    <h2>The lifecycle</h2>
+    <p>Idea, market fit, proof of concept, prototype, MVP. Then repeat, until your product is awesome.</p>
+    <p><b>The idea.</b> Define the vision, the mission and the personas. Do a SWOT analysis and an atmosphere check. Then validate the product&ndash;market fit.</p>
+    <p><b>Idea validation.</b> Understand what customers need. Do the maths: is it worth it? Estimate the customer lifetime value (CLV) and the return on investment (ROI). Find the first paying customer. Ask: would you pay for it? How much? And try the fake door technique: offer the feature or product before it exists and measure how many people click.</p>
+    <p><b>Proof of concept.</b> Can the idea be built technically at all? Build it only for yourself, and make it super stupid.</p>
+    <p><b>Prototype.</b> Demonstrate how the problem will be solved. A UI with a stupid, not fully implemented backend is fine. Fake it till you make it. And validate: test it with your customers.</p>
+    <p><b>MVP</b>, the minimum viable product. It must solve the user&rsquo;s main problem, it should be able to earn money, it doesn&rsquo;t need to be pretty, and it must be deliverable fast.</p>
+    <figure>
+      <img src="/assets/talks/micro-saas/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Drawing in two rows. &ldquo;Not like this&rdquo;: a car built in four steps, a wheel, an axle, a body, a finished car, with an unhappy user until the last step, crossed out. &ldquo;Like this!&rdquo;: a skateboard, a scooter, a bicycle, a motorbike and finally a car, with the user getting happier at every step.">
+      <figcaption>An MVP is a skateboard, not one wheel of a car. Each step must already be usable.</figcaption>
+    </figure>
+    <p>To show what &ldquo;doesn&rsquo;t need to be pretty&rdquo; means, I showed a real prototype of a warehouse tool: a plain Bootstrap screen with one search field for scanning an EAN code or a position, and an order detail page. Nothing more.</p>
+
+    <h2>Delivery tips</h2>
+    <ul>
+      <li><b>YAGNI</b>, you aren&rsquo;t gonna need it.</li>
+      <li><b>Be creative with solutions.</b> Nothing is too stupid.</li>
+      <li><b>Challenge everything:</b> Is it bringing any value? Do I really need it? Why am I doing this? Will it solve the user&rsquo;s problem?</li>
+      <li><b>Do things that don&rsquo;t scale</b>, the Y Combinator tip.</li>
+      <li><b>Move quickly.</b> But don&rsquo;t make too much of a mess, or the technical debt catches up with you.</li>
+    </ul>
+
+    <h2>Plans and priorities</h2>
+    <p>Have a short-term plan and a long-term plan, plus the steps to get to the long-term one. Those steps will change all the time, based on feedback. Know your customers. Keep to-do lists split into bugs, must-haves and nice-to-haves, and prioritise often, by time to delivery and cash potential.</p>
+    <p>I showed my own to-do list for MySpeedPuzzling, a very long one, and how a single page grew from feedback: the puzzle detail page got tabs for solo, duo and team times and a &ldquo;time per puzzler&rdquo; chart.</p>
+    <figure>
+      <img src="/assets/talks/micro-saas/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Two mobile screenshots of a puzzle detail page on MySpeedPuzzling, before and after, with an arrow between them. Before: the puzzle name, brand, 500 pieces, number of solves, two buttons and a large puzzle image, with Solo, Duo and Team tabs at the bottom. After: a compact header, Solo, Duo and Team tabs at the top, and a bar chart titled Time per puzzler with the fastest and average time.">
+      <figcaption>MySpeedPuzzling: one page, before and after a round of feedback.</figcaption>
+    </figure>
+
+    <h2>&ldquo;Bloatware&rdquo;: the Lego bricks</h2>
+    <p>Every SaaS needs the same boring parts. Don&rsquo;t build them from scratch, assemble them:</p>
+    <ul>
+      <li>Sign in, sign up, forgotten password: <a href="https://auth0.com">Auth0</a></li>
+      <li>Access control (ACL)</li>
+      <li>E-mail, transactional (Gmail) and newsletters: <a href="https://poste.io">poste.io</a>, <a href="https://listmonk.app">listmonk</a></li>
+      <li>Payments: bank transfer, Fakturoid, Buy Me a Coffee, Stripe</li>
+      <li>Invoicing and billing</li>
+      <li>File storage: MinIO</li>
+    </ul>
+
+    <h2>Technology</h2>
+    <ul>
+      <li>Keep the number of technologies low for as long as possible.</li>
+      <li>Simple architecture. KISS. DDD was crossed out on the slide.</li>
+      <li>For styling, use Bootstrap or Tailwind, or buy a template.</li>
+      <li>Don&rsquo;t write it yourself if low-code or no-code does the job.</li>
+      <li>Watch out for hidden costs, like CI runners and Sentry.</li>
+    </ul>
+
+    <h2>More tips</h2>
+    <ul>
+      <li><b>Defensive, strictly typed programming.</b> You won&rsquo;t need that many tests. PHPStan will save your butt.</li>
+      <li><b>Marketing over product!</b></li>
+      <li>Social marketing can be very powerful.</li>
+      <li>Open source can open many doors.</li>
+      <li>Look for free tiers.</li>
+    </ul>
+
+    <h2>So where to start?</h2>
+    <p>You need an idea to start. Validate the market fit. Build it. And validate all the time.</p>
+    <p>No idea? No problem: build a modular skeleton, the bricks above, so you&rsquo;re ready when the idea comes.</p>
+
+    <details class="deck">
+      <summary>All 33 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/micro-saas/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: How to Micro SaaS, title slide"></li>
+        <li><img src="/assets/talks/micro-saas/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: RocketSpace poster: the first 3 years, members raised over $3 billion"></li>
+        <li><img src="/assets/talks/micro-saas/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: What is Micro SaaS?"></li>
+        <li><img src="/assets/talks/micro-saas/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Different types of micro SaaS"></li>
+        <li><img src="/assets/talks/micro-saas/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Meme: But why?"></li>
+        <li><img src="/assets/talks/micro-saas/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Why? It is fun, sustainable with your daily job, learn something new"></li>
+        <li><img src="/assets/talks/micro-saas/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Ikigai diagram"></li>
+        <li><img src="/assets/talks/micro-saas/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: How to build one?"></li>
+        <li><img src="/assets/talks/micro-saas/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Illustration: a superhero with many arms handling business, marketing, writing and coffee"></li>
+        <li><img src="/assets/talks/micro-saas/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Friendly reminder: a unique skillset is required"></li>
+        <li><img src="/assets/talks/micro-saas/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Lifecycle: idea, market fit, proof of concept, prototype, MVP, repeat"></li>
+        <li><img src="/assets/talks/micro-saas/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Illustration: a bright idea and money on one side, burning money on the other"></li>
+        <li><img src="/assets/talks/micro-saas/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: The idea: vision, mission, personas, SWOT, product market fit"></li>
+        <li><img src="/assets/talks/micro-saas/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Idea validation"></li>
+        <li><img src="/assets/talks/micro-saas/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Proof of concept"></li>
+        <li><img src="/assets/talks/micro-saas/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Illustration: a developer coding frantically, work in progress"></li>
+        <li><img src="/assets/talks/micro-saas/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Delivery tips"></li>
+        <li><img src="/assets/talks/micro-saas/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Prototype"></li>
+        <li><img src="/assets/talks/micro-saas/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: MVP: Minimum Viable Product"></li>
+        <li><img src="/assets/talks/micro-saas/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Drawing: build a skateboard, scooter, bike, motorbike, car, not a car one wheel at a time"></li>
+        <li><img src="/assets/talks/micro-saas/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Prototype screenshot: a warehouse scanning screen"></li>
+        <li><img src="/assets/talks/micro-saas/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Prototype screenshot: an order detail page (customer data pixelated)"></li>
+        <li><img src="/assets/talks/micro-saas/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: More tips: short-term and long-term plan, to-do lists, prioritize often"></li>
+        <li><img src="/assets/talks/micro-saas/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: A long to-do list for MySpeedPuzzling"></li>
+        <li><img src="/assets/talks/micro-saas/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: MySpeedPuzzling puzzle detail page, before and after"></li>
+        <li><img src="/assets/talks/micro-saas/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Bloatware, the Lego bricks: auth, ACL, e-mailing, payments, invoicing, file storage"></li>
+        <li><img src="/assets/talks/micro-saas/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: More tips: strictly typed programming, marketing over product"></li>
+        <li><img src="/assets/talks/micro-saas/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Technology: keep it simple"></li>
+        <li><img src="/assets/talks/micro-saas/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Ok, so where to start?"></li>
+        <li><img src="/assets/talks/micro-saas/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Thank you!"></li>
+        <li><img src="/assets/talks/micro-saas/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Photo from a mentoring session"></li>
+        <li><img src="/assets/talks/micro-saas/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: Photo of a meetup in a conference room"></li>
+        <li><img src="/assets/talks/micro-saas/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: Photo of three people giving thumbs up"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=aVusP34naSQ">Meetup stream</a>
+      <a href="https://myspeedpuzzling.com">MySpeedPuzzling</a>
+      <a href="https://omnicado.com">Omnicado</a>
+      <a href="https://peon.dev">Peon</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to build a micro SaaS, brick by brick",
+  "description": "What a micro SaaS is, why build one next to your day job, and how: validating the idea, proof of concept, prototype, MVP, ready-made building blocks and cheap tech.",
+  "url": "https://janmikes.cz/slides/micro-saas/",
+  "datePublished": "2025-01-29",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/micro-saas.jpg",
+  "about": ["Micro SaaS", "Bootstrapping", "MVP", "Side projects", "Product validation", "PHP"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

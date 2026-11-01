@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we migrated from Nette to Symfony like ninjas · Jan Mikeš</title>
+<meta name="description" content="How we moved the Entrydo API from Nette to Symfony in 13 working days with Rector: what changed, what still had to be done by hand, and the bug that took 20 hours.">
+<link rel="canonical" href="https://janmikes.cz/slides/nette-to-symfony-like-ninjas/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="How we migrated from Nette to Symfony like ninjas">
+<meta property="og:description" content="Nette to Symfony in 13 working days with Rector: the timeline, the manual work and the WTFs.">
+<meta property="og:url" content="https://janmikes.cz/slides/nette-to-symfony-like-ninjas/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/nette-to-symfony-like-ninjas.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2019-03-14">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How we migrated from Nette to Symfony like ninjas">
+<meta name="twitter:description" content="Nette to Symfony in 13 working days with Rector: the timeline, the manual work and the WTFs.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/nette-to-symfony-like-ninjas.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2019-03-14">14 March 2019</time> · Péhápkaři Prague meetup #35 · Prague · given in Czech</p>
+    <h1>How we migrated from Nette to Symfony like ninjas</h1>
+    <p class="lede"><span>Two people, 13 working days, 712 files, and production on Valentine&rsquo;s Day. Switching a framework under a running product sounds scary. With the right tools, it can be fun.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The Nette-to-Symfony Rector set we built for this migration <a href="https://github.com/rectorphp/rector-src/pull/290">was taken out of Rector core in 2021</a> and the <a href="https://github.com/deprecated-packages/rector-nette-to-symfony">package is archived</a>. It targeted Nette 2.4/3 and Symfony 4, so treat it as material to learn from, not a tool to run on a current project.</div>
+
+    <h2>Why?</h2>
+    <p>Because it&rsquo;s cool. Because we could. And the real motivation? Frustration.</p>
+    <p>The app was the backend of Entrydo, an API used by our web and mobile apps. It was a four-year-old Nette application, but when you looked at what made it a Nette app, there wasn&rsquo;t that much left. A lot of it was Symfony already, wrapped in Nette DI extensions:</p>
+<pre><code>extensions:
+    console: Kdyby\Console\DI\ConsoleExtension
+    doctrineEvents: Kdyby\Events\DI\EventsExtension
+    annotations: Kdyby\Annotations\DI\AnnotationsExtension
+    doctrine: Kdyby\Doctrine\DI\OrmExtension
+    migrations: Nettrine\Migrations\DI\MigrationsExtension
+    monolog: Kdyby\Monolog\DI\MonologExtension
+    rabbitmq: Kdyby\RabbitMq\DI\RabbitMqExtension
+    translation: Kdyby\Translation\DI\TranslationExtension
+    translatable: Zenify\DoctrineBehaviors\DI\TranslatableExtension
+    events: Contributte\EventDispatcher\DI\EventDispatcherExtension
+    env: wodCZ\NetteDotenv\DotEnvExtension</code></pre>
+    <p>Console, events, Doctrine, Monolog, translations: all Symfony components or Doctrine underneath, with a Nette bridge on top. The actual Nette part was <code>nette/di</code>, <code>neon</code>, <code>bootstrap</code>, <code>application</code>, <code>component-model</code>, <code>http</code>, <code>utils</code> and <code>finder</code>, all at 2.4. So it was more like there was some Nette in our Symfony app.</p>
+
+    <h2>How the hell did we do that?</h2>
+    <p>The joke answer: a year earlier there was already a commit called &ldquo;Now we are running on symfony&rdquo;. It added a single catch-all route and this controller:</p>
+<pre><code>class NetteController
+{
+    public function __invoke()
+    {
+        $legacyFile = __DIR__ . '/../../nette/www/index.php';
+
+        ob_start();
+        include($legacyFile);
+        $content = ob_get_clean();
+
+        return new Response($content);
+    }
+}</code></pre>
+    <p>Technically, Symfony. Not what I mean.</p>
+
+    <h2>How we really did it</h2>
+    <p>With <a href="https://getrector.com">Rector</a>, the tool that changes PHP code automatically through its syntax tree, and a lot of new Rector rules written for this exact migration. The final diff was 712 files, 23,636 lines added and 31,855 removed.</p>
+    <p>The timeline:</p>
+    <ul>
+      <li>First commit on 27 January 2019 (most of the work happened from 7 February)</li>
+      <li>Last commit on 13 February 2019</li>
+      <li>13 working days in total</li>
+      <li>On production on 14 February 2019. Happy Valentine&rsquo;s Day.</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/nette-to-symfony-like-ninjas/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Terminal running PHPUnit 7.5.4 on 912 tests. The progress output starts with mostly passing dots, then turns into long rows of red E characters for errors from about 50% onwards, up to 693 of 912 tests at 75%.">
+      <figcaption>What the test suite looked like somewhere in the middle.</figcaption>
+    </figure>
+    <p>The last night was the dramatic one. At 1:41 I suspected where the last problem was. At 4:18 I had it. At 8:07 we were live and working.</p>
+
+    <h2>What Rector changed</h2>
+    <p>A few samples of what the rules did across the codebase. Presenters stopped creating Nette response objects and got a response factory injected instead:</p>
+<pre><code>- public function __construct(CancelEventUseCase $useCase, RequestBodyHelper $requestBodyHelper)
++ public function __construct(CancelEventUseCase $useCase, RequestBodyHelper $requestBodyHelper, \Entrydo\App\Responses\ResponseFactory $responseFactory)
+
+- return new OKResponse($response);
++ return $this-&gt;responseFactory-&gt;createJsonResponse($response);</code></pre>
+    <p>Event subscribers moved from our own request event to Symfony&rsquo;s kernel events:</p>
+<pre><code>- return [RequestEvent::NAME =&gt; 'updateNewRelicTransactionName'];
++ return [\Symfony\Component\HttpKernel\KernelEvents::REQUEST =&gt; 'updateNewRelicTransactionName'];
+
+- public function updateNewRelicTransactionName(RequestEvent $event): void
++ public function updateNewRelicTransactionName(GetResponseEvent $event): void</code></pre>
+    <p>The New Relic transaction name, which used to be the Nette presenter name, became the HTTP method plus the path. And a plain <code>string $requestId</code> passed through the constructor became an injected <code>RequestIdProvider</code> service.</p>
+    <p>Out of the work came new open-source pieces: a NEON to YAML converter for the configs, many new Rector rules, and a whole Nette-to-Symfony set in Rector.</p>
+
+    <h2>What we still had to do by hand</h2>
+    <ul>
+      <li><code>ErrorPresenter</code> became an <code>ExceptionSubscriber</code></li>
+      <li>Tests moved to SymfonyTestBundle</li>
+      <li>Renaming and moving files</li>
+      <li>Replacing services in the DI container with mocks in tests</li>
+    </ul>
+
+    <h2>The WTFs</h2>
+    <ul>
+      <li>Every event subscriber got called twice.</li>
+      <li>Doctrine mapping files had to be renamed from <code>Entity.dcm.xml</code> to <code>Entity.orm.xml</code>.</li>
+      <li>Fixtures changed from <code>extends Fixture</code> to <code>extends AbstractFixture</code>.</li>
+      <li>Translations lost their placeholders, because Symfony wants the percent signs in the parameter key: <code>'name' =&gt; 'Tom'</code> had to become <code>'%name%' =&gt; 'Tom'</code>.</li>
+    </ul>
+
+    <h2>The ultimate 20-hour WTF</h2>
+    <p>Domain events combined with Doctrine fixtures. We dispatched domain events from Doctrine&rsquo;s <code>postFlush()</code> event, and on Symfony that ended in a loop. I still don&rsquo;t understand how it worked in Nette. The fix, once found, was small: dispatch domain events on <code>KernelEvents::TERMINATE</code>, after the response, instead of on flush. The commit message was &ldquo;[Holy shit!] Domain events are dispatched in TERMINATE instead of onFlush&rdquo;.</p>
+    <figure>
+      <img src="/assets/talks/nette-to-symfony-like-ninjas/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Git history with four favourite commits: 7 February 2019 by Tomas Votruba, &ldquo;init Rector autoload&rdquo;; 11 February 2019, &ldquo;We just killed Nette/Http in Entrydo - RIP&rdquo;; 11 February 2019, &ldquo;Getting rid of Nette/DI/Container in tests&rdquo;; 13 February 2019, &ldquo;[Holy shit!] Domain events are dispatched in TERMINATE instead of onFlush&rdquo;.">
+      <figcaption>My favourite commits, from &ldquo;init Rector autoload&rdquo; to the 20-hour bug.</figcaption>
+    </figure>
+
+    <h2>Switching framework can be fun</h2>
+    <p>The two people were me and Tomáš Votruba, the author of Rector. He wrote up the details from his side in <a href="https://tomasvotruba.com/blog/2019/02/21/how-we-migrated-from-nette-to-symfony-in-3-weeks-part-1">a series of posts</a> and in <a href="https://tomasvotruba.com/blog/2019/08/26/how-we-migrated-54-357-lines-of-code-nette-to-symfony-in-2-people-under-80-hours">a summary of the whole migration</a>.</p>
+
+    <details class="deck">
+      <summary>All 32 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Jan Mikeš, 14.03.2019, How we migrated from Nette to Symfony like ninjas, Entrydo logo"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Section title in large blue letters: Why?"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Cartoon alien meme captioned “Because it's cool.”"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Success kid meme: “Because we can!”"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Section title in large blue letters: Motivation?"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: “Motivation?” struck through, replaced by “Frustration!”"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: What makes Nette app a Nette app?"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Lot of Symfony stuff: Nette config extensions list of Kdyby and other Symfony bridges"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: There is Nette in my Symfony app: composer.json with nette/* and kdyby/* packages"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: How the hell did we do that?"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Git commit “Now we are running on symfony” on branch hi-symfony, 15/03/2018"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Diff of a Symfony NetteController that includes the legacy Nette index.php and wraps its output"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: How we really did that"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Shrug meme: ¯\_(ツ)_/¯ with a man in a blue T-shirt shrugging"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: What it takes? 712 files, 23636 additions, 31855 deletions"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: PHPUnit run full of errors, 693 of 912 tests at 75%"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Timeline: first commit 27.1.2019, last 13.2.2019, 13 working days, on prod 14.2.2019"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Chat messages from the night of 13.02.19 ending with “we are live and working!!!”"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: New open-source packages: Neon 2 YAML convertor; many new Rectors: Nette 2 Symfony set"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Few things still had to be done manually"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Manual work: ErrorPresenter → ExceptionSubscriber, SymfonyTestBundle, moving files, mocking services in tests"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Section title in large blue letters: WTF?"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: Gotchas: event subscribers called twice, Entity.dcm.xml → Entity.orm.xml, Fixture → AbstractFixture, translations missing %%"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Ultimate 20 hour WTF: domain events + Doctrine fixtures, postFlush event, replaced with KernelEvents::TERMINATE"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Section title in large blue letters: Rector samples"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Rector diff: injecting ResponseFactory and returning createJsonResponse() instead of new OKResponse"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: Rector diff: NewRelicSubscriber switching from Nette RequestEvent to Symfony KernelEvents::REQUEST"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Rector diff: replacing a string $requestId property with an injected RequestIdProvider"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Favorite commits: init Rector autoload, killed Nette/Http, removed Nette DI container in tests, TERMINATE fix"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Switching framework can be fun"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: github.com/rectorphp/rector with the GitHub Octocat"></li>
+        <li><img src="/assets/talks/nette-to-symfony-like-ninjas/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: Homer Simpson asking “Questions?” and Thank you! entry.do, janmikes.cz, jan@entrydo.com"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.facebook.com/pehapkari/videos/vl.305498660090819/558816934629307/">Video (Facebook)</a>
+      <a href="https://github.com/rectorphp/rector">Rector on GitHub</a>
+      <a href="https://tomasvotruba.com/blog/2019/08/26/how-we-migrated-54-357-lines-of-code-nette-to-symfony-in-2-people-under-80-hours">Tomáš Votruba&rsquo;s write-up</a>
+      <a href="/slides/psr-4-migration-with-rector/">PSR-4 migration talk</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How we migrated from Nette to Symfony like ninjas",
+  "description": "How we moved the Entrydo API from Nette to Symfony in 13 working days with Rector: what changed, what still had to be done by hand, and the bug that took 20 hours.",
+  "url": "https://janmikes.cz/slides/nette-to-symfony-like-ninjas/",
+  "datePublished": "2019-03-14",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/nette-to-symfony-like-ninjas.jpg",
+  "about": ["PHP", "Nette", "Symfony", "Rector", "Framework migration", "Doctrine", "Refactoring"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

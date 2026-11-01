@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Migrating a legacy PHP project to PSR-4 with scripts and Rector · Jan Mikeš</title>
+<meta name="description" content="How we moved a large legacy PHP codebase from Nette RobotLoader to Composer PSR-4 autoloading with small scripts and Rector, without blocking a team of 100 commits a day.">
+<link rel="canonical" href="https://janmikes.cz/slides/psr-4-migration-with-rector/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Migrating a legacy PHP project to PSR-4 with Rector">
+<meta property="og:description" content="From Nette RobotLoader to Composer classmap to PSR-4: the plan, the scripts, the Rector config and the edge cases.">
+<meta property="og:url" content="https://janmikes.cz/slides/psr-4-migration-with-rector/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/psr-4-migration-with-rector.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2019-05-18">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Migrating a legacy PHP project to PSR-4 with Rector">
+<meta name="twitter:description" content="From Nette RobotLoader to Composer classmap to PSR-4: the plan, the scripts, the Rector config and the edge cases.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/psr-4-migration-with-rector.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2019-05-18">18 May 2019</time> · Jobs Dev 2019 · Prague · given in Czech</p>
+    <h1>Migrating a legacy PHP project to PSR-4 with scripts and Rector</h1>
+    <p class="lede"><span lang="cs">Migrace vašeho legacy projektu na PSR-4 automatickými nástroji.</span> <span>Renaming classes across a thousand files sounds like a search-and-replace job. It isn&rsquo;t, when the rest of the team keeps committing about 100 times a day to the same code while you do it.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The Rector config below is the YAML format from 2019. <a href="https://getrector.com/blog/rector-is-moving-from-yaml-to-php-configs-what-changes-and-how-to-get-ready">Rector dropped YAML configs in 2020</a> and is configured with a <code>rector.php</code> file today, and its rules have moved to different namespaces. The approach still works; the syntax doesn&rsquo;t.</div>
+
+    <h2>The starting point</h2>
+    <p>The project was a big legacy PHP application at GLAMI, built on Nette. PSR-4 is the PHP standard that maps a namespace to a directory, so <code>Glami\Cache\Apc</code> lives in <code>src/Cache/Apc.php</code> and Composer can find it without any index. This code didn&rsquo;t follow it. It relied on Nette RobotLoader instead.</p>
+    <p>RobotLoader&rsquo;s killer feature is that it doesn&rsquo;t care: it scans your directories and loads a class from whatever file it&rsquo;s in, whatever the file is called. You can have 20 classes in one file and nothing complains. That&rsquo;s convenient for years, and then it&rsquo;s a mess. Our bootstrap had hundreds of lines of <code>require __DIR__ . '/../app/model/...'</code> and a list of single files added to RobotLoader by hand.</p>
+
+    <h2>Why do it with scripts</h2>
+    <p>I didn&rsquo;t want to do this by hand, for three reasons:</p>
+    <ul>
+      <li>Legacy code grows really fast. While you migrate, others keep adding code the old way.</li>
+      <li>A script can be run again, and again. If the first run fails or the branch gets stale, you throw it away and rerun it on fresh master.</li>
+      <li>Manual know-how stays in the head of whoever did the work. A script stays in the repository.</li>
+    </ul>
+
+    <h2>Step one: RobotLoader to Composer classmap</h2>
+    <p>The path had two stages: RobotLoader, then Composer classmap, then Composer PSR-4. The classmap is the easy first step. Composer scans the listed directories once and writes a lookup table of every class:</p>
+<pre><code>"autoload": {
+    "classmap": ["app", "libs", "src"]
+},
+"autoload-dev": {
+    "classmap": ["tests", "tests_db", "tests_selenium"]
+}</code></pre>
+    <p>Is there any real performance gain from leaving RobotLoader? People in the Nette community said they never noticed a difference. Our monitoring did show one.</p>
+    <figure>
+      <img src="/assets/talks/psr-4-migration-with-rector/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Monitoring chart for 24 April 2019 with average response time (green), average CPU (red) and requests per second (grey). A blue box marks the deploy in the early afternoon, after which both the response time line and the CPU line step down to a lower level and stay there while traffic keeps growing.">
+      <figcaption>The day the classmap went to production: average response time and CPU step down at the deploy.</figcaption>
+    </figure>
+    <p>The catch with a classmap: add a new class and forget to regenerate it, and you get <code>Class 'Glami\MyClass' not found</code>. PSR-4 doesn&rsquo;t have that problem, which is why the classmap was only a step.</p>
+
+    <h2>Step two: classmap to PSR-4</h2>
+    <p>The target configuration is short:</p>
+<pre><code>"autoload": {
+    "psr-4": {
+        "App\\": "app",
+        "Glami\\": "src"
+    },
+    "classmap": ["libs"]
+},
+"autoload-dev": {
+    "psr-4": {
+        "Tests\\": "tests",
+        "TestsDB\\": "tests_db",
+        "TestsSelenium\\": "tests_selenium"
+    }
+}</code></pre>
+    <p>The naive plan is three bullets: rename class and namespace, replace all usages, profit. Too naive, you are.</p>
+
+    <h2>The requirements</h2>
+    <ul>
+      <li>Non-breaking for the team, which made about 100 commits a day</li>
+      <li>Repeatable</li>
+      <li>Repeatable by someone else</li>
+      <li>Bug-free</li>
+    </ul>
+
+    <h2>Plan properly</h2>
+    <p>Most of the work was the plan, written as a numbered checklist before touching any code. In short:</p>
+    <ol>
+      <li>One class per file. Split files that contain more than one class, with Rector.</li>
+      <li>Name every file after its class.</li>
+      <li>Rename directories so they start with a capital letter (except templates).</li>
+      <li>Decide the correct namespace for every class.</li>
+      <li>Generate a map of old class name to new class name for Rector.</li>
+      <li>Migrate the classes with Rector.</li>
+    </ol>
+    <p>Moving <code>libs/klarka</code> to <code>src</code> had its own list: fix every <code>__DIR__</code> and <code>../</code> path, then a full-text search and manual fixes in <code>.gitlab-ci.yml</code>, the gettext extract command, the translation scripts, <code>composer.json</code>, <code>phpstan.neon</code> and the entry-point PHP files. One line in the plan was in bold: watch out for how presenters and cron jobs are mapped. The plan also links <a href="https://github.com/suin/phpcs-psr4-sniff">phpcs-psr4-sniff</a>, a CodeSniffer rule that checks whether files follow PSR-4.</p>
+
+    <h2>The tools</h2>
+    <p><a href="https://getrector.com">Rector</a> does instant upgrades and refactoring of PHP code. It parses the code into an abstract syntax tree, so a rename is a real rename, not a string replace. Around the same time we used it to migrate a whole application from Nette to Symfony, which I talked about <a href="/slides/nette-to-symfony-like-ninjas/">in a separate talk</a>.</p>
+    <p>Around Rector I wrote a few small scripts. The first renames files to match the class inside:</p>
+<pre><code>$files = Finder::findFiles('*.php')-&gt;from(__DIR__ . '/../src');
+$renames = [];
+
+foreach ($files as $file) {
+    $filePath = $file-&gt;getPathname();
+    $content = NetteFileSystem::read($filePath);
+    $match = Strings::match($content, '/^\w*\s*(class|interface|trait) *(\w*)/m');
+
+    // File does not contain class
+    if ($match === null) {
+        continue;
+    }
+
+    $fileName = $file-&gt;getFilename();
+    $className = $match[2];
+    $correctFileName = $className . '.php';
+
+    // File is already same as class name
+    if ($fileName === $correctFileName) {
+        continue;
+    }
+
+    $renames[$fileName] = $correctFileName;
+    $newFilePath = str_replace($fileName, $correctFileName, $filePath);
+    NetteFileSystem::rename($filePath, $newFilePath);
+}
+
+echo Json::encode($renames, Json::PRETTY);</code></pre>
+    <p>The second one finds files with multiple classes. It uses RobotLoader itself, because RobotLoader already knows which class lives in which file, and runs Rector in Docker on each of those files to split them, followed by <code>composer dump-autoload</code>.</p>
+    <p>Then the Rector config, generated from the old-to-new map:</p>
+<pre><code>Rector\Rector\Class_\RenameClassRector:
+    Glami\libs\Statistics\NormalDistribution: Glami\Statistics\NormalDistribution
+    Glami\libs\PHPStan\PHPStan: Glami\PHPStan\PHPStan
+    Glami\libs\PageTimeApc: Glami\PageTimeApc
+    Glami\libs\Tools\Date\Range: Glami\Tools\Date\Range
+    Glami\libs\Cache\Apc: Glami\Cache\Apc
+    # ...</code></pre>
+    <p>And the last script searches the whole project, outside <code>vendor</code> and a few other directories, for any old class name that still appears as a string. Those are the places Rector can&rsquo;t see: config files, templates, strings.</p>
+
+    <h2>90% of the time: edge cases</h2>
+    <p>The renames were the easy part. Most of the time went into things like these:</p>
+<pre><code>- /** @var  */
++ /** @var */
+  private $collation;
+
+- $mockSoapService = $this-&gt;getMockBuilder('\Klarka\GpWebPay\SoapService');
++ $mockSoapService = $this-&gt;getMockBuilder(SoapService::class);
+
+- $this-&gt;expectException('MMDB_Exception');
++ $this-&gt;expectException(\Klarka\MMDB\MMDB_Exception::class);
+
+- class DownloaderResult extends Klarka\HTTP\Downloader\Result {}
++ class DownloaderResult extends \Klarka\HTTP\Downloader\Result {}</code></pre>
+    <p>Broken docblocks, class names hidden in strings, and relative names that only worked because of where the file used to live.</p>
+
+    <h2>Code review?</h2>
+    <p>The resulting change touched 1,128 files. GitHub stops showing a diff at 1,000 files. Nobody can review that line by line. What you can review is the script that produced it, and the commit message says exactly which script ran. If the script is right, the diff is right, and if master moved in the meantime, you just run it again.</p>
+
+    <h2>Satisfaction</h2>
+    <figure>
+      <img src="/assets/talks/psr-4-migration-with-rector/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Terminal output: Rector 0.5.x-dev processing the project, 5,966 of 10,089 files at 59%, then &ldquo;[OK] Rector is done! 1128 changed files&rdquo;. Below it a PHPUnit run: 1371 of 1371 tests, time 2.14 minutes, memory 114.50 MB, OK (1371 tests, 3873 assertions).">
+      <figcaption>Rector went through about 10,000 files and changed 1,128. All 1,371 tests passed.</figcaption>
+    </figure>
+    <p>Rector processed around 10,000 files and changed 1,128 of them. The test suite, 1,371 tests and 3,873 assertions, passed in just over two minutes.</p>
+
+    <details class="deck">
+      <summary>All 33 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Jan Mikeš, 18.05.2019, Migrace projektu na PSR-4 (migrating a project to PSR-4), with speaker photo"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Logos of Entrydo, GLAMI and Péhápkaři.cz"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Section title in large letters: PHP"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Section title in large letters: PSR-4 autoloading standard"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Section title in large letters: Nette RobotLoader"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Section title in large blue letters: Why?"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Article “Drop RobotLoader and let Composer Deal with Autoloading” and the RobotLoader docs blurb"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Code: hundreds of manual require __DIR__ lines loading app model and presenter files"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Code: configurator-&gt;createRobotLoader() with many addDirectory() calls for single files"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Meme: man in a cardigan captioned “It's a mess”"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Section title in large blue letters: How?"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Plan: RobotLoader → Composer classmap → Composer PSR-4"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Composer classmap: autoload classmap for app, libs, src and autoload-dev for tests"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Performance: comment saying no negative impact noticed using RobotLoader over PSR-4"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Response time graph from monitoring, with the switch point highlighted in a blue box"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Error: Class 'Glami\MyClass' not found"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Composer classmap → Composer PSR-4"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: Composer PSR-4 config: App\ → app, Glami\ → src, classmap libs, Tests namespaces for tests"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: Naive plan: rename class + namespace, replace all usages, profit"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: Yoda meme: “Too naive you are”"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: Requirements: non-breaking for team (100 commits/day), repeatable, repeatable by someone else, bugfree"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Plan properly: a long checklist of migration steps for libs/klarka to src"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: GitHub rectorphp/rector repo and article: migrating 50k lines from Nette to Symfony in 17 days"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: 90% time – edge cases: diffs fixing @var annotations, mock builders and expectException strings"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Code review? GitHub showing 1000 changed files, 88116 additions; commit with 1128 files changed"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: Script “Rename files”: PHP script renaming files to match their class names"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: Script “Split classes in one file to multiple files” using RobotLoader indexed classes"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: Rector config for class renames: RenameClassRector mapping old Glami\libs classes to new namespaces"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Script “Search for old classes usages” scanning files for old class names in strings"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Meme: TV talent show judge slamming the red button in despair"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Satisfaction: Rector run finishing with 1128 changed files and all 1371 tests passing"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/32.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 32: github.com/rectorphp/rector with the GitHub Octocat"></li>
+        <li><img src="/assets/talks/psr-4-migration-with-rector/33.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 33: Homer Simpson asking “Questions?” and Thank you! janmikes.cz, j.mikes@me.com"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://github.com/rectorphp/rector">Rector on GitHub</a>
+      <a href="https://github.com/suin/phpcs-psr4-sniff">phpcs-psr4-sniff</a>
+      <a href="/slides/nette-to-symfony-like-ninjas/">Nette to Symfony talk</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Migrating a legacy PHP project to PSR-4 with scripts and Rector",
+  "description": "How we moved a large legacy PHP codebase from Nette RobotLoader to Composer PSR-4 autoloading with small scripts and Rector, without blocking a team of 100 commits a day.",
+  "url": "https://janmikes.cz/slides/psr-4-migration-with-rector/",
+  "datePublished": "2019-05-18",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/psr-4-migration-with-rector.jpg",
+  "about": ["PHP", "PSR-4", "Rector", "Composer", "Autoloading", "Nette", "Legacy code", "Refactoring"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

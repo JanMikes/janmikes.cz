@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your own GitHub Action: a quick start · Jan Mikeš</title>
+<meta name="description" content="How a Docker container GitHub Action works and how to build one in three steps: a small PHP tool, a Dockerfile and action.yml, then use it in a workflow.">
+<link rel="canonical" href="https://janmikes.cz/slides/docker-github-action/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Your own GitHub Action: a quick start">
+<meta property="og:description" content="Build a Docker container GitHub Action in three steps: a tool, a Dockerfile and action.yml.">
+<meta property="og:url" content="https://janmikes.cz/slides/docker-github-action/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/docker-github-action.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2020-11-28">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Your own GitHub Action: a quick start">
+<meta name="twitter:description" content="Build a Docker container GitHub Action in three steps: a tool, a Dockerfile and action.yml.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/docker-github-action.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2020-11-28">28 November 2020</time> · #posobota s02e05 · online · given in Czech</p>
+    <h1>Your own GitHub Action: a quick start</h1>
+    <p class="lede"><span lang="cs">Vlastní GitHub Action: Quick start.</span> <span>Any command-line tool can become a GitHub Action. Wrap it in a Docker image, describe it in one YAML file, and every repository can use it with a single line.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The Docker action part still works the same way. The workflow example uses <code>actions/checkout@v2</code>, which ran on Node 12, a runtime <a href="https://github.blog/changelog/2022-09-22-github-actions-all-actions-will-begin-running-on-node16-instead-of-node12/">GitHub has since deprecated</a>. Use the <a href="https://github.com/actions/checkout/releases">current major version of checkout</a> instead.</div>
+
+    <h2>What actions are and why you want them</h2>
+    <p>GitHub Actions is GitHub&rsquo;s CI. A workflow is a list of steps, and a step can either run a shell command or use an action: a reusable piece that someone packaged for others. At the time of the talk the GitHub Marketplace listed 6,249 actions, from security scanners to Sentry releases and AWS deployments.</p>
+    <p>There are three types of actions:</p>
+    <ul>
+      <li><b>JavaScript:</b> runs directly on the runner with Node.js</li>
+      <li><b>Docker:</b> runs your code inside a container</li>
+      <li><b>Composite:</b> combines several steps into one action</li>
+    </ul>
+    <p>This talk is about the Docker type. You don&rsquo;t need to write JavaScript, and the tool inside can be written in anything, PHP included.</p>
+
+    <h2>How a Docker action works</h2>
+    <p>There&rsquo;s no magic. When a job uses a Docker action, GitHub:</p>
+    <ol>
+      <li>runs <code>docker build</code> on the action&rsquo;s Dockerfile, or <code>docker pull</code> if the action points to a ready image,</li>
+      <li>runs <code>docker run</code> with the right working directory, a long list of environment variables (<code>GITHUB_REPOSITORY</code>, <code>GITHUB_RUN_ID</code> and friends) and the checked-out repository mounted as a volume.</li>
+    </ol>
+    <p>So if your tool works in <code>docker run</code> on your laptop, it will work as an action.</p>
+
+    <p>The setup has three steps: the tool, the Dockerfile, the action metadata. Then you use it in a project.</p>
+
+    <h2>Step 1: the tool</h2>
+    <p>For the demo I wrote a very important linter: &ldquo;Don&rsquo;t do drugs&rdquo;. It finds every PHP file in the current directory and fails if it finds a forbidden word, suggesting a better one. It uses the Nette Finder:</p>
+    <pre><code>&lt;?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$cwd = getcwd();
+
+if ($cwd === false) {
+    throw new \RuntimeException('Something horribly went wrong!');
+}
+
+$finder = \Nette\Utils\Finder::findFiles('*.php')-&gt;from($cwd);
+
+$words = [
+    'drugs' =&gt; 'Nette'
+];
+
+$foundSomethingBad = false;
+
+foreach ($finder-&gt;getIterator() as $file) {
+    foreach (file($file) as $lineNumber =&gt; $lineContent) {
+        foreach ($words as $forbiddenWord =&gt; $correctWord) {
+            if (strpos($lineContent, $forbiddenWord) !== false) {
+                $foundSomethingBad = true;
+
+                echo sprintf(
+                    "Forbidden word '%s' detected (%s:%d):\n- %s\n+ %s\n\n",
+                    $forbiddenWord,
+                    (string) $file,
+                    (int) $lineNumber +1,
+                    trim($lineContent),
+                    str_replace($forbiddenWord, $correctWord, trim($lineContent))
+                );
+            }
+        }
+    }
+}
+
+if ($foundSomethingBad) {
+    exit(1);
+}
+
+exit(0);</code></pre>
+    <p>The exit code is what matters: non-zero fails the CI step. Run against a sample project, it does its job:</p>
+    <pre><code>$ php ../posobota-se02e05-my-tool/src/tool.php
+Forbidden word 'drugs' detected (/Users/janmikes/Sites/posobota-se02e05-my-project/src/index.php:3):
+- echo 'I like drugs.';
++ echo 'I like Nette.';</code></pre>
+
+    <h2>Step 2: the Dockerfile</h2>
+    <p>The example from the GitHub docs is a tiny Alpine image that copies an <code>entrypoint.sh</code> and runs it. For a PHP tool, the official Composer image already has PHP and Composer in it:</p>
+    <pre><code>FROM composer:2
+
+WORKDIR /dont-do-drugs
+
+COPY . .
+RUN composer install
+
+ENTRYPOINT ["php", "/dont-do-drugs/src/tool.php"]</code></pre>
+    <p>Before going anywhere near GitHub, build the image and run it locally against the project, with the project mounted as a volume and set as the working directory. That&rsquo;s exactly what GitHub will do later:</p>
+    <pre><code>$ docker build -t drugs .
+$ docker run --rm -v "${PWD}:/www" -w /www drugs
+Forbidden word 'drugs' detected (/www/src/index.php:3):
+- echo 'I like drugs.';
++ echo 'I like Nette.';</code></pre>
+
+    <h2>Step 3: the action metadata</h2>
+    <p>An <code>action.yml</code> in the root of the tool&rsquo;s repository tells GitHub what the action is and how to run it. It can declare inputs and outputs, as in the docs&rsquo; &ldquo;Hello World&rdquo; example, but the minimum for a Docker action is short:</p>
+    <pre><code># action.yml
+name: "Don't do drugs"
+description: "Sample of Github action that runs \"Don't do drugs\" tool"
+runs:
+  using: 'docker'
+  image: 'Dockerfile'</code></pre>
+
+    <h2>Use it in a project</h2>
+    <p>Now any repository can use the action by referencing the tool&rsquo;s repository and a branch or tag:</p>
+    <pre><code># .github/workflows/main.yml
+on: [push]
+
+jobs:
+  dont_do_drugs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: janmikes/posobota-se02e05-my-tool@master</code></pre>
+    <p>On push, GitHub builds the image from the tool&rsquo;s repository, checks out the project and runs the container. The sample project contains the forbidden word, so the job fails, as it should:</p>
+    <figure>
+      <img src="/assets/talks/docker-github-action/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="GitHub Actions log of the failed step Run janmikes/posobota-se02e05-my-tool@master: a long docker run command with many GITHUB_ environment variables and volume mounts, followed by the output Forbidden word 'drugs' detected (/github/workspace/src/index.php:3) with the suggested fix echo 'I like Nette.'.">
+      <figcaption>The real <code>docker run</code> that GitHub executes, and the tool&rsquo;s output. The project is mounted at <code>/github/workspace</code>.</figcaption>
+    </figure>
+
+    <h2>Next steps</h2>
+    <p>The quick start gets you a working action. To make it a good one:</p>
+    <ul>
+      <li><b>Configuration via inputs</b>, so users can change the behaviour from their workflow</li>
+      <li><b>Publish the Docker image.</b> Building from a Dockerfile happens on every run. Pointing <code>action.yml</code> to a prebuilt image is faster.</li>
+      <li><b>Tag a stable version</b>, so users don&rsquo;t depend on <code>@master</code></li>
+      <li><b>Spread the word</b></li>
+    </ul>
+
+    <details class="deck">
+      <summary>All 17 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/docker-github-action/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Quick start: creating GitHub Action, Jan Mikeš, #Posobota 28.11.2020, Carvago"></li>
+        <li><img src="/assets/talks/docker-github-action/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: What are actions and why you want them?"></li>
+        <li><img src="/assets/talks/docker-github-action/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: GitHub Marketplace listing of Actions, 6249 results, e.g. SonarCloud Scan and Aqua Security Trivy"></li>
+        <li><img src="/assets/talks/docker-github-action/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: 3 action types: JavaScript, Docker, Composite"></li>
+        <li><img src="/assets/talks/docker-github-action/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: How Docker action works: docker build or docker pull, docker run with workdir, envs, volume"></li>
+        <li><img src="/assets/talks/docker-github-action/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: 3 steps setup: Tool, Dockerfile, Action metadata, (use in project)"></li>
+        <li><img src="/assets/talks/docker-github-action/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: The &quot;tool&quot;: terminal output reporting forbidden word 'drugs' detected, suggesting 'I like Nette'"></li>
+        <li><img src="/assets/talks/docker-github-action/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: PHP source of the tool: scans PHP files with Nette Finder and replaces forbidden words"></li>
+        <li><img src="/assets/talks/docker-github-action/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Dockerfile examples: Alpine with entrypoint.sh, and composer:2 image running tool.php"></li>
+        <li><img src="/assets/talks/docker-github-action/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Terminal: docker build -t drugs, then docker run detecting forbidden word 'drugs'"></li>
+        <li><img src="/assets/talks/docker-github-action/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Action metadata: action.yml examples with name, description, inputs, and runs using Docker"></li>
+        <li><img src="/assets/talks/docker-github-action/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Project: .github/workflows/main.yml running the action on push with actions/checkout"></li>
+        <li><img src="/assets/talks/docker-github-action/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: GitHub Actions run of dont_do_drugs job failed at the custom action step"></li>
+        <li><img src="/assets/talks/docker-github-action/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Failed action log: docker run output shows forbidden word 'drugs' detected"></li>
+        <li><img src="/assets/talks/docker-github-action/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Next steps? Configuration via inputs, publish Docker image, tag stable version, spread the word"></li>
+        <li><img src="/assets/talks/docker-github-action/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: GitHub Octocat logo with github.com/janmikes"></li>
+        <li><img src="/assets/talks/docker-github-action/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Homer Simpson asking &quot;Questions?&quot; and Thank you! @honza_mikes, janmikes.cz"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=GOKDwuv3PGA">Video</a>
+      <a href="https://github.com/janmikes/posobota-se02e05-my-tool">The action on GitHub</a>
+      <a href="https://github.com/janmikes/posobota-se02e05-my-project">Sample project</a>
+      <a href="https://docs.github.com/en/actions/tutorials/use-containerized-services/create-a-docker-container-action">GitHub docs: Docker container action</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Your own GitHub Action: a quick start",
+  "description": "How a Docker container GitHub Action works and how to build one in three steps: a small PHP tool, a Dockerfile and action.yml, then use it in a workflow.",
+  "url": "https://janmikes.cz/slides/docker-github-action/",
+  "datePublished": "2020-11-28",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/docker-github-action.jpg",
+  "about": ["GitHub Actions", "Docker", "CI/CD", "PHP", "Composer"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

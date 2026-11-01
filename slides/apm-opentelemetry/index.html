@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Application Performance Monitoring with OpenTelemetry · Jan Mikeš</title>
+<meta name="description" content="What observability and APM are, how traces and spans work, why OpenTelemetry exists, how its SDK, exporters and collector fit together, and how to instrument a PHP app.">
+<link rel="canonical" href="https://janmikes.cz/slides/apm-opentelemetry/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Application Performance Monitoring with OpenTelemetry">
+<meta property="og:description" content="Observability, traces and spans, and how OpenTelemetry&rsquo;s SDK, exporters and collector fit together, with PHP examples.">
+<meta property="og:url" content="https://janmikes.cz/slides/apm-opentelemetry/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/apm-opentelemetry.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2022-06-08">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Application Performance Monitoring with OpenTelemetry">
+<meta name="twitter:description" content="Observability, traces and spans, and how OpenTelemetry&rsquo;s SDK, exporters and collector fit together, with PHP examples.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/apm-opentelemetry.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2022-06-08">8 June 2022</time> · TechMeetup Ostrava #23 · Ostrava · given in Czech</p>
+    <h1>Application Performance Monitoring with OpenTelemetry</h1>
+    <p class="lede"><span lang="cs">Application Performance Monitoring (APM) s OpenTelemetry.</span> <span>Why your app is slow, and how to find out before your users tell you. What observability means, how tracing works, and why OpenTelemetry is the way to instrument your code once and send the data anywhere.</span></p>
+
+    <div class="note"><b>Update, 2026</b>OpenTelemetry for PHP has matured since this talk. Its <a href="https://opentelemetry.io/docs/languages/php/">traces, metrics and logs are now all marked stable</a>, and there&rsquo;s <a href="https://opentelemetry.io/docs/zero-code/php/">zero-code instrumentation</a> through a PECL extension, which does much of the manual work shown below for you. Also, OpenTelemetry <a href="https://github.com/open-telemetry/opentelemetry-specification/pull/2858">deprecated its Jaeger exporters</a>: Jaeger accepts OTLP natively, so export OTLP instead.</div>
+
+    <h2>How to measure performance</h2>
+    <p>There are a few ways to find out your app is slow:</p>
+    <ul>
+      <li>Your users will tell you</li>
+      <li>Profiling</li>
+      <li>Performance testing</li>
+      <li><b>Performance monitoring</b></li>
+    </ul>
+    <p>This talk is about the last one.</p>
+
+    <h2>Observability first</h2>
+    <p>To understand OpenTelemetry, you have to understand observability first. Observability means you can understand the system from the outside. You can answer the question &ldquo;why is this happening?&rdquo; and easily troubleshoot the problem.</p>
+    <p>To call an application observable, it must be properly instrumented, which means it emits signals. Properly instrumented means you don&rsquo;t need to add more instrumentation when you&rsquo;re troubleshooting an issue. The signals come in three overlapping kinds: <b>metrics</b>, which you can aggregate, <b>tracing</b>, which is scoped to a request, and <b>logging</b>, which records events.</p>
+
+    <h2>What APM gives you</h2>
+    <p>Application Performance Monitoring gathers data about requests, called traces: framework boot, SQL queries, Redis, HTTP calls, business logic and so on. It saves the data into storage, so you can aggregate and analyse it and set up alerts. The result is a high-level picture of what&rsquo;s happening in your requests.</p>
+    <p>I showed what that looks like in Elastic APM: a service overview with latency, throughput and failed transaction rate compared with the day before, a waterfall of a single checkout request across services, latency distribution with automatic correlations (for example, slow requests correlating with large orders and HTTP 500 responses), and a service map of how all the services call each other.</p>
+
+    <h2>Traces and spans</h2>
+    <p>Two terms matter:</p>
+    <ul>
+      <li><b>Trace</b> (some tools call it a transaction): the whole journey of one request.</li>
+      <li><b>Span</b>: one timed operation inside it. Spans nest: a span can have child spans.</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/apm-opentelemetry/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Trace diagram drawn as nested bars over time: a client span contains /api, which contains /authN, /authZ, /paymentGateway with DB and Ext. Merchant calls, and /dispatch with /dispatch/search, three /poll calls and /pollDriver/{id}.">
+      <figcaption>One trace, many spans. Each bar is a span, nested under the span that called it.</figcaption>
+    </figure>
+    <p>A span is just data. Here&rsquo;s an example span as JSON:</p>
+<pre><code>{
+  "trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+  "parent_id": "",
+  "span_id": "086e83747d0e381e",
+  "name": "/v1/sys/health",
+  "start_time": "2021-10-22 16:04:01.209458162 +0000 UTC",
+  "end_time": "2021-10-22 16:04:01.209514132 +0000 UTC",
+  "status_code": "STATUS_CODE_OK",
+  "status_message": "",
+  "attributes": {
+    "http.method": "GET",
+    "http.target": "/v1/sys/health",
+    "http.scheme": "http",
+    "http.host": "10.177.2.152:26040"
+  },
+  "events": {
+    "name": "",
+    "message": "OK",
+    "timestamp": "2021-10-22 16:04:01.209512872 +0000 UTC"
+  }
+}</code></pre>
+
+    <h2>No silver bullet</h2>
+    <p>There are many APM tools: Datadog, New Relic, SolarWinds, AppDynamics, Blackfire, Dynatrace, Sentry, Elastic APM. Choosing one used to mean committing to it:</p>
+    <ul>
+      <li>Each observability backend has its own instrumentation.</li>
+      <li>There&rsquo;s no standardised data format.</li>
+      <li>Every time you add a new tool to the stack, developers have to re-instrument the code and configure another agent.</li>
+    </ul>
+
+    <h2>OpenTelemetry to the rescue</h2>
+    <p>The community recognised the need for a standard. In May 2019 two open-source projects merged: OpenTracing (CNCF) and OpenCensus (Google). The result, <a href="https://opentelemetry.io">OpenTelemetry</a> (OTel), is a collection of tools, APIs and SDKs that help you instrument, generate, collect and export telemetry data. In its own words: &ldquo;OpenTelemetry is the mechanism by which application code is instrumented, to help make a system observable.&rdquo;</p>
+    <ul>
+      <li>Broad industry support and adoption: cloud providers, vendors, services, end users</li>
+      <li>Vendor-agnostic and vendor-neutral</li>
+      <li>A pluggable architecture, so adding a new protocol or format is easy</li>
+      <li>It is <b>not</b> an observability backend like Datadog or New Relic. You still need one.</li>
+    </ul>
+
+    <h2>The architecture</h2>
+    <ul>
+      <li><b>Agent</b>, part of the SDK, collects data inside your app.</li>
+      <li><b>Exporter</b>, part of the SDK, sends it out.</li>
+      <li><b>Collector</b>, a standalone component, receives, processes and exports data in a vendor-agnostic way. It&rsquo;s optional.</li>
+      <li>A <b>telemetry backend</b> of your choice, which isn&rsquo;t part of OTel.</li>
+    </ul>
+    <figure>
+      <img src="/assets/talks/apm-opentelemetry/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="OpenTelemetry architecture: inside the application, code feeds the SDK, which feeds an exporter. The exporter sends data to the collector&rsquo;s receiver, and the collector&rsquo;s exporter sends it on to the telemetry backend.">
+      <figcaption>Code, SDK and exporter live in your app. The collector sits between your app and the backend.</figcaption>
+    </figure>
+    <p>Inside the collector is a pipeline: several receivers, a chain of processors, and a fan-out to several exporters. Without a collector, every VM process, Kubernetes pod or node runs its own agent that pushes data to each backend separately. With a collector service in the middle, the apps only talk to the collector, and it talks to Jaeger, Prometheus or whatever else you use.</p>
+    <p>At Sharry we used exactly that: apps in Node, Java, .NET, Go and Python, instrumented with OpenTelemetry agents, send data to OpenTelemetry collectors, which export it over the OpenTelemetry protocol into Elastic Observability: APM Server, Elasticsearch and the Kibana observability apps.</p>
+
+    <h2>Instrumenting a PHP app</h2>
+    <p>Instrumentation differs per language. There&rsquo;s automatic instrumentation, and there&rsquo;s manual. Manually, you create a span around the code you care about:</p>
+<pre><code>class HelloController
+{
+    private OpenTelemetry\SDK\Trace\Tracer $tracer;
+
+    /**
+     * @Route("/hello", name="hello")
+     */
+    public function index(): Response
+    {
+        $span = $this-&gt;tracer-&gt;spanBuilder(__METHOD__)-&gt;startSpan();
+        /* Do some stuff */
+        $span-&gt;end();
+
+        return new Response('Hello')
+    }
+}</code></pre>
+    <p>For a Symfony app you want one root span per request. A kernel event subscriber starts it on the request and ends it on terminate:</p>
+<pre><code>class TracingKernelSubscriber implements EventSubscriberInterface
+{
+    private Tracer $tracer;
+    private SpanInterface|null $mainSpan = null;
+
+    public function onRequestEvent(RequestEvent $event)
+    {
+        $this-&gt;mainSpan = $this-&gt;tracer-&gt;spanBuilder('main')-&gt;startSpan();
+        $this-&gt;mainSpan-&gt;activate();
+    }
+
+    public function onTerminateEvent(TerminateEvent $event): void
+    {
+        $this-&gt;mainSpan-&gt;end();
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            KernelEvents::REQUEST =&gt; 'onRequestEvent',
+            KernelEvents::TERMINATE =&gt; 'onTerminateEvent',
+        ];
+    }
+}</code></pre>
+    <p>Where the data goes is just configuration. The same spans can go to several backends at once:</p>
+<pre><code>trace:
+  exporters:
+
+    exporter1: zipkin+https://zipkinhost:1234
+
+    exporter2: jaeger+https://foo:bar@jaegerhost:1234
+
+    exporter3:
+      type: newrelic
+      url: http://newrelichost:1234
+      options:
+        license_key: abcde</code></pre>
+    <p>The talk ended with a live demo, which isn&rsquo;t in the slides. The code for it is on GitHub in <a href="https://github.com/JanMikes/opentelemetry-apm-php-demo">opentelemetry-apm-php-demo</a>, and the demo itself is in the meetup stream linked below.</p>
+
+    <details class="deck">
+      <summary>All 31 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/apm-opentelemetry/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Application Performance Monitoring with OpenTelemetry, over a photo of slow snails"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Speaker slide: Jan Mikeš, #TechMeetupOstrava 08.06.2022, peon.dev and Sharry logos"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: How to measure performance: users tell you, profiling, performance testing, performance monitoring"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: Observability: understand the system from outside, answer &quot;Why is this happening?&quot;"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Meme: elderly woman squinting at a computer screen, captioned &quot;I can't see anything!&quot;"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Instrumented apps emit signals; Venn diagram of metrics, tracing, and logging"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Elastic APM overview of advertService: latency chart, throughput, and transactions"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Elastic APM trace waterfall of a POST /checkout request across microservices"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Elastic APM latency distribution histogram and failed transaction correlations table"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Elastic APM service map showing frontend, checkout, payment, and other microservices"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: Application Performance Monitoring: gather request traces, save and aggregate data, high-level picture"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Tracing: trace (transaction) and span, with a span timeline diagram of API calls"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Example span JSON with trace_id, span_id, timestamps, status, and HTTP attributes"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: APM tools logos: Datadog, New Relic, SolarWinds, AppDynamics, Blackfire.io, Dynatrace, Sentry, Elastic APM"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Morpheus from The Matrix offering the red and blue pills"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: No silver bullet: each backend has different instrumentation, no standard data format"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: South Park &quot;Captain Hindsight&quot; meme captioned &quot;To the rescue&quot;"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/18.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 18: OpenTelemetry: OpenTracing and OpenCensus merged in 05/2019 into a standard set of tools, APIs, and SDKs"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/19.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 19: OpenTelemetry is vendor-neutral, pluggable, and NOT an observability backend like Datadog or New Relic"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/20.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 20: OTel architecture: agent, exporter, collector, and backend of your choice, with pipeline diagram"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/21.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 21: OTel collector: optional, vendor-agnostic receive, process, export pipeline diagram"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/22.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 22: Deployment diagram: agents as binary, sidecar, or daemonset exporting to multiple backends"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/23.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 23: Deployment diagram: agents sending data through a central OpenTelemetry Collector service to backends"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/24.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 24: Sharry setup: apps instrumented with OpenTelemetry agents sending to Elastic APM and Kibana"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/25.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 25: Instrumentation: differs per language, automatic or manual"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/26.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 26: PHP code: manually starting and ending an OpenTelemetry span in a controller"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/27.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 27: PHP code: Symfony event subscriber starting a span on request and ending it on terminate"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/28.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 28: YAML config of OpenTelemetry trace exporters: Zipkin, Jaeger, and New Relic"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/29.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 29: Resources: opentelemetry.io, opentelemetry-apm-php-demo on GitHub, jaegertracing.io, Elastic APM"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/30.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 30: Disaster Girl meme: &quot;Live demo! What could possibly go wrong?&quot;"></li>
+        <li><img src="/assets/talks/apm-opentelemetry/31.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 31: Homer Simpson asking &quot;Questions?&quot; and Thank you! @honza_mikes, janmikes.cz, sharry.tech"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=3oxR35SHFGg">Meetup stream</a>
+      <a href="https://github.com/JanMikes/opentelemetry-apm-php-demo">Demo code on GitHub</a>
+      <a href="https://opentelemetry.io">OpenTelemetry</a>
+      <a href="https://www.jaegertracing.io">Jaeger</a>
+      <a href="https://www.elastic.co/observability/application-performance-monitoring">Elastic APM</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Application Performance Monitoring with OpenTelemetry",
+  "description": "What observability and APM are, how traces and spans work, why OpenTelemetry exists, how its SDK, exporters and collector fit together, and how to instrument a PHP app.",
+  "url": "https://janmikes.cz/slides/apm-opentelemetry/",
+  "datePublished": "2022-06-08",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/apm-opentelemetry.jpg",
+  "about": ["OpenTelemetry", "Application Performance Monitoring", "Observability", "Distributed tracing", "PHP", "Symfony"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>

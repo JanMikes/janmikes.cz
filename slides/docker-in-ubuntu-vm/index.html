@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ultra-fast Docker on a Mac with an Ubuntu VM · Jan Mikeš</title>
+<meta name="description" content="Why Docker Desktop for Mac was so slow with mounted files in 2021, the usual fixes, and how Docker in a local Ubuntu VM took a page from 160 s to 85 ms.">
+<link rel="canonical" href="https://janmikes.cz/slides/docker-in-ubuntu-vm/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1012" media="(prefers-color-scheme: dark)">
+<meta name="author" content="Jan Mikeš">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="janmikes.cz">
+<meta property="og:title" content="Ultra-fast Docker on a Mac with an Ubuntu VM">
+<meta property="og:description" content="Slow Docker Desktop for Mac, the usual fixes, and a local Ubuntu VM as a remote Docker host: from 160 s to 85 ms.">
+<meta property="og:url" content="https://janmikes.cz/slides/docker-in-ubuntu-vm/">
+<meta property="og:image" content="https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:locale" content="en_GB">
+<meta property="article:published_time" content="2021-03-27">
+<meta property="article:author" content="https://janmikes.cz/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ultra-fast Docker on a Mac with an Ubuntu VM">
+<meta name="twitter:description" content="Slow Docker Desktop for Mac, the usual fixes, and a local Ubuntu VM as a remote Docker host: from 160 s to 85 ms.">
+<meta name="twitter:image" content="https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.jpg">
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/assets/fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css?v=10">
+</head>
+<body>
+
+<div class="page">
+
+  <nav class="top">
+    <a class="crumb" href="/slides/">← <span class="name">Jan Mike<span class="hacek">š</span></span> · talks</a>
+  </nav>
+
+  <article class="article title">
+    <p class="meta"><time datetime="2021-03-27">27 March 2021</time> · #posobota s03e03 · online · given in Czech</p>
+    <h1>Ultra-fast Docker on a Mac with an Ubuntu VM</h1>
+    <p class="lede"><span lang="cs">Ultrarychlý Docker na Macu pomocí Ubuntu VM.</span> <span>In early 2021, Docker Desktop for Mac made our Symfony app painfully slow. Moving the Docker engine into a plain Ubuntu virtual machine took one page from 160 seconds to 85 milliseconds.</span></p>
+
+    <div class="note"><b>Update, 2026</b>The file sharing problem behind this talk is much smaller today. Docker Desktop added VirtioFS file sharing, which uses Apple&rsquo;s Virtualization framework, and <a href="https://www.docker.com/blog/docker-desktop-4-23/">made it the default on macOS 12.5+ in version 4.23</a> (2023). Measure your project on a current Docker Desktop before you build a VM setup like the one below.</div>
+
+    <h2>The problem: Docker Desktop for Mac</h2>
+    <p>Docker needs a Linux kernel, so on a Mac, Docker Desktop runs it inside a hidden virtual machine. Your project source lives on the Mac and gets mounted into the containers as a volume. Every file the app reads crosses the boundary between macOS and that VM, and back then that crossing was slow.</p>
+    <p>A PHP app built on Symfony reads a lot of files: vendor code, cache, config. At Carvago it showed. This is our API documentation page, served through Docker Desktop, with the Symfony profiler toolbar at the bottom:</p>
+    <figure>
+      <img src="/assets/talks/docker-in-ubuntu-vm/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Screenshot of a Swagger UI page for /api/doc/sourcing.json with the Symfony profiler toolbar showing the api_doc_ui route took 160580 ms and 34.0 MiB of memory.">
+      <figcaption>160,580 ms. Not a typo: almost three minutes for one page.</figcaption>
+    </figure>
+    <p>Another load of the same page showed 6,282 ms. Better, still unusable for day-to-day development. The slide after that was the &ldquo;This is fine&rdquo; dog sitting in a burning room.</p>
+
+    <h2>Possible fixes</h2>
+    <p>People tried many things to make this bearable:</p>
+    <ul>
+      <li><b>docker-sync:</b> a tool that syncs files into the container instead of mounting them directly</li>
+      <li><b>Cached volumes:</b> mount options that relax consistency between host and container for speed</li>
+      <li><b>Docker Machine:</b> running the engine in a separate VM managed by docker-machine</li>
+      <li><b>tmpfs:</b> keeping hot data such as the cache in memory inside the container</li>
+      <li><b>Stop using Docker</b> for local development</li>
+      <li><b>A remote Docker host</b></li>
+    </ul>
+    <p>I went with the last one.</p>
+
+    <h2>Remote Docker host</h2>
+    <p>The <code>docker</code> command on your Mac is only a client. It talks to the Docker engine through an API, and that engine doesn&rsquo;t have to run on the same machine. You keep the local Docker binaries and point them at a remote engine, for example over SSH:</p>
+    <pre><code>$ export DOCKER_HOST=ssh://sammy@your_server_ip</code></pre>
+    <p>From then on every <code>docker</code> command runs against that engine. The remote host can be a VPS somewhere, or a local virtual machine on the Mac itself. I chose the local VM.</p>
+    <p>The key difference is where the files live. In the VM setup, the project source is synced from the Mac into the Ubuntu VM, and the containers mount it from the VM&rsquo;s own disk. Reads are local Linux file system reads again.</p>
+    <figure>
+      <img src="/assets/talks/docker-in-ubuntu-vm/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Diagram: inside the Mac, the project source is synced into an Ubuntu VM. Inside the VM, a second copy of the project source is mounted as a volume into Docker.">
+      <figcaption>The project source is synced into the VM once, and Docker mounts it from there.</figcaption>
+    </figure>
+
+    <h2>Which virtual machine?</h2>
+    <p>The usual options are Parallels, VMware and VirtualBox. I showed another one: <a href="https://github.com/evansm7/vftool">vftool</a> by Matt Evans, a minimalist command-line wrapper around the Virtualization.framework that Apple added in macOS Big Sur. It runs Linux VMs with virtio block, network, entropy and console devices, and Apple&rsquo;s framework does the actual virtualization. In the demo it booted Ubuntu 20.04.2 LTS straight into a login prompt in the terminal.</p>
+
+    <h2>The setup</h2>
+    <p>The whole recipe has three steps:</p>
+    <ol>
+      <li>Set up the VM: install Ubuntu and Docker in it.</li>
+      <li>Sync files from the Mac to the VM.</li>
+      <li>Profit.</li>
+    </ol>
+    <p>The step-by-step VM setup was published on the Carvago development blog on Medium. The result: two terminals, one on the Mac and one in the Ubuntu VM.</p>
+    <p>And the same API documentation page in the VM:</p>
+    <figure>
+      <img src="/assets/talks/docker-in-ubuntu-vm/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="The same Swagger UI page for /api/doc/sourcing.json, now with the Symfony profiler toolbar showing 85 ms and 2.0 MiB of memory.">
+      <figcaption>85 ms, down from 160,580 ms.</figcaption>
+    </figure>
+    <p>The details of the sync and the VM configuration were shown live, so see <a href="https://www.youtube.com/watch?v=FEaU47WbZcU">the video</a> for the full walkthrough.</p>
+
+    <details class="deck">
+      <summary>All 17 slides</summary>
+      <ol>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/01.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 1: Title: Jan Mikeš, #Posobota 27.03.2021, Docker on Mac in Ubuntu VM, Carvago logo"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/02.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 2: Docker Desktop for Mac: project source mounted as a volume into Docker"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/03.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 3: Swagger API docs page taking 160580 ms and 34 MiB to load"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/04.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 4: “This is fine” dog meme in a burning room"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/05.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 5: Swagger API docs page now loading in 6282 ms"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/06.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 6: Possible fixes: Docker sync, cached volumes, Docker machine, TMPFS, stop using Docker, remote Docker host"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/07.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 7: Remote Docker host: local Docker binaries, remote engine, export DOCKER_HOST=ssh://…"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/08.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 8: Remote Docker host: VPS or local virtual machine, with a diagram of bind mounts, volumes and tmpfs"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/09.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 9: Diagram: project source synced from Mac into an Ubuntu VM, mounted as a volume into Docker"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/10.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 10: Logos of Parallels, VMware and VirtualBox"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/11.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 11: GitHub repo evansm7/vftool: a minimal wrapper for the macOS Virtualization.framework"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/12.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 12: Terminal showing an Ubuntu 20.04 VM booting via vftool"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/13.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 13: Steps: setup VM, sync files from Mac to VM, profit"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/14.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 14: Setup VM write-up on medium.com/carvago-development"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/15.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 15: Two terminals side by side: one on the Mac, one in the Ubuntu VM"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/16.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 16: Swagger API docs page now loading in 85 ms"></li>
+        <li><img src="/assets/talks/docker-in-ubuntu-vm/17.webp" width="1024" height="768" loading="lazy" decoding="async" alt="Slide 17: Homer Simpson asking “Questions?” and Thank you! @honza_mikes, janmikes.cz"></li>
+      </ol>
+    </details>
+
+    <p class="links">
+      <a href="https://www.youtube.com/watch?v=FEaU47WbZcU">Video</a>
+      <a href="https://github.com/evansm7/vftool">vftool</a>
+      <a href="/slides/">All talks</a>
+    </p>
+  </article>
+
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Ultra-fast Docker on a Mac with an Ubuntu VM",
+  "description": "Why Docker Desktop for Mac was so slow with mounted files in 2021, the usual fixes, and how Docker in a local Ubuntu VM took a page from 160 s to 85 ms.",
+  "url": "https://janmikes.cz/slides/docker-in-ubuntu-vm/",
+  "datePublished": "2021-03-27",
+  "dateModified": "2026-11-01",
+  "inLanguage": "en",
+  "image": "https://janmikes.cz/assets/talks/docker-in-ubuntu-vm.jpg",
+  "about": ["Docker", "Docker Desktop", "macOS", "Virtual machines", "Ubuntu", "Developer experience"],
+  "author": { "@type": "Person", "@id": "https://janmikes.cz/#person", "name": "Jan Mikeš", "url": "https://janmikes.cz/" }
+}
+</script>
+</body>
+</html>
