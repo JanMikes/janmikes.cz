@@ -402,3 +402,11 @@ p,.positions span,.list span{text-wrap:pretty}
   .list li > a::after{content:none}
   .list li > a[data-host]::after{content:attr(data-host); display:block; margin:0; opacity:1; transform:none; font:400 7.5pt/1.4 var(--mono); color:var(--muted)}
 }
+
+/* talk stripe: one line on top of the page, links to today's slides */
+.stripe{display:flex; justify-content:center; align-items:baseline; gap:.75rem; padding:.55rem var(--gutter); background:var(--ink); color:var(--paper); font:500 .875rem/1.4 var(--sans); text-decoration:none; white-space:nowrap}
+.stripe:hover, .stripe:hover .stripe__go{color:var(--paper)}
+.stripe__ev{font:500 .7rem var(--mono); letter-spacing:.1em; text-transform:uppercase; opacity:.65}
+.stripe__t{min-width:0; overflow:hidden; text-overflow:ellipsis}
+.stripe__go{font:500 .78rem var(--mono); text-decoration:underline; text-underline-offset:.22em}
+@media (max-width:480px){ .stripe{gap:.5rem; font-size:.8125rem} .stripe__yr{display:none} }

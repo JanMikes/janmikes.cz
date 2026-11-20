@@ -185,10 +185,18 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
 .contact .mail{font-size:clamp(1.2rem,3vw,1.8rem); font-weight:600}
 .contact dl{display:flex; flex-wrap:wrap; justify-content:center; gap:.4rem 2rem; font:.85rem var(--mono); margin:2.4rem 0 0}
 .contact dt{color:var(--muted); display:inline} .contact dd{display:inline; margin:0 0 0 .5rem}
+/* talk stripe: one line on top of the page, links to today's slides */
+.stripe{position:relative; z-index:3; display:flex; justify-content:center; align-items:baseline; gap:.75rem; padding:.55rem var(--gutter); background:var(--ink); color:var(--bg); font:500 .875rem/1.4 var(--sans); text-decoration:none; white-space:nowrap}
+.stripe:hover{color:var(--bg)} .stripe:hover .stripe__go{color:var(--bg)}
+.stripe__ev{font:500 .7rem var(--mono); letter-spacing:.1em; text-transform:uppercase; opacity:.65}
+.stripe__t{min-width:0; overflow:hidden; text-overflow:ellipsis}
+.stripe__go{font:500 .78rem var(--mono); text-decoration:underline; text-underline-offset:.22em}
+@media (max-width:480px){ .stripe{gap:.5rem; font-size:.8125rem} .stripe__yr{display:none} }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<a class="stripe" href="https://techmeetup-conference-2026.janmikes.cz/"><span class="stripe__ev">TechMeetup<span class="stripe__yr"> 2026</span></span><span class="stripe__t">Building Modern APIs in PHP</span><span class="stripe__go">slides <span aria-hidden="true">→</span></span></a>
 <div class="glass" aria-hidden="true"><canvas></canvas></div>
 <div class="rails" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
@@ -275,9 +283,9 @@ a:hover{color:var(--accent); text-decoration-color:currentColor}
   <section class="sec" id="talks" aria-labelledby="h-talks">
     <div class="sec__head"><h2 id="h-talks">Talks</h2><p>On running AI agents for real, and on building things cheaply that last.</p></div>
     <div class="cells" style="--x1:50%;--x2:25%">
+      <a class="talk" href="https://techmeetup-conference-2026.janmikes.cz/"><img src="/assets/talks/techmeetup-conference-2026.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-11-20">2026-11</time><b>Building Modern APIs in PHP (2026 Edition)</b><span>TechMeetup Conference</span></a>
       <a class="talk" href="/slides/clean-context/"><img src="/assets/talks/techmeetup-43-1.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-09-09">2026-09</time><b>Clean context: running Claude Code for days</b><span>Tech Meetup #43</span></a>
       <a class="talk" href="/slides/devs-will-have-nothing-to-eat/"><img src="/assets/talks/techmeetup-43-2.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-09-09">2026-09</time><b lang="cs">A vývojáři nebudou mít co žrát</b><span>Tech Meetup #43 · in Czech</span></a>
-      <a class="talk" href="/slides/homemade-ai-chatbot/"><img src="/assets/talks/techmeetup-39.webp" alt="" loading="lazy" decoding="async" width="640" height="360"><time datetime="2026-01-28">2026-01</time><b>Homemade AI chatbot: Symfony, RAG &amp; OCR</b><span>Tech Meetup #39 · Impact Hub Ostrava</span></a>
       <a class="more" href="/slides/">All talks →</a>
     </div>
   </section>
