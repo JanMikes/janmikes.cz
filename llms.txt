@@ -4,7 +4,7 @@
 
 Key facts:
 - Based in Ostrava, Czech Republic. Speaks Czech and English.
-- Built MySpeedPuzzling (https://myspeedpuzzling.com), the largest speed puzzling community database in the world: bootstrapped, past 11,000 users, web, iOS and Android apps on one codebase, fully open source (https://github.com/MySpeedPuzzling/myspeedpuzzling.com). It deploys from push to production in about two and a half minutes.
+- Built MySpeedPuzzling (https://myspeedpuzzling.com), the largest speed puzzling community database in the world: bootstrapped, past 12,500 users, web, iOS and Android apps on one codebase, fully open source (https://github.com/MySpeedPuzzling/myspeedpuzzling.com). It deploys from push to production in about two and a half minutes.
 - Products: SorticAI (AI regulatory oversight and readiness assessments for law firms and boards), VMCorp (production AI agent systems and cloud architecture), AUTiX (cloud business management software for companies and e-shops), Sendvery (DMARC and email authentication monitoring), wboost (locked brand templates that designers hand over for clients to edit), Fajnesklady (self-storage units with round-the-clock access). Also does consulting and advisory work.
 - Works with: PHP, Symfony, PostgreSQL, PHPStan, CI/CD, Docker, self-hosting on Hetzner, AI-assisted development with Claude Code, RAG.
 - Contact: j.mikes@me.com · +420 773 686 207 · https://github.com/janmikes · https://www.linkedin.com/in/jan-mikes/
